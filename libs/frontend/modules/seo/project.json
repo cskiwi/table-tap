@@ -1,0 +1,33 @@
+{
+  "name": "frontend-modules-seo",
+  "$schema": "../../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/frontend/modules/seo/src",
+  "prefix": "app",
+  "projectType": "library",
+  "tags": [],
+  "targets": {
+    "build": {
+      "executor": "@nx/angular:ng-packagr-lite",
+      "outputs": ["{workspaceRoot}/dist/libs/frontend/modules/seo"],
+      "options": {
+        "project": "libs/frontend/modules/seo/ng-package.json"
+      },
+      "configurations": {
+        "production": {
+          "tsConfig": "libs/frontend/modules/seo/tsconfig.lib.prod.json"
+        },
+        "development": {
+          "tsConfig": "libs/frontend/modules/seo/tsconfig.lib.json"
+        }
+      },
+      "defaultConfiguration": "production"
+    },
+    "test": {
+      "executor": "@nx/jest:jest",
+      "outputs": ["{workspaceRoot}/coverage/libs/frontend/modules/seo"],
+      "options": {
+        "jestConfig": "libs/frontend/modules/seo/jest.config.ts"
+      }
+    }
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "clubs": {
+    "search": "Zoek club"
+  },
+  "game": {
+    "recent": {
+      "title": "Recente ontmoetingen"
+    },
+    "upcoming": {
+      "title": "Komende ontmoetingen"
+    }
+  },
+  "landing": {
+    "description": "Welkom op de v2 test versie van Badman"
+  },
+  "partner": {
+    "amount-of-games": "Aantal wedstrijden",
+    "filters": {
+      "all": "Alles",
+      "competition": "Competitie",
+      "double": "Dubbel",
+      "games": "Min wedstrijden",
+      "gameType": "Type",
+      "linktype": "Toernooi/competitie",
+      "mix": "Gemengd",
+      "start-date": "Vanaf",
+      "tournament": "Toernooi"
+    },
+    "name": "Naam",
+    "win-rate": "Win percentage"
+  },
+  "players": {
+    "my-club": "Mijn club",
+    "my-clubs": "Mijn clubs",
+    "my-profile": "Mijn profiel",
+    "search": "Zoek speler"
+  },
+  "points": {
+    "needed-for-downgrade": "Promotie",
+    "needed-for-upgrade": "Degradatie",
+    "table": {
+      "level": "Level",
+      "points-needed-down": "Grenswaarde voor dalen",
+      "points-needed-up": "Grenswaarde voor stijgen",
+      "points-won": "Punten gewonnen tegen dit niveau"
+    }
+  },
+  "settings": {
+    "general": {
+      "title": "General"
+    },
+    "languages": {
+      "en": "English",
+      "fr_BE": "Français",
+      "nl_BE": "Nederlands",
+      "title": "Taal"
+    }
+  }
+}

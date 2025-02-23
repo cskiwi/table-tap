@@ -1,0 +1,33 @@
+{
+  "name": "frontend-modules-auth",
+  "$schema": "../../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/frontend/modules/auth/src",
+  "prefix": "app",
+  "projectType": "library",
+  "tags": [],
+  "targets": {
+    "build": {
+      "executor": "@nx/angular:ng-packagr-lite",
+      "outputs": ["{workspaceRoot}/dist/libs/frontend/modules/auth"],
+      "options": {
+        "project": "libs/frontend/modules/auth/ng-package.json"
+      },
+      "configurations": {
+        "production": {
+          "tsConfig": "libs/frontend/modules/auth/tsconfig.lib.prod.json"
+        },
+        "development": {
+          "tsConfig": "libs/frontend/modules/auth/tsconfig.lib.json"
+        }
+      },
+      "defaultConfiguration": "production"
+    },
+    "test": {
+      "executor": "@nx/jest:jest",
+      "outputs": ["{workspaceRoot}/coverage/libs/frontend/modules/auth"],
+      "options": {
+        "jestConfig": "libs/frontend/modules/auth/jest.config.ts"
+      }
+    }
+  }
+}

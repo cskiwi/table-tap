@@ -1,0 +1,33 @@
+{
+  "name": "frontend-modules-translation",
+  "$schema": "../../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/frontend/modules/translation/src",
+  "prefix": "app",
+  "projectType": "library",
+  "tags": [],
+  "targets": {
+    "build": {
+      "executor": "@nx/angular:ng-packagr-lite",
+      "outputs": ["{workspaceRoot}/dist/libs/frontend/modules/translation"],
+      "options": {
+        "project": "libs/frontend/modules/translation/ng-package.json"
+      },
+      "configurations": {
+        "production": {
+          "tsConfig": "libs/frontend/modules/translation/tsconfig.lib.prod.json"
+        },
+        "development": {
+          "tsConfig": "libs/frontend/modules/translation/tsconfig.lib.json"
+        }
+      },
+      "defaultConfiguration": "production"
+    },
+    "test": {
+      "executor": "@nx/jest:jest",
+      "outputs": ["{workspaceRoot}/coverage/libs/frontend/modules/translation"],
+      "options": {
+        "jestConfig": "libs/frontend/modules/translation/jest.config.ts"
+      }
+    }
+  }
+}

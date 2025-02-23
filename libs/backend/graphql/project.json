@@ -1,0 +1,27 @@
+{
+  "name": "backend-graphql",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/backend/graphql/src",
+  "projectType": "library",
+  "tags": [],
+  "targets": {
+    "test": {
+      "executor": "@nx/jest:jest",
+      "outputs": ["{workspaceRoot}/coverage/libs/backend/graphql"],
+      "options": {
+        "jestConfig": "libs/backend/graphql/jest.config.ts"
+      }
+    },
+    "build": {
+      "executor": "@nx/js:tsc",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "{workspaceRoot}/dist/libs/backend/graphql",
+        "tsConfig": "libs/backend/graphql/tsconfig.lib.json",
+        "packageJson": "libs/backend/graphql/package.json",
+        "main": "libs/backend/graphql/src/index.ts",
+        "assets": ["{projectRoot/*.md"]
+      }
+    }
+  }
+}

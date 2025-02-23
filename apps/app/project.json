@@ -1,0 +1,117 @@
+{
+  "name": "app",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "application",
+  "prefix": "app",
+  "sourceRoot": "apps/app/src",
+  "tags": ["scope:app"],
+  "targets": {
+    "build": {
+      "executor": "@nx/angular:application",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/apps/app",
+        "index": "apps/app/src/index.html",
+        "browser": "apps/app/src/main.ts",
+        "server": "apps/app/src/main.server.ts",
+        "polyfills": ["zone.js"],
+        "tsConfig": "apps/app/tsconfig.app.json",
+        "inlineStyleLanguage": "scss",
+        "assets": [
+          {
+            "glob": "**/*",
+            "input": "apps/app/public"
+          }
+        ],
+        "styles": ["apps/app/src/styles.scss"],
+        "stylePreprocessorOptions": {
+          "includePaths": ["node_modules/"]
+        },
+        "externalDependencies": [
+          "@apollo/gateway",
+          "@apollo/subgraph",
+          "@apollo/server",
+          "@as-integrations/fastify",
+          "@mikro-orm/core",
+          "@nestjs/*",
+          "jwks-rsa",
+          "sqlite3",
+          "dotenv",
+          "graphql-type-json",
+          "cache-manager",
+          "class-transformer",
+          "class-validator",
+          "ioredis",
+          "typeorm",
+          "sharp",
+          "canvas",
+          "nestjs-i18n"
+        ],
+        "scripts": [],
+        "prerender": false,
+        "ssr": {
+          "entry": "apps/app/server/server.ts"
+        }
+      },
+      "configurations": {
+        "production": {
+          "budgets": [
+            {
+              "type": "initial",
+              "maximumWarning": "1mb",
+              "maximumError": "2mb"
+            },
+            {
+              "type": "anyComponentStyle",
+              "maximumWarning": "2kb",
+              "maximumError": "4kb"
+            }
+          ],
+          "outputHashing": "all",
+          "serviceWorker": "apps/app/ngsw-config.json"
+        },
+        "development": {
+          "optimization": false,
+          "extractLicenses": false,
+          "sourceMap": true
+        }
+      },
+      "defaultConfiguration": "production"
+    },
+    "serve": {
+      "executor": "@nx/angular:dev-server",
+      "options": {
+        "port": 3000
+      },
+      "configurations": {
+        "production": {
+          "buildTarget": "app:build:production"
+        },
+        "development": {
+          "buildTarget": "app:build:development",
+          "proxyConfig": "{projectRoot}/proxy.conf.json"
+        }
+      },
+      "defaultConfiguration": "development"
+    },
+    "extract-i18n": {
+      "executor": "@nx/angular:extract-i18n",
+      "options": {
+        "buildTarget": "app:build"
+      }
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint"
+    },
+    "test": {
+      "executor": "@nx/jest:jest",
+      "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
+      "options": {
+        "jestConfig": "{projectRoot}/jest.config.ts"
+      }
+    },
+    "set-env": {
+      "executor": "@app/set-env:set-env"
+    }
+  }
+}

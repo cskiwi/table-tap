@@ -1,0 +1,45 @@
+{
+  "name": "backend-database",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/backend/database/src",
+  "projectType": "library",
+  "tags": [],
+  "targets": {
+    "test": {
+      "executor": "@nx/jest:jest",
+      "outputs": ["{workspaceRoot}/coverage/libs/backend/database"],
+      "options": {
+        "jestConfig": "libs/backend/database/jest.config.ts"
+      }
+    },
+    "build": {
+      "executor": "@nx/js:tsc",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "{workspaceRoot}/dist/libs/backend/database",
+        "tsConfig": "libs/backend/database/tsconfig.lib.json",
+        "packageJson": "libs/backend/database/package.json",
+        "main": "libs/backend/database/src/index.ts",
+        "assets": ["{projectRoot/*.md"]
+      }
+    },
+    "migration-generate": {
+      "command": "ts-node -r tsconfig-paths/register --project libs/backend/database/tsconfig.json ./node_modules/typeorm/cli migration:generate -d libs/backend/database/src/datasource -p libs/backend/database/src/migrations/{args.name}",
+      "options": {
+        "envFile": "{workspaceRoot}/.env"
+      }
+    },
+    "migration-run": {
+      "command": "ts-node -r tsconfig-paths/register --project libs/backend/database/tsconfig.json ./node_modules/typeorm/cli migration:run -d libs/backend/database/src/datasource",
+      "options": {
+        "envFile": "{workspaceRoot}/.env"
+      }
+    },
+    "migration-revert": {
+      "command": "ts-node -r tsconfig-paths/register --project libs/backend/database/tsconfig.json ./node_modules/typeorm/cli migration:revert -d libs/backend/database/src/datasource",
+      "options": {
+        "envFile": "{workspaceRoot}/.env"
+      }
+    }
+  }
+}

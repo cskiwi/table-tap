@@ -1,0 +1,27 @@
+{
+  "name": "backend-seo",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/backend/seo/src",
+  "projectType": "library",
+  "tags": [],
+  "targets": {
+    "test": {
+      "executor": "@nx/jest:jest",
+      "outputs": ["{workspaceRoot}/coverage/libs/backend/seo"],
+      "options": {
+        "jestConfig": "libs/backend/seo/jest.config.ts"
+      }
+    },
+    "build": {
+      "executor": "@nx/js:tsc",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "{workspaceRoot}/dist/libs/backend/seo",
+        "tsConfig": "libs/backend/seo/tsconfig.lib.json",
+        "packageJson": "libs/backend/seo/package.json",
+        "main": "libs/backend/seo/src/index.ts",
+        "assets": ["{projectRoot/*.md"]
+      }
+    }
+  }
+}

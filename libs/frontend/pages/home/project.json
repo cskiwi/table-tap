@@ -1,0 +1,33 @@
+{
+  "name": "frontend-pages-home",
+  "$schema": "../../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/frontend/pages/home/src",
+  "prefix": "app",
+  "projectType": "library",
+  "tags": [],
+  "targets": {
+    "build": {
+      "executor": "@nx/angular:ng-packagr-lite",
+      "outputs": ["{workspaceRoot}/dist/libs/frontend/pages/home"],
+      "options": {
+        "project": "libs/frontend/pages/home/ng-package.json"
+      },
+      "configurations": {
+        "production": {
+          "tsConfig": "libs/frontend/pages/home/tsconfig.lib.prod.json"
+        },
+        "development": {
+          "tsConfig": "libs/frontend/pages/home/tsconfig.lib.json"
+        }
+      },
+      "defaultConfiguration": "production"
+    },
+    "test": {
+      "executor": "@nx/jest:jest",
+      "outputs": ["{workspaceRoot}/coverage/libs/frontend/pages/home"],
+      "options": {
+        "jestConfig": "libs/frontend/pages/home/jest.config.ts"
+      }
+    }
+  }
+}
