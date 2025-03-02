@@ -9,22 +9,22 @@ import {
 import { AppModule } from './app.module';
 
 export const getServer = async (adapter?: AbstractHttpAdapter) => {
-  const app = adapter
+  const nestjsApp = adapter
     ? await NestFactory.create(AppModule, adapter)
     : await NestFactory.create(AppModule);
   const globalPrefix = 'api';
-  app.setGlobalPrefix(globalPrefix);
-  app.enableShutdownHooks();
-  app.enableVersioning({
+  nestjsApp.setGlobalPrefix(globalPrefix);
+  nestjsApp.enableShutdownHooks();
+  nestjsApp.enableVersioning({
     type: VersioningType.URI,
     defaultVersion: '1',
   });
-  app.enableCors({
+  nestjsApp.enableCors({
     origin: '*',
     methods: '*',
     allowedHeaders: '*',
   });
-  const configService = app.get(ConfigService);
+  const configService = nestjsApp.get(ConfigService);
 
   const config = new DocumentBuilder()
     .setTitle('Table Tab')
@@ -63,10 +63,10 @@ export const getServer = async (adapter?: AbstractHttpAdapter) => {
     },
   };
 
-  const document = SwaggerModule.createDocument(app, config);
+  const document = SwaggerModule.createDocument(nestjsApp, config);
 
-  SwaggerModule.setup(globalPrefix, app, document, swaggerCustomOptions);
+  SwaggerModule.setup(globalPrefix, nestjsApp, document, swaggerCustomOptions);
   Logger.log(`Server swagger on /${globalPrefix}`, 'Swagger');
 
-  return app;
+  return nestjsApp;
 };

@@ -6,6 +6,4 @@ export const appRoutes: Route[] = [
     path: '',
     children: pageHomeRoutes,
   },
-
- 
 ];
