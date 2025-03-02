@@ -1,4 +1,10 @@
 {
   "name": "@app/models",
-  "version": "0.0.1"
+  "version": "0.0.1",
+  "dependencies": {
+    "@app/utils": "0.0.1",
+    "@nestjs/graphql": "^13.0.3",
+    "tslib": "^2.8.1",
+    "typeorm": "^0.3.20"
+  }
 }

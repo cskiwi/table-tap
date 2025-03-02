@@ -9,8 +9,13 @@
     "typeorm": "^0.3.20",
     "graphql": "^16.9.0",
     "graphql-type-json": "^0.3.2",
-    "@nestjs/graphql": "^12.2.1",
-    "class-validator": "^0.14.1"
+    "@nestjs/graphql": "^13.0.3",
+    "class-validator": "^0.14.1",
+    "@nestjs/apollo": "^13.0.3",
+    "@nestjs/common": "^11.0.11",
+    "@nestjs/config": "^4.0.0",
+    "@apollo/server": "^4.11.3",
+    "reflect-metadata": "^0.2.2"
   },
   "type": "commonjs",
   "main": "./src/index.js",

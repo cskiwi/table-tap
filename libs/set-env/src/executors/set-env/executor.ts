@@ -1,7 +1,7 @@
 import { PromiseExecutor } from '@nx/devkit';
 import { BuildExecutorSchema } from './schema';
-import * as fs from 'fs';
-import * as path from 'path';
+import { dirname, join } from 'path';
+import { existsSync, mkdirSync, writeFileSync } from 'fs';
 
 const runExecutor: PromiseExecutor<BuildExecutorSchema> = async (options, context) => {
   const environmentVariables = {
@@ -13,7 +13,7 @@ const runExecutor: PromiseExecutor<BuildExecutorSchema> = async (options, contex
   };
 
   // Path to the Angular environment file (e.g., src/environments/environment.ts)
-  const envFilePath = path.join(context.root, 'apps', context.projectName, 'src', 'environments', 'environment.ts');
+  const envFilePath = join(context.root, 'apps', context.projectName, 'src', 'environments', 'environment.ts');
 
   // Generate the content for the environment file
   const envFileContent = `
@@ -27,13 +27,13 @@ const runExecutor: PromiseExecutor<BuildExecutorSchema> = async (options, contex
   `;
 
   // create the environments directory if it doesn't exist
-  const envDir = path.dirname(envFilePath);
-  if (!fs.existsSync(envDir)) {
-    fs.mkdirSync(envDir, { recursive: true });
+  const envDir = dirname(envFilePath);
+  if (!existsSync(envDir)) {
+    mkdirSync(envDir, { recursive: true });
   }
 
   // Write the environment file
-  fs.writeFileSync(envFilePath, envFileContent);
+  writeFileSync(envFilePath, envFileContent);
 
   // debug environment file
   console.log('Environment file written:', envFileContent);

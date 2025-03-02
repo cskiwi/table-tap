@@ -2,10 +2,10 @@
   "name": "@app/frontend-pages-home",
   "version": "0.0.1",
   "peerDependencies": {
-    "@app/frontend-components": "0.0.1",
-    "@app/frontend-modules-graphql": "0.0.1",
-    "@app/models": "0.0.1",
-    "@app/frontend-utils": "0.0.1"
+    "@angular/router": "19.1.5",
+    "@angular/common": "19.1.5",
+    "@angular/core": "19.1.5",
+    "primeng": "^19.0.9"
   },
   "sideEffects": false
 }
