@@ -8,12 +8,15 @@ import { ApolloServerPluginSchemaReporting } from '@apollo/server/plugin/schemaR
 import { ApolloServerPluginUsageReporting } from '@apollo/server/plugin/usageReporting';
 import { AuthorizationModule } from '@app/backend-authorization';
 import { UserResolver } from './resolvers';
+import {ConfigModule} from '@nestjs/config';
 
 @Module({
   imports: [
     AuthorizationModule,
+    ConfigModule,
     NestJsGql.forRootAsync({
       driver: ApolloDriver,
+      imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: async (config: ConfigService) => {
         const plugins = [];
