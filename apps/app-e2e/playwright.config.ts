@@ -5,7 +5,7 @@ import { workspaceRoot } from '@nx/devkit';
 import { config as dotenvConfig } from 'dotenv';
 
 // For CI, you may want to set BASE_URL to the deployed application.
-const baseURL = process.env['BASE_URL'] || 'http://localhost:4200';
+const baseURL = process.env['BASE_URL'] || 'http://localhost:5000';
 
 /**
  * Read environment variables from file.
@@ -32,6 +32,7 @@ export default defineConfig({
     cwd: workspaceRoot,
     stdout: 'pipe',
     stderr: 'pipe',
+    timeout: 120 * 1000,
     env: {
       DB_TYPE: 'sqlite',
       DB_DATABASE: ':memory:',
