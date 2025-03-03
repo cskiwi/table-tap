@@ -76,10 +76,10 @@ export const appConfig: ApplicationConfig = {
       theme: {
         preset: Material,
         options: {
-          // cssLayer: {
-            // name: 'primeng',
-            // order: 'tailwind, primeng',
-          // },
+          cssLayer: {
+            name: 'primeng',
+            order: 'base, components, primeng, utilities',
+          },
         },
       },
     }),

@@ -1,12 +1,5 @@
 @use "primeicons/primeicons.css";
-@import "tailwindcss";
-@plugin "tailwindcss-primeui";
+@use 'tailwindcss';
+@plugin 'tailwindcss-primeui';
 
-
-/*
-
-@use 'primeicons/primeicons.css';
-@use "tailwindcss-primeui/v4/index.css";
-
-@import 'tailwindcss';
- */
+@layer base, components, primeng, utilities;
