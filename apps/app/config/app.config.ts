@@ -75,6 +75,12 @@ export const appConfig: ApplicationConfig = {
     providePrimeNG({
       theme: {
         preset: Material,
+        options: {
+          // cssLayer: {
+            // name: 'primeng',
+            // order: 'tailwind, primeng',
+          // },
+        },
       },
     }),
     {

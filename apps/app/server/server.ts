@@ -32,23 +32,17 @@ export async function app() {
 
   // setup NestJS app first
   const adapter = new ExpressAdapter(app);
-  const nestjsApp = await getServer(adapter);
-  const configService = nestjsApp.get(ConfigService);
-  const port = configService.get<number>('PORT', 5000);
 
-  await nestjsApp.init();
-
-  app.all('*', async (req, res, next) => {
+  // redirect all requests to Angular Universal
+  app.all(/.*$/, async (req, res, next) => {
     try {
-      Logger.log(`Request URL: ${req.originalUrl}`);
-
       if (shouldSkip(req.originalUrl)) {
         return next();
       }
-  
+
       const { protocol, originalUrl, baseUrl, headers } = req;
       const userAgent = headers['user-agent'];
-  
+
       const html = await commonEngine.render({
         bootstrap,
         documentFilePath: indexHtml,
@@ -61,14 +55,21 @@ export async function app() {
           { provide: NAVIGATOR, useValue: userAgent },
         ],
       });
-  
+
       res.send(html);
     } catch (err) {
       next(err);
     }
   });
-  
 
+  const nestjsApp = await getServer(adapter);
+  const configService = nestjsApp.get(ConfigService);
+  const port = configService.get<number>('PORT', 5000);
+  const logger = new Logger('Server');
+
+  await nestjsApp.init();
+
+  logger.debug(`NestJS app is running on: http://localhost:${port}`);
   await nestjsApp.listen(port);
 }
 

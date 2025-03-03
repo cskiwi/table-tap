@@ -1,17 +1,13 @@
 import { Logger, VersioningType } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { AbstractHttpAdapter, NestFactory } from '@nestjs/core';
-import {
-  DocumentBuilder,
-  SwaggerCustomOptions,
-  SwaggerModule,
-} from '@nestjs/swagger';
+import { DocumentBuilder, SwaggerCustomOptions, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 
 export const getServer = async (adapter?: AbstractHttpAdapter) => {
-  const nestjsApp = adapter
-    ? await NestFactory.create(AppModule, adapter)
-    : await NestFactory.create(AppModule);
+  const nestjsApp = adapter ? await NestFactory.create(AppModule, adapter) : await NestFactory.create(AppModule);
+
+  
   const globalPrefix = 'api';
   nestjsApp.setGlobalPrefix(globalPrefix);
   nestjsApp.enableShutdownHooks();
