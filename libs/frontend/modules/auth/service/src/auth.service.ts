@@ -1,6 +1,6 @@
 import { isPlatformBrowser, isPlatformServer } from '@angular/common';
 import { computed, effect, inject, Injectable, PLATFORM_ID, untracked } from '@angular/core';
-import { Player } from '@app/models';
+import { User } from '@app/models';
 import { AppState, AuthService as Auth0Service, RedirectLoginOptions } from '@auth0/auth0-angular';
 import { Apollo, gql } from 'apollo-angular';
 import { SsrCookieService } from 'ngx-cookie-service-ssr';
@@ -10,7 +10,7 @@ import { filter, map, switchMap } from 'rxjs/operators';
 import { AUTH_KEY } from './auth.key';
 
 export interface AuthState {
-  user: Player | null;
+  user: User | null;
   loggedIn: boolean;
   loaded: boolean;
   token: string | null;
@@ -82,7 +82,7 @@ export class AuthService {
                       fullName: p?.nickname,
                       firstName: p?.nickname?.split('.')[0],
                       lastName: p?.nickname?.split('.')[1],
-                    }) as Player,
+                    }) as User,
                 ),
               ) ?? of(null),
               of(user),
@@ -157,7 +157,7 @@ export class AuthService {
   fetchUser() {
     return this.apollo
       .query<{
-        me: Player;
+        me: User;
       }>({
         query: gql`
           query {

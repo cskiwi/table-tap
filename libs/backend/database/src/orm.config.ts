@@ -1,10 +1,8 @@
-import { Player } from '@app/models';
+import { User } from '@app/models';
 import { ConfigService } from '@nestjs/config';
 import { DataSource, DataSourceOptions } from 'typeorm';
-import { PostgresConnectionOptions } from 'typeorm/driver/postgres/PostgresConnectionOptions';
-import { SqliteConnectionOptions } from 'typeorm/driver/sqlite/SqliteConnectionOptions';
 
-const entities = [Player];
+const entities = [User];
 
 export function getDbConfig(configService?: ConfigService): DataSourceOptions {
   const getEnvVar = (key: string, defaultValue?: string) => (configService ? configService.get<string>(key) : process.env[key] || defaultValue);
@@ -21,24 +19,27 @@ export function getDbConfig(configService?: ConfigService): DataSourceOptions {
       type: 'sqlite',
       database: getEnvVar('DB_DATABASE'),
       synchronize: getEnvVar('DB_SYNCHRONIZE') === 'true',
-    } as SqliteConnectionOptions;
+    } as DataSourceOptions;
   } else if (dbType === 'postgres') {
     config = {
       type: 'postgres',
       host: getEnvVar('DB_IP'),
-      port: getEnvVar('DB_PORT') ? parseInt(getEnvVar('DB_PORT')!) : 5432,
+      port: getEnvVar('DB_PORT') ? parseInt(getEnvVar('DB_PORT') as string) : 5432,
       username: getEnvVar('DB_USER'),
       password: getEnvVar('DB_PASSWORD'),
       database: getEnvVar('DB_DATABASE'),
       ssl: getEnvVar('DB_SSL') === 'true' ? { rejectUnauthorized: false } : false,
       migrationsTableName: 'typeorm_migrations',
-      applicationName: 'Table Tab',
+      applicationName: 'badman',
       options: { trustServerCertificate: true },
       migrations: addMigrations ? ['libs/backend/database/src/migrations/*.ts'] : undefined,
       synchronize: false,
       migrationsRun: false,
+      cli: {
+        migrationsDir: 'libs/backend/database/src/migrations'
+      },
       // logging: true,
-    } as PostgresConnectionOptions;
+    } as DataSourceOptions;
   } else {
     throw new Error('Unsupported DB_TYPE. Please specify either "sqlite" or "postgres".');
   }
@@ -60,5 +61,5 @@ export function initializeDataSource(configService?: ConfigService) {
   return {
     datasource,
     config,
-  };
+  }
 }

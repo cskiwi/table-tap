@@ -2,7 +2,7 @@ import { isPlatformBrowser, PlatformLocation } from '@angular/common';
 import { inject, Injectable, PLATFORM_ID } from '@angular/core';
 import { Meta, Title } from '@angular/platform-browser';
 import { SEO_CONFIG, ISeoConfig } from '@app/frontend-modules-seo';
-import { Player } from '@app/models';
+import { User } from '@app/models';
 
 type ISeoMetaData = {
   keywords?: string[];
@@ -16,8 +16,8 @@ type ISeoMetaData = {
       description?: string;
     }
   | {
-      seoType: 'player';
-      player: Player;
+      seoType: 'user';
+      user: User;
     }
 );
 
@@ -48,8 +48,8 @@ export class SeoService {
       case 'generic':
         this.setGeneric(data);
         break;
-      case 'player':
-        this.setPlayer(data);
+      case 'user':
+        this.setUser(data);
         break;
     }
 
@@ -69,12 +69,12 @@ export class SeoService {
     }
   }
 
-  setPlayer(data: { player: Player; }) {
-    const desc = `The profile page of the player ${data.player.fullName} `;
+  setUser(data: { user: User; }) {
+    const desc = `The profile page of the user ${data.user.fullName} `;
 
-    this.setTitle(`Player ${data.player.fullName}`);
+    this.setTitle(`User ${data.user.fullName}`);
     this.setDescription(desc);
-    this.setImage(`${this.config.imageEndpoint}/?id=${encodeURIComponent(data.player.slug)}&type=player`);
+    this.setImage(`${this.config.imageEndpoint}/?id=${encodeURIComponent(data.user.slug)}&type=user`);
     this.setMetaTag('name', 'twitter:card', 'summary_large_image');
   }
 

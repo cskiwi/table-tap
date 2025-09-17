@@ -1,6 +1,6 @@
 import { Controller, Get, Logger, Query, Res } from '@nestjs/common';
 import { Response } from 'express';
-import { PlayerImageGenerator } from './images/player';
+import { UserImageGenerator } from './images/user';
 
 @Controller({ path: 'images' })
 export class ImagesController {
@@ -10,14 +10,14 @@ export class ImagesController {
   async generateImage(
     @Res() res: Response,
     @Query('id') id: string,
-    @Query('type') type: 'player' | 'club',
+    @Query('type') type: 'user' | 'club',
   ) {
     let result;
     let imageBuffer: Buffer | undefined;
 
     switch (type) {
-      case 'player':
-        result = await new PlayerImageGenerator().generateImage(id);
+      case 'user':
+        result = await new UserImageGenerator().generateImage(id);
         if ('status' in result) {
           res.status(result.status).send(result.message);
           return;

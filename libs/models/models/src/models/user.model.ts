@@ -2,10 +2,10 @@ import { SortableField } from '@app/utils';
 import { Field, ID, ObjectType } from '@nestjs/graphql';
 import { BaseEntity, Column, CreateDateColumn, Entity, Index, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 
-@ObjectType('Player')
-@Entity('Players')
+@ObjectType('User')
+@Entity('Users')
 @Index(['firstName', 'lastName'])
-export class Player extends BaseEntity {
+export class User extends BaseEntity {
   @Field(() => ID)
   @PrimaryGeneratedColumn('uuid')
   declare id: string;

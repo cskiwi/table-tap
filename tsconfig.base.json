@@ -43,7 +43,7 @@
       "@app/frontend-pages-club": ["libs/frontend/pages/club/src/index.ts"],
       "@app/frontend-pages-competition": ["libs/frontend/pages/competition/src/index.ts"],
       "@app/frontend-pages-home": ["libs/frontend/pages/home/src/index.ts"],
-      "@app/frontend-pages-player": ["libs/frontend/pages/player/src/index.ts"],
+      "@app/frontend-pages-user": ["libs/frontend/pages/user/src/index.ts"],
       "@app/frontend-utils": ["libs/frontend/utils/src/index.ts"],
       "@app/models": ["libs/models/models/src/index.ts"],
       "@app/models/enums": ["libs/models/enum/src/index.ts"],

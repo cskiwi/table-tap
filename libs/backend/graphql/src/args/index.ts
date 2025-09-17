@@ -1,11 +1,11 @@
-import { Player } from '@app/models';
+import { User } from '@app/models';
 import { args } from '../utils';
 import { appendSortableObjects, SortOrderType } from '../utils/sort-order';
 
 // Register all SortOrderTypes
-SortOrderType(Player, 'Player');
+SortOrderType(User, 'User');
 
 // Append nested objects to orders
-appendSortableObjects(Player, 'Player');
+appendSortableObjects(User, 'User');
 
-export const PlayerArgs = args<Player>('Player');
+export const UserArgs = args<User>('User');

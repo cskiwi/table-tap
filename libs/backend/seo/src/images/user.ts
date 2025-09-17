@@ -1,7 +1,7 @@
-import { Player } from '@app/models';
+import { User } from '@app/models';
 import sharp from 'sharp';
 
-export class PlayerImageGenerator {
+export class UserImageGenerator {
   private readonly backgroundColor = '#ffffff';
   private readonly textColor = '#24292e';
 
@@ -14,18 +14,18 @@ export class PlayerImageGenerator {
     const oneYearAgo = new Date();
     oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
 
-    const playerQry = Player.createQueryBuilder('player')
-      .select(['player.id', 'player.slug', 'player.memberId', 'player.firstName', 'player.lastName'])
-      .where('player.slug = :id and "game"."id" is not null', { id })
+    const userQry = User.createQueryBuilder('user')
+      .select(['user.id', 'user.slug', 'user.memberId', 'user.firstName', 'user.lastName'])
+      .where('user.slug = :id and "game"."id" is not null', { id })
       .setParameter('oneYearAgo', oneYearAgo)
       .orderBy('game.playedAt', 'DESC');
 
-    const player = await playerQry.getOne();
+    const user = await userQry.getOne();
 
-    if (!player) {
+    if (!user) {
       return {
         status: 404,
-        message: 'Player not found',
+        message: 'User not found',
       };
     }
 
@@ -33,7 +33,7 @@ export class PlayerImageGenerator {
       <svg width="${this.width}" height="${this.height}" xmlns="http://www.w3.org/2000/svg">
         <rect width="${this.width}" height="${this.height}" fill="${this.backgroundColor}" />
       
-        ${this.getGeneralInfo(player)}
+        ${this.getGeneralInfo(user)}
 
       </svg>
     `;
@@ -43,10 +43,10 @@ export class PlayerImageGenerator {
     return imageBuffer;
   }
 
-  getGeneralInfo(player: Player) {
+  getGeneralInfo(user: User) {
     return `
         <text x="75" y="150" font-family="Arial" font-size="100" fill="${this.textColor}">
-            <tspan font-weight="bold">${player.fullName}</tspan>
+            <tspan font-weight="bold">${user.fullName}</tspan>
         </text>
       `;
   }

@@ -1,8 +1,8 @@
-import { Player } from '@app/models';
+import { User } from '@app/models';
 import { createParamDecorator, ExecutionContext } from '@nestjs/common';
 import { env } from 'process';
 import { getRequest } from '../utils';
-export const User = createParamDecorator(async (data: unknown, context: ExecutionContext) => {
+export const ReqUser = createParamDecorator(async (data: unknown, context: ExecutionContext) => {
   const request = getRequest(context);
 
   const user = request['user'];
@@ -21,7 +21,7 @@ export const User = createParamDecorator(async (data: unknown, context: Executio
   };
 });
 
-export interface LoggedInUser extends Player {
+export interface LoggedInUser extends User {
   context: {
     iss: string;
     sub: string;
