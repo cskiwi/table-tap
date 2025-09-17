@@ -111,7 +111,7 @@
     "@swc/helpers": "0.5.15",
     "@types/express": "^5.0.0",
     "@types/jest": "29.5.14",
-    "@types/node": "~22.9.4",
+    "@types/node": "~22.18.0",
     "@typescript-eslint/utils": "^8.25.0",
     "autoprefixer": "^10.4.20",
     "concurrently": "^9.1.2",
@@ -141,7 +141,7 @@
     "node": "22"
   },
   "volta": {
-    "node": "22.14.0"
+    "node": "22.19.0"
   },
   "browser": {
     "node:fs": false,
