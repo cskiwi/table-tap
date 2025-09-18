@@ -60,6 +60,7 @@
     "bullmq": "^5.58.5",
     "canvas": "3.1.2",
     "class-validator": "^0.14.2",
+    "claude-flow": "^2.0.0-alpha.108",
     "cookie-parser": "^1.4.7",
     "cross-env": "^7.0.3",
     "crypto-hash": "^3.1.0",
@@ -162,10 +163,10 @@
     "stylus": "0.0.1-security"
   },
   "engines": {
-    "node": "24"
+    "node": "22"
   },
   "volta": {
-    "node": "24.8.0"
+    "node": "22.19.0"
   },
   "browser": {
     "node:fs": false,

@@ -1,0 +1,7 @@
+Build Information:
+Node.js Version: v24.8.0
+NODE_MODULE_VERSION: 137
+Platform: MINGW64_NT-10.0-26100
+Architecture: x86_64
+Build Date: Thu, Sep 18, 2025  6:35:19 PM
+better-sqlite3 Version: 12.2.0
