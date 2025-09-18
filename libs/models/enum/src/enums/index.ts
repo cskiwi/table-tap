@@ -16,3 +16,12 @@ export * from './subEventType.enum';
 export * from './teamMembershipType.enum';
 export * from './usedRankingTiming.enum';
 export * from './useForTeams.enum';
+
+// Restaurant ordering system enums
+export * from './order-status.enum';
+export * from './payment-method.enum';
+export * from './product-category.enum';
+export * from './user-role.enum';
+export * from './counter-type.enum';
+export * from './employee-status.enum';
+export * from './transaction-type.enum';

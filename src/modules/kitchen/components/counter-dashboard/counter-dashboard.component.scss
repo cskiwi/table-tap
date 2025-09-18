@@ -1,0 +1,726 @@
+/* CounterDashboard Component Styles */
+.counter-dashboard {
+  // Dashboard header styling
+  .dashboard-header {
+    .header-info {
+      .stat-item {
+        @apply flex flex-col items-center space-y-1;
+
+        span:first-child {
+          @apply text-lg;
+        }
+      }
+    }
+
+    .header-controls {
+      :host ::ng-deep .p-inputswitch {
+        .p-inputswitch-slider {
+          @apply bg-gray-300;
+
+          &::before {
+            @apply bg-white shadow-sm;
+          }
+        }
+
+        &.p-inputswitch-checked {
+          .p-inputswitch-slider {
+            @apply bg-blue-500;
+          }
+        }
+      }
+
+      :host ::ng-deep .p-dropdown {
+        .p-dropdown-label {
+          @apply py-2 px-3 text-sm;
+        }
+
+        .p-dropdown-trigger {
+          @apply w-8;
+        }
+      }
+
+      .p-button {
+        @apply px-3 py-2;
+      }
+    }
+
+    .busy-indicator {
+      :host ::ng-deep .p-chip {
+        @apply text-sm font-medium;
+
+        .p-chip-text {
+          @apply font-semibold;
+        }
+
+        .p-chip-icon {
+          @apply mr-1;
+        }
+      }
+
+      :host ::ng-deep .p-progressbar {
+        .p-progressbar-value {
+          @apply transition-all duration-300 ease-in-out rounded-full;
+
+          &.progress-green .p-progressbar-value {
+            @apply bg-green-500;
+          }
+
+          &.progress-yellow .p-progressbar-value {
+            @apply bg-yellow-500;
+          }
+
+          &.progress-orange .p-progressbar-value {
+            @apply bg-orange-500;
+          }
+
+          &.progress-red .p-progressbar-value {
+            @apply bg-red-500;
+          }
+        }
+      }
+    }
+  }
+
+  // Splitter styling
+  :host ::ng-deep .p-splitter {
+    @apply border border-gray-200 rounded-lg overflow-hidden;
+
+    .p-splitter-panel {
+      @apply overflow-auto;
+    }
+
+    .p-splitter-gutter {
+      @apply bg-gray-200 hover:bg-gray-300 transition-colors duration-200;
+
+      .p-splitter-gutter-handle {
+        @apply bg-gray-400 rounded-full;
+      }
+    }
+  }
+
+  // Order queue panel
+  .order-queue-panel {
+    .queue-controls {
+      h3 {
+        @apply text-gray-800;
+      }
+
+      .p-button {
+        @apply text-sm px-4 py-2;
+
+        &.p-button-outlined {
+          @apply border border-current bg-transparent;
+
+          &:hover {
+            @apply bg-current text-white;
+          }
+        }
+      }
+    }
+
+    // Tab view styling
+    :host ::ng-deep .p-tabview {
+      .p-tabview-nav {
+        @apply bg-white border-b border-gray-200;
+
+        .p-tabview-nav-link {
+          @apply border-0 border-b-2 border-transparent;
+          @apply hover:border-blue-300 hover:bg-blue-50;
+          @apply transition-all duration-200;
+
+          &.p-highlight {
+            @apply border-blue-500 bg-blue-50 text-blue-700;
+          }
+
+          .p-tabview-left-icon {
+            @apply mr-2 text-current;
+          }
+        }
+      }
+
+      .p-tabview-panels {
+        @apply bg-transparent border-0 p-0;
+
+        .p-tabview-panel {
+          @apply p-4;
+        }
+      }
+    }
+
+    // Order queue list
+    .order-queue-list {
+      &.grouped-queue {
+        .order-type-group {
+          .group-header {
+            h4 {
+              @apply flex items-center text-gray-700;
+
+              i {
+                @apply text-blue-500;
+              }
+            }
+
+            :host ::ng-deep .p-badge {
+              @apply text-xs font-bold;
+            }
+          }
+
+          .order-card-container {
+            @apply transition-transform duration-200;
+
+            &:hover {
+              @apply transform scale-105;
+            }
+          }
+        }
+      }
+
+      &.simple-queue {
+        .order-card-container {
+          @apply transition-transform duration-200;
+
+          &:hover {
+            @apply transform scale-105;
+          }
+        }
+      }
+    }
+
+    // Empty queue state
+    .empty-queue {
+      @apply bg-white rounded-lg border border-gray-200;
+
+      i {
+        @apply mx-auto;
+      }
+    }
+
+    // Timeline styling
+    .order-timeline {
+      :host ::ng-deep .p-timeline {
+        &.customized-timeline {
+          .p-timeline-event {
+            .p-timeline-event-marker {
+              @apply border-4 border-white shadow-lg;
+            }
+
+            .p-timeline-event-content {
+              @apply ml-4;
+
+              .p-card {
+                @apply shadow-sm hover:shadow-md transition-shadow duration-200;
+
+                .p-card-body {
+                  @apply p-4;
+                }
+              }
+            }
+          }
+        }
+      }
+
+      .timeline-event-content {
+        h4 {
+          @apply text-gray-800;
+        }
+
+        p {
+          @apply text-gray-600 text-sm;
+        }
+
+        :host ::ng-deep .p-tag {
+          @apply text-xs;
+        }
+      }
+    }
+  }
+
+  // Analytics panel
+  .analytics-panel {
+    .dashboard-stats {
+      .metric-card {
+        @apply p-2;
+
+        div:first-child {
+          @apply text-2xl font-bold mb-1;
+        }
+
+        div:nth-child(2) {
+          @apply text-sm text-gray-600 font-medium;
+        }
+
+        div:last-child {
+          @apply text-xs text-gray-500;
+        }
+      }
+
+      :host ::ng-deep .p-card {
+        @apply shadow-sm border border-gray-200 hover:shadow-md transition-shadow duration-200;
+
+        .p-card-body {
+          @apply p-4;
+        }
+      }
+
+      // Order distribution
+      .order-distribution {
+        .status-bar {
+          :host ::ng-deep .p-progressbar {
+            .p-progressbar-value {
+              @apply transition-all duration-500 ease-out;
+            }
+          }
+        }
+      }
+
+      // Performance indicators
+      .performance-indicators {
+        .alert-item {
+          @apply text-sm;
+
+          i {
+            @apply flex-shrink-0;
+          }
+        }
+      }
+    }
+
+    // Settings
+    .dashboard-settings {
+      .setting-group {
+        h4 {
+          @apply text-gray-800 border-b border-gray-200 pb-2;
+        }
+
+        :host ::ng-deep .p-inputswitch {
+          .p-inputswitch-slider {
+            @apply bg-gray-300;
+
+            &::before {
+              @apply bg-white;
+            }
+          }
+
+          &.p-inputswitch-checked {
+            .p-inputswitch-slider {
+              @apply bg-blue-500;
+            }
+          }
+        }
+
+        input[type="range"] {
+          &::-webkit-slider-thumb {
+            @apply appearance-none w-5 h-5 bg-blue-500 rounded-full cursor-pointer;
+            @apply hover:bg-blue-600 transition-colors duration-200;
+          }
+
+          &::-moz-range-thumb {
+            @apply w-5 h-5 bg-blue-500 rounded-full cursor-pointer border-0;
+            @apply hover:bg-blue-600 transition-colors duration-200;
+          }
+
+          &::-webkit-slider-track {
+            @apply bg-gray-200 rounded-lg h-2;
+          }
+
+          &::-moz-range-track {
+            @apply bg-gray-200 rounded-lg h-2;
+          }
+        }
+      }
+    }
+  }
+
+  // Progress bar customizations
+  :host ::ng-deep .p-progressbar {
+    &.progress-green .p-progressbar-value {
+      @apply bg-green-500;
+    }
+
+    &.progress-yellow .p-progressbar-value {
+      @apply bg-yellow-500;
+    }
+
+    &.progress-orange .p-progressbar-value {
+      @apply bg-orange-500;
+    }
+
+    &.progress-red .p-progressbar-value {
+      @apply bg-red-500;
+    }
+
+    &.bg-yellow-200 .p-progressbar-value {
+      @apply bg-yellow-500;
+    }
+
+    &.bg-orange-200 .p-progressbar-value {
+      @apply bg-orange-500;
+    }
+
+    &.bg-green-200 .p-progressbar-value {
+      @apply bg-green-500;
+    }
+  }
+
+  // Toast notifications
+  :host ::ng-deep .p-toast {
+    .p-toast-message {
+      @apply shadow-lg border-l-4;
+
+      &.p-toast-message-success {
+        @apply border-l-green-500 bg-green-50;
+
+        .p-toast-message-content {
+          .p-toast-message-icon,
+          .p-toast-message-text {
+            @apply text-green-700;
+          }
+        }
+      }
+
+      &.p-toast-message-info {
+        @apply border-l-blue-500 bg-blue-50;
+
+        .p-toast-message-content {
+          .p-toast-message-icon,
+          .p-toast-message-text {
+            @apply text-blue-700;
+          }
+        }
+      }
+
+      &.p-toast-message-warn {
+        @apply border-l-yellow-500 bg-yellow-50;
+
+        .p-toast-message-content {
+          .p-toast-message-icon,
+          .p-toast-message-text {
+            @apply text-yellow-700;
+          }
+        }
+      }
+
+      &.p-toast-message-error {
+        @apply border-l-red-500 bg-red-50;
+
+        .p-toast-message-content {
+          .p-toast-message-icon,
+          .p-toast-message-text {
+            @apply text-red-700;
+          }
+        }
+      }
+    }
+  }
+
+  // Responsive design
+  @media (max-width: 1024px) {
+    :host ::ng-deep .p-splitter {
+      flex-direction: column !important;
+
+      .p-splitter-panel {
+        &:first-child {
+          min-height: 60vh;
+        }
+
+        &:last-child {
+          min-height: 40vh;
+        }
+      }
+
+      .p-splitter-gutter {
+        height: 8px !important;
+        width: 100% !important;
+      }
+    }
+
+    .dashboard-header {
+      .flex {
+        @apply flex-col space-y-4 items-start;
+      }
+
+      .header-controls {
+        @apply flex-wrap gap-2;
+      }
+
+      .busy-indicator {
+        .flex {
+          @apply flex-col space-x-0 space-y-2 items-start;
+        }
+
+        .flex-1 {
+          @apply w-full;
+        }
+      }
+    }
+  }
+
+  @media (max-width: 768px) {
+    .dashboard-header {
+      @apply p-3;
+
+      .header-info {
+        .flex {
+          @apply grid grid-cols-2 gap-4;
+        }
+      }
+
+      .header-controls {
+        .flex {
+          @apply flex-col space-x-0 space-y-2;
+        }
+      }
+    }
+
+    .order-queue-panel {
+      @apply p-2;
+
+      .queue-controls {
+        .flex {
+          @apply flex-col space-x-0 space-y-4 items-start;
+        }
+      }
+
+      .order-queue-list {
+        .grid {
+          @apply grid-cols-1;
+        }
+      }
+    }
+
+    .analytics-panel {
+      @apply p-2;
+
+      .dashboard-stats {
+        .grid {
+          @apply grid-cols-1 gap-3;
+        }
+      }
+    }
+  }
+
+  @media (max-width: 640px) {
+    .dashboard-header {
+      .header-info {
+        h1 {
+          @apply text-xl;
+        }
+
+        .flex {
+          @apply grid-cols-2 gap-2 text-xs;
+        }
+      }
+    }
+
+    :host ::ng-deep .p-tabview {
+      .p-tabview-nav {
+        @apply overflow-x-auto;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+
+        &::-webkit-scrollbar {
+          display: none;
+        }
+
+        .p-tabview-nav-link {
+          @apply whitespace-nowrap min-w-max px-3 py-2 text-sm;
+        }
+      }
+    }
+
+    .analytics-panel {
+      .dashboard-stats {
+        .metric-card {
+          @apply p-3;
+
+          div:first-child {
+            @apply text-xl;
+          }
+        }
+      }
+    }
+  }
+
+  // Dark mode support
+  @media (prefers-color-scheme: dark) {
+    .counter-dashboard {
+      @apply bg-gray-900;
+
+      .dashboard-header {
+        @apply bg-gray-800 border-gray-700;
+
+        h1 {
+          @apply text-white;
+        }
+
+        .text-gray-600 {
+          @apply text-gray-400;
+        }
+
+        .text-gray-700 {
+          @apply text-gray-300;
+        }
+      }
+
+      :host ::ng-deep .p-splitter {
+        @apply border-gray-700;
+
+        .p-splitter-gutter {
+          @apply bg-gray-700;
+        }
+      }
+
+      .order-queue-panel,
+      .analytics-panel {
+        @apply bg-gray-800;
+
+        .bg-white {
+          @apply bg-gray-800 border-gray-600;
+        }
+
+        .text-gray-800 {
+          @apply text-gray-200;
+        }
+
+        .text-gray-600 {
+          @apply text-gray-400;
+        }
+
+        .border-gray-200 {
+          @apply border-gray-600;
+        }
+      }
+
+      :host ::ng-deep .p-card {
+        @apply bg-gray-800 border-gray-600;
+      }
+
+      :host ::ng-deep .p-tabview {
+        .p-tabview-nav {
+          @apply bg-gray-800 border-gray-600;
+
+          .p-tabview-nav-link {
+            @apply text-gray-300 hover:text-white hover:bg-gray-700;
+
+            &.p-highlight {
+              @apply bg-gray-700 text-white;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // Print styles
+  @media print {
+    .counter-dashboard {
+      .dashboard-header {
+        .header-controls {
+          @apply hidden;
+        }
+      }
+
+      .analytics-panel {
+        @apply hidden;
+      }
+
+      .order-queue-panel {
+        .queue-controls {
+          .flex:last-child {
+            @apply hidden;
+          }
+        }
+      }
+
+      :host ::ng-deep .p-splitter {
+        height: auto !important;
+        flex-direction: column !important;
+
+        .p-splitter-gutter {
+          @apply hidden;
+        }
+      }
+
+      .p-button {
+        @apply hidden;
+      }
+
+      :host ::ng-deep .p-tabview {
+        .p-tabview-nav {
+          @apply hidden;
+        }
+
+        .p-tabview-panels {
+          .p-tabview-panel {
+            @apply block;
+          }
+        }
+      }
+    }
+  }
+
+  // High contrast mode
+  @media (prefers-contrast: high) {
+    .counter-dashboard {
+      .dashboard-header,
+      .order-queue-panel,
+      .analytics-panel {
+        @apply border-2 border-black;
+      }
+
+      :host ::ng-deep .p-card {
+        @apply border-2 border-black;
+      }
+
+      .p-button {
+        @apply border-2 border-current;
+      }
+    }
+  }
+
+  // Reduced motion
+  @media (prefers-reduced-motion: reduce) {
+    * {
+      @apply transition-none;
+    }
+
+    .order-card-container:hover {
+      @apply transform-none;
+    }
+
+    :host ::ng-deep .p-progressbar .p-progressbar-value {
+      @apply transition-none;
+    }
+  }
+
+  // Loading states
+  .loading-state {
+    @apply animate-pulse;
+
+    .metric-card,
+    .order-card-container,
+    .timeline-event-content {
+      @apply bg-gray-200 rounded-lg;
+    }
+  }
+
+  // Focus management for accessibility
+  .p-button:focus-visible,
+  input:focus-visible,
+  .p-dropdown:focus-visible,
+  .p-inputswitch:focus-visible {
+    @apply outline-2 outline-blue-500 outline-offset-2;
+  }
+
+  // Animation keyframes
+  @keyframes pulse-busy {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+  }
+
+  .busy-indicator {
+    &.very-high {
+      animation: pulse-busy 2s infinite;
+    }
+  }
+}

@@ -1,0 +1,491 @@
+/* PaymentDialog Component Styles */
+.payment-dialog {
+  // Dialog overrides
+  :host ::ng-deep .p-dialog {
+    @apply rounded-xl shadow-2xl;
+
+    .p-dialog-header {
+      @apply bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-t-xl;
+      @apply border-0 py-4 px-6;
+
+      .p-dialog-title {
+        @apply text-xl font-semibold;
+      }
+
+      .p-dialog-header-close {
+        @apply text-white hover:bg-blue-500 rounded-lg;
+      }
+    }
+
+    .p-dialog-content {
+      @apply p-6 max-h-[80vh] overflow-y-auto;
+    }
+
+    .p-dialog-footer {
+      @apply border-t border-gray-200 bg-gray-50 rounded-b-xl py-4 px-6;
+    }
+  }
+
+  // Payment content
+  .payment-content {
+    // Order summary
+    .order-summary {
+      .bg-gray-50 {
+        @apply border border-gray-200 rounded-lg;
+      }
+    }
+
+    // Tab view styling
+    :host ::ng-deep .p-tabview {
+      .p-tabview-nav {
+        @apply border-b border-gray-200;
+
+        .p-tabview-nav-link {
+          @apply border-0 border-b-2 border-transparent;
+          @apply hover:border-blue-300 transition-colors duration-200;
+
+          &.p-highlight {
+            @apply border-blue-500 bg-blue-50;
+          }
+
+          .p-tabview-left-icon {
+            @apply mr-2;
+          }
+        }
+      }
+
+      .p-tabview-panels {
+        @apply border-0 bg-transparent p-0;
+
+        .p-tabview-panel {
+          @apply p-0;
+        }
+      }
+    }
+
+    // Payment method tabs
+    .cash-payment {
+      .pi-money-bill {
+        @apply text-green-600;
+      }
+
+      .bg-yellow-50 {
+        @apply border border-yellow-200;
+      }
+    }
+
+    .card-payment {
+      // Form styling
+      :host ::ng-deep .p-inputtext,
+      :host ::ng-deep .p-inputmask {
+        @apply py-3 px-4 border-gray-300 rounded-lg;
+        @apply focus:ring-2 focus:ring-blue-500 focus:border-transparent;
+
+        &.p-invalid {
+          @apply border-red-500 focus:ring-red-500;
+        }
+      }
+
+      :host ::ng-deep .p-checkbox {
+        .p-checkbox-box {
+          @apply w-5 h-5 border-gray-300 rounded;
+
+          &.p-highlight {
+            @apply bg-blue-500 border-blue-500;
+          }
+        }
+      }
+
+      .p-error {
+        @apply text-red-600 text-sm mt-1;
+      }
+    }
+
+    .mobile-payment {
+      :host ::ng-deep .p-dropdown {
+        @apply w-full;
+
+        .p-dropdown-label {
+          @apply py-3 px-4;
+        }
+
+        .p-dropdown-trigger {
+          @apply w-12;
+        }
+
+        &.p-invalid {
+          .p-dropdown-label {
+            @apply border-red-500;
+          }
+        }
+      }
+    }
+
+    .qr-payment {
+      .qr-code-container {
+        qrcode {
+          @apply block mx-auto;
+        }
+
+        .countdown-timer {
+          .bg-gray-200 {
+            @apply rounded-full overflow-hidden;
+          }
+
+          .bg-orange-500 {
+            @apply transition-all duration-1000 ease-linear;
+          }
+        }
+      }
+
+      .pi-qrcode {
+        @apply text-blue-600;
+      }
+    }
+
+    .wallet-payment {
+      .p-button {
+        &.bg-black {
+          @apply hover:bg-gray-800 focus:bg-gray-800;
+        }
+
+        &.bg-blue-600 {
+          @apply hover:bg-blue-700 focus:bg-blue-700;
+        }
+
+        &.bg-blue-500 {
+          @apply hover:bg-blue-600 focus:bg-blue-600;
+        }
+      }
+    }
+
+    // Tip section
+    .tip-section {
+      .suggested-tips {
+        :host ::ng-deep .p-button {
+          @apply py-2 px-3 text-sm font-medium;
+          @apply border-gray-300 text-gray-700;
+
+          &:not(.p-button-outlined) {
+            @apply bg-blue-500 border-blue-500 text-white;
+
+            &:hover {
+              @apply bg-blue-600 border-blue-600;
+            }
+          }
+
+          &.p-button-outlined {
+            @apply bg-transparent hover:bg-gray-50;
+          }
+        }
+      }
+
+      .custom-tip {
+        :host ::ng-deep .p-radiobutton {
+          .p-radiobutton-box {
+            @apply w-5 h-5 border-gray-300;
+
+            &.p-highlight {
+              @apply bg-blue-500 border-blue-500;
+            }
+          }
+        }
+
+        input[type="number"] {
+          @apply py-2 px-3 border-gray-300 rounded-lg;
+          @apply focus:ring-2 focus:ring-blue-500 focus:border-transparent;
+
+          &:disabled {
+            @apply bg-gray-100 text-gray-400 cursor-not-allowed;
+          }
+        }
+      }
+
+      .tip-summary {
+        @apply border border-gray-200;
+      }
+    }
+
+    // Payment summary
+    .payment-summary {
+      .bg-gray-100 {
+        @apply border border-gray-200;
+      }
+
+      :host ::ng-deep .p-divider {
+        @apply my-3;
+
+        .p-divider-content {
+          @apply bg-gray-100;
+        }
+      }
+    }
+
+    // Error messages
+    :host ::ng-deep .p-messages {
+      .p-message {
+        @apply border border-red-200 bg-red-50 rounded-lg;
+
+        .p-message-wrapper {
+          @apply p-4;
+        }
+
+        .p-message-icon,
+        .p-message-text {
+          @apply text-red-700;
+        }
+      }
+    }
+
+    // Processing state
+    .processing-state {
+      :host ::ng-deep .p-progressspinner {
+        .p-progressspinner-circle {
+          stroke: theme('colors.blue.500');
+          animation: p-progressspinner-rotate 2s linear infinite;
+        }
+      }
+    }
+  }
+
+  // Dialog footer
+  :host ::ng-deep .p-dialog-footer {
+    .p-button {
+      @apply px-6 py-3 font-medium;
+
+      &.p-button-secondary {
+        @apply border-gray-300 text-gray-700;
+
+        &:hover {
+          @apply bg-gray-50 border-gray-400;
+        }
+      }
+
+      &.p-button-success {
+        @apply bg-green-600 border-green-600;
+
+        &:hover {
+          @apply bg-green-700 border-green-700;
+        }
+
+        &:disabled {
+          @apply bg-gray-400 border-gray-400 cursor-not-allowed;
+        }
+      }
+
+      &:focus-visible {
+        @apply ring-2 ring-blue-500 ring-offset-2;
+      }
+    }
+  }
+
+  // Responsive design
+  @media (max-width: 640px) {
+    :host ::ng-deep .p-dialog {
+      @apply mx-4;
+      width: calc(100vw - 2rem) !important;
+      max-width: none !important;
+
+      .p-dialog-content {
+        @apply p-4;
+        max-height: 70vh;
+      }
+
+      .p-dialog-footer {
+        @apply flex-col space-y-2 p-4;
+
+        .p-button {
+          @apply w-full;
+        }
+      }
+    }
+
+    .payment-content {
+      .suggested-tips {
+        .grid {
+          @apply grid-cols-2;
+        }
+      }
+
+      .wallet-payment {
+        .grid {
+          @apply grid-cols-1 gap-3;
+        }
+      }
+
+      .custom-tip {
+        .flex {
+          @apply flex-col items-start space-x-0 space-y-2;
+        }
+      }
+    }
+  }
+
+  @media (max-width: 480px) {
+    .payment-content {
+      :host ::ng-deep .p-tabview {
+        .p-tabview-nav {
+          @apply overflow-x-auto;
+          scrollbar-width: none;
+          -ms-overflow-style: none;
+
+          &::-webkit-scrollbar {
+            display: none;
+          }
+
+          .p-tabview-nav-link {
+            @apply whitespace-nowrap min-w-max px-4;
+          }
+        }
+      }
+
+      .card-payment .grid {
+        @apply grid-cols-1;
+      }
+    }
+  }
+
+  // Dark mode support
+  @media (prefers-color-scheme: dark) {
+    :host ::ng-deep .p-dialog {
+      @apply bg-gray-900 border-gray-700;
+
+      .p-dialog-header {
+        @apply bg-gray-800 border-b border-gray-700;
+
+        .p-dialog-title {
+          @apply text-white;
+        }
+      }
+
+      .p-dialog-content {
+        @apply bg-gray-900 text-white;
+      }
+
+      .p-dialog-footer {
+        @apply bg-gray-800 border-gray-700;
+      }
+    }
+
+    .payment-content {
+      .bg-gray-50 {
+        @apply bg-gray-800 border-gray-600;
+      }
+
+      .bg-gray-100 {
+        @apply bg-gray-800 border-gray-600;
+      }
+
+      .text-gray-700 {
+        @apply text-gray-300;
+      }
+
+      .text-gray-600 {
+        @apply text-gray-400;
+      }
+
+      .border-gray-200 {
+        @apply border-gray-600;
+      }
+
+      :host ::ng-deep .p-tabview {
+        .p-tabview-nav {
+          @apply border-gray-600;
+
+          .p-tabview-nav-link {
+            @apply text-gray-300 hover:text-white;
+
+            &.p-highlight {
+              @apply bg-gray-800 text-white;
+            }
+          }
+        }
+      }
+
+      :host ::ng-deep .p-inputtext,
+      :host ::ng-deep .p-inputmask,
+      :host ::ng-deep .p-dropdown {
+        @apply bg-gray-800 border-gray-600 text-white;
+      }
+    }
+  }
+
+  // Print styles
+  @media print {
+    :host ::ng-deep .p-dialog {
+      @apply shadow-none border border-gray-400;
+      position: relative !important;
+      width: 100% !important;
+      height: auto !important;
+      max-width: none !important;
+
+      .p-dialog-header,
+      .p-dialog-footer {
+        @apply hidden;
+      }
+
+      .p-dialog-content {
+        @apply p-0;
+      }
+    }
+
+    .payment-content {
+      .p-button {
+        @apply hidden;
+      }
+
+      .processing-state {
+        @apply hidden;
+      }
+
+      :host ::ng-deep .p-progressspinner {
+        @apply hidden;
+      }
+    }
+  }
+
+  // High contrast mode
+  @media (prefers-contrast: high) {
+    :host ::ng-deep .p-dialog {
+      @apply border-2 border-black;
+    }
+
+    .payment-content {
+      :host ::ng-deep .p-inputtext,
+      :host ::ng-deep .p-inputmask,
+      :host ::ng-deep .p-dropdown {
+        @apply border-2 border-black;
+      }
+
+      .p-button {
+        @apply border-2 border-current;
+      }
+    }
+  }
+
+  // Reduced motion
+  @media (prefers-reduced-motion: reduce) {
+    * {
+      @apply transition-none;
+    }
+
+    .countdown-timer .bg-orange-500 {
+      @apply transition-none;
+    }
+
+    :host ::ng-deep .p-progressspinner {
+      .p-progressspinner-circle {
+        animation: none;
+      }
+    }
+  }
+
+  // Focus management
+  .p-button:focus-visible,
+  input:focus-visible,
+  .p-dropdown:focus-visible,
+  .p-checkbox:focus-visible,
+  .p-radiobutton:focus-visible {
+    @apply outline-2 outline-blue-500 outline-offset-2;
+  }
+}

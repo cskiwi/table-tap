@@ -1,0 +1,667 @@
+# Inventory Management System - GraphQL Schema
+# This schema extends the existing table-tap GraphQL API
+
+# ================================
+# ENUMS
+# ================================
+
+enum MovementType {
+  PURCHASE
+  SALE
+  ADJUSTMENT
+  TRANSFER
+  WASTE
+  RETURN
+}
+
+enum PurchaseOrderStatus {
+  DRAFT
+  SENT
+  CONFIRMED
+  RECEIVED
+  CANCELLED
+}
+
+enum PaymentMethod {
+  CREDIT_CARD
+  CASH
+  BANK_TRANSFER
+  COMPANY_ACCOUNT
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  PARTIAL
+  OVERDUE
+}
+
+enum AlertSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum AlertStatus {
+  ACTIVE
+  ACKNOWLEDGED
+  RESOLVED
+  DISMISSED
+}
+
+enum GlassStatus {
+  AVAILABLE
+  IN_USE
+  DIRTY
+  BROKEN
+  LOST
+  RETIRED
+}
+
+enum GlassTransactionType {
+  CHECKOUT
+  CHECKIN
+  CLEAN
+  BREAK
+  LOSE
+  FIND
+}
+
+enum ReorderSuggestionStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  ORDERED
+}
+
+enum PeriodType {
+  DAILY
+  WEEKLY
+  MONTHLY
+  QUARTERLY
+  YEARLY
+}
+
+# ================================
+# INPUT TYPES
+# ================================
+
+input InventoryCategoryInput {
+  name: String!
+  description: String
+  parentId: ID
+  sortOrder: Int = 0
+  isActive: Boolean = true
+}
+
+input StorageLocationInput {
+  name: String!
+  type: String!
+  description: String
+  temperatureMin: Float
+  temperatureMax: Float
+  capacityVolume: Float
+  capacityWeight: Float
+  isActive: Boolean = true
+}
+
+input InventoryProductInput {
+  name: String!
+  description: String
+  sku: String!
+  barcode: String
+  categoryId: ID
+  unitOfMeasurement: String!
+  unitCost: Float!
+  supplierCost: Float
+  storageRequirements: String
+  shelfLifeDays: Int
+  minStockLevel: Float!
+  maxStockLevel: Float
+  reorderPoint: Float!
+  reorderQuantity: Float!
+  isActive: Boolean = true
+}
+
+input InventoryStockInput {
+  productId: ID!
+  locationId: ID!
+  batchNumber: String
+  quantity: Float!
+  costPerUnit: Float!
+  expirationDate: String
+  receivedDate: String!
+  notes: String
+}
+
+input SupplierInput {
+  name: String!
+  contactPerson: String
+  email: String
+  phone: String
+  address: String
+  paymentTerms: String
+  leadTimeDays: Int = 1
+  minimumOrderAmount: Float
+  deliveryFee: Float = 0
+  rating: Float = 0
+  isActive: Boolean = true
+}
+
+input SupplierProductInput {
+  supplierId: ID!
+  productId: ID!
+  supplierSku: String
+  unitCost: Float!
+  minimumOrderQuantity: Float = 1
+  leadTimeDays: Int = 1
+  isPreferred: Boolean = false
+}
+
+input PurchaseOrderInput {
+  supplierId: ID!
+  orderDate: String!
+  expectedDeliveryDate: String
+  notes: String
+  items: [PurchaseOrderItemInput!]!
+}
+
+input PurchaseOrderItemInput {
+  productId: ID!
+  quantityOrdered: Float!
+  unitCost: Float!
+  expirationDate: String
+  batchNumber: String
+  notes: String
+}
+
+input InventoryMovementInput {
+  productId: ID!
+  locationId: ID!
+  movementType: MovementType!
+  referenceType: String
+  referenceId: ID
+  batchNumber: String
+  quantityChange: Float!
+  unitCost: Float!
+  expirationDate: String
+  reason: String
+}
+
+input AlertRuleInput {
+  name: String!
+  description: String
+  ruleType: String!
+  conditions: JSON!
+  recipients: JSON!
+  isActive: Boolean = true
+}
+
+input GlassTypeInput {
+  name: String!
+  description: String
+  capacityMl: Int
+  purchaseCost: Float
+  replacementCost: Float
+  depositAmount: Float = 0
+  rfidEnabled: Boolean = false
+  qrEnabled: Boolean = true
+  isActive: Boolean = true
+}
+
+input DateRangeInput {
+  startDate: String!
+  endDate: String!
+}
+
+input PaginationInput {
+  page: Int = 1
+  limit: Int = 20
+}
+
+input SortInput {
+  field: String!
+  direction: String = "ASC"
+}
+
+input InventoryFilterInput {
+  categoryId: ID
+  locationId: ID
+  supplierId: ID
+  lowStock: Boolean
+  expiringSoon: Boolean
+  isActive: Boolean
+  search: String
+}
+
+# ================================
+# FILTER AND SORT TYPES
+# ================================
+
+input ProductAnalyticsFilter {
+  productIds: [ID!]
+  categoryIds: [ID!]
+  periodType: PeriodType
+  dateRange: DateRangeInput
+  minProfitMargin: Float
+  maxWastePercentage: Float
+}
+
+input DemandForecastFilter {
+  productIds: [ID!]
+  forecastHorizonDays: Int
+  minConfidence: Float
+  dateRange: DateRangeInput
+}
+
+# ================================
+# RESPONSE TYPES
+# ================================
+
+type InventoryDashboard {
+  totalProducts: Int!
+  lowStockItems: Int!
+  expiringItems: Int!
+  totalValue: Float!
+  monthlyTurnover: Float!
+  topPerformingProducts: [ProductAnalytics!]!
+  recentMovements: [InventoryMovement!]!
+  pendingOrders: [PurchaseOrder!]!
+  activeAlerts: [Alert!]!
+}
+
+type StockAlert {
+  id: ID!
+  product: InventoryProduct!
+  currentStock: Float!
+  reorderPoint: Float!
+  urgency: AlertSeverity!
+  daysUntilStockout: Int
+  suggestedOrder: ReorderSuggestion
+}
+
+type PerformanceMetrics {
+  period: String!
+  totalRevenue: Float!
+  totalCost: Float!
+  grossProfit: Float!
+  profitMargin: Float!
+  inventoryTurnover: Float!
+  wastePercentage: Float!
+  stockoutEvents: Int!
+  averageFulfillmentTime: Float!
+}
+
+type SupplierComparison {
+  product: InventoryProduct!
+  suppliers: [SupplierProductComparison!]!
+  recommendedSupplier: SupplierProductComparison
+}
+
+type SupplierProductComparison {
+  supplier: Supplier!
+  unitCost: Float!
+  leadTimeDays: Int!
+  minimumOrderQuantity: Float!
+  totalCost: Float!
+  rating: Float!
+  isPreferred: Boolean!
+}
+
+type ForecastAccuracy {
+  period: String!
+  averageAccuracy: Float!
+  totalPredictions: Int!
+  accuracyByProduct: [ProductForecastAccuracy!]!
+}
+
+type ProductForecastAccuracy {
+  product: InventoryProduct!
+  accuracy: Float!
+  predictionCount: Int!
+  averageError: Float!
+}
+
+type InventoryOptimization {
+  recommendations: [OptimizationRecommendation!]!
+  potentialSavings: Float!
+  currentEfficiency: Float!
+  targetEfficiency: Float!
+}
+
+type OptimizationRecommendation {
+  type: String! # 'reduce_stock', 'increase_stock', 'change_supplier', 'discontinue_product'
+  product: InventoryProduct!
+  currentValue: Float!
+  recommendedValue: Float!
+  potentialSaving: Float!
+  priority: String!
+  reason: String!
+}
+
+# ================================
+# QUERY DEFINITIONS
+# ================================
+
+type Query {
+  # Dashboard and Overview
+  inventoryDashboard(cafeId: ID!): InventoryDashboard!
+  inventoryOverview(cafeId: ID!, filters: InventoryFilterInput): InventoryOverview!
+
+  # Categories
+  inventoryCategories(cafeId: ID!, pagination: PaginationInput, sort: SortInput): [InventoryCategory!]!
+  inventoryCategory(id: ID!): InventoryCategory
+
+  # Storage Locations
+  storageLocations(cafeId: ID!, pagination: PaginationInput): [StorageLocation!]!
+  storageLocation(id: ID!): StorageLocation
+
+  # Products
+  inventoryProducts(cafeId: ID!, filters: InventoryFilterInput, pagination: PaginationInput, sort: SortInput): [InventoryProduct!]!
+  inventoryProduct(id: ID!): InventoryProduct
+  productsByCategory(categoryId: ID!, pagination: PaginationInput): [InventoryProduct!]!
+  lowStockProducts(cafeId: ID!): [InventoryProduct!]!
+  expiringProducts(cafeId: ID!, days: Int = 7): [InventoryStock!]!
+
+  # Stock Management
+  inventoryStock(cafeId: ID!, filters: InventoryFilterInput, pagination: PaginationInput): [InventoryStock!]!
+  stockByProduct(productId: ID!): [InventoryStock!]!
+  stockByLocation(locationId: ID!): [InventoryStock!]!
+  currentStockLevel(productId: ID!, locationId: ID): Float!
+
+  # Suppliers
+  suppliers(cafeId: ID!, pagination: PaginationInput, sort: SortInput): [Supplier!]!
+  supplier(id: ID!): Supplier
+  supplierProducts(supplierId: ID!, pagination: PaginationInput): [SupplierProduct!]!
+  supplierComparison(productId: ID!): SupplierComparison!
+
+  # Purchase Orders
+  purchaseOrders(cafeId: ID!, filters: PurchaseOrderFilter, pagination: PaginationInput, sort: SortInput): [PurchaseOrder!]!
+  purchaseOrder(id: ID!): PurchaseOrder
+  pendingPurchaseOrders(cafeId: ID!): [PurchaseOrder!]!
+
+  # Movements and History
+  inventoryMovements(cafeId: ID!, filters: MovementFilter, pagination: PaginationInput, sort: SortInput): [InventoryMovement!]!
+  movementHistory(productId: ID!, dateRange: DateRangeInput): [InventoryMovement!]!
+
+  # Analytics and Reporting
+  productAnalytics(cafeId: ID!, filters: ProductAnalyticsFilter, pagination: PaginationInput): [ProductAnalytics!]!
+  performanceMetrics(cafeId: ID!, dateRange: DateRangeInput, periodType: PeriodType!): [PerformanceMetrics!]!
+  inventoryValuation(cafeId: ID!, date: String): InventoryValuation!
+
+  # Forecasting
+  demandForecasts(cafeId: ID!, filters: DemandForecastFilter, pagination: PaginationInput): [DemandForecast!]!
+  forecastAccuracy(cafeId: ID!, dateRange: DateRangeInput): ForecastAccuracy!
+
+  # Optimization
+  inventoryOptimization(cafeId: ID!): InventoryOptimization!
+  reorderSuggestions(cafeId: ID!, status: ReorderSuggestionStatus): [ReorderSuggestion!]!
+
+  # Alerts
+  alerts(cafeId: ID!, status: AlertStatus, severity: AlertSeverity, pagination: PaginationInput): [Alert!]!
+  activeAlerts(cafeId: ID!): [Alert!]!
+  alertRules(cafeId: ID!): [AlertRule!]!
+
+  # Glass Tracking
+  glassTypes(cafeId: ID!): [GlassType!]!
+  glassInventory(cafeId: ID!, status: GlassStatus, pagination: PaginationInput): [GlassInventory!]!
+  glassTransactions(cafeId: ID!, dateRange: DateRangeInput, pagination: PaginationInput): [GlassTransaction!]!
+  glassUtilization(cafeId: ID!, dateRange: DateRangeInput): GlassUtilizationReport!
+
+  # Reports
+  inventoryReport(cafeId: ID!, reportType: String!, dateRange: DateRangeInput, format: String = "JSON"): String!
+  exportInventoryData(cafeId: ID!, filters: InventoryFilterInput, format: String = "CSV"): String!
+}
+
+# ================================
+# MUTATION DEFINITIONS
+# ================================
+
+type Mutation {
+  # Categories
+  createInventoryCategory(cafeId: ID!, input: InventoryCategoryInput!): InventoryCategory!
+  updateInventoryCategory(id: ID!, input: InventoryCategoryInput!): InventoryCategory!
+  deleteInventoryCategory(id: ID!): Boolean!
+
+  # Storage Locations
+  createStorageLocation(cafeId: ID!, input: StorageLocationInput!): StorageLocation!
+  updateStorageLocation(id: ID!, input: StorageLocationInput!): StorageLocation!
+  deleteStorageLocation(id: ID!): Boolean!
+
+  # Products
+  createInventoryProduct(cafeId: ID!, input: InventoryProductInput!): InventoryProduct!
+  updateInventoryProduct(id: ID!, input: InventoryProductInput!): InventoryProduct!
+  deleteInventoryProduct(id: ID!): Boolean!
+  bulkUpdateProducts(productUpdates: [BulkProductUpdate!]!): [InventoryProduct!]!
+
+  # Stock Management
+  createInventoryStock(input: InventoryStockInput!): InventoryStock!
+  updateInventoryStock(id: ID!, input: InventoryStockInput!): InventoryStock!
+  adjustStock(input: InventoryMovementInput!): InventoryMovement!
+  transferStock(fromLocationId: ID!, toLocationId: ID!, productId: ID!, quantity: Float!, batchNumber: String): InventoryMovement!
+  recordWaste(productId: ID!, locationId: ID!, quantity: Float!, reason: String!, batchNumber: String): InventoryMovement!
+  bulkStockUpdate(stockUpdates: [BulkStockUpdate!]!): [InventoryStock!]!
+
+  # Suppliers
+  createSupplier(cafeId: ID!, input: SupplierInput!): Supplier!
+  updateSupplier(id: ID!, input: SupplierInput!): Supplier!
+  deleteSupplier(id: ID!): Boolean!
+  createSupplierProduct(input: SupplierProductInput!): SupplierProduct!
+  updateSupplierProduct(id: ID!, input: SupplierProductInput!): SupplierProduct!
+  deleteSupplierProduct(id: ID!): Boolean!
+
+  # Purchase Orders
+  createPurchaseOrder(cafeId: ID!, input: PurchaseOrderInput!): PurchaseOrder!
+  updatePurchaseOrder(id: ID!, input: PurchaseOrderInput!): PurchaseOrder!
+  approvePurchaseOrder(id: ID!): PurchaseOrder!
+  sendPurchaseOrder(id: ID!): PurchaseOrder!
+  receivePurchaseOrder(id: ID!, items: [ReceivedItemInput!]!): PurchaseOrder!
+  cancelPurchaseOrder(id: ID!, reason: String): PurchaseOrder!
+
+  # Automated Ordering
+  generateReorderSuggestions(cafeId: ID!): [ReorderSuggestion!]!
+  approveReorderSuggestion(id: ID!): PurchaseOrder!
+  rejectReorderSuggestion(id: ID!, reason: String): ReorderSuggestion!
+
+  # Alerts
+  createAlertRule(cafeId: ID!, input: AlertRuleInput!): AlertRule!
+  updateAlertRule(id: ID!, input: AlertRuleInput!): AlertRule!
+  deleteAlertRule(id: ID!): Boolean!
+  acknowledgeAlert(id: ID!): Alert!
+  resolveAlert(id: ID!): Alert!
+  dismissAlert(id: ID!): Alert!
+
+  # Glass Tracking
+  createGlassType(cafeId: ID!, input: GlassTypeInput!): GlassType!
+  updateGlassType(id: ID!, input: GlassTypeInput!): GlassType!
+  deleteGlassType(id: ID!): Boolean!
+  addGlassToInventory(glassTypeId: ID!, identifier: String!, purchaseDate: String!): GlassInventory!
+  updateGlassStatus(id: ID!, status: GlassStatus!, location: String): GlassInventory!
+  checkoutGlass(id: ID!, customerId: ID, orderId: ID, location: String!): GlassTransaction!
+  checkinGlass(id: ID!, location: String!): GlassTransaction!
+  reportGlassBreakage(id: ID!, reason: String): GlassTransaction!
+
+  # Analytics and ML
+  runDemandForecast(cafeId: ID!, productIds: [ID!], horizonDays: Int = 30): [DemandForecast!]!
+  trainForecastModel(cafeId: ID!): String!
+  updateProductAnalytics(cafeId: ID!, dateRange: DateRangeInput): [ProductAnalytics!]!
+
+  # System Operations
+  performInventoryCount(cafeId: ID!, locationId: ID, productIds: [ID!]): InventoryCountResult!
+  optimizeInventoryLevels(cafeId: ID!): InventoryOptimization!
+  syncExternalData(cafeId: ID!, source: String!): SyncResult!
+
+  # Batch Operations
+  importInventoryData(cafeId: ID!, data: String!, format: String = "CSV"): ImportResult!
+  bulkUpdatePrices(priceUpdates: [BulkPriceUpdate!]!): [InventoryProduct!]!
+}
+
+# ================================
+# SUBSCRIPTION DEFINITIONS
+# ================================
+
+type Subscription {
+  # Real-time Inventory Updates
+  inventoryStockChanged(cafeId: ID!, productIds: [ID!]): InventoryStock!
+  lowStockAlert(cafeId: ID!): StockAlert!
+  expirationAlert(cafeId: ID!): InventoryStock!
+
+  # Purchase Order Updates
+  purchaseOrderStatusChanged(cafeId: ID!): PurchaseOrder!
+  newPurchaseOrderReceived(cafeId: ID!): PurchaseOrder!
+
+  # General Alerts
+  newAlert(cafeId: ID!, severity: AlertSeverity): Alert!
+  alertResolved(cafeId: ID!): Alert!
+
+  # Analytics Updates
+  analyticsUpdated(cafeId: ID!): ProductAnalytics!
+  forecastUpdated(cafeId: ID!, productIds: [ID!]): DemandForecast!
+
+  # Glass Tracking
+  glassStatusChanged(cafeId: ID!): GlassInventory!
+  glassTransaction(cafeId: ID!): GlassTransaction!
+}
+
+# ================================
+# ADDITIONAL INPUT/OUTPUT TYPES
+# ================================
+
+input PurchaseOrderFilter {
+  supplierId: ID
+  status: PurchaseOrderStatus
+  paymentStatus: PaymentStatus
+  dateRange: DateRangeInput
+}
+
+input MovementFilter {
+  productId: ID
+  locationId: ID
+  movementType: MovementType
+  dateRange: DateRangeInput
+}
+
+input ReceivedItemInput {
+  purchaseOrderItemId: ID!
+  quantityReceived: Float!
+  batchNumber: String
+  expirationDate: String
+  notes: String
+}
+
+input BulkProductUpdate {
+  id: ID!
+  unitCost: Float
+  reorderPoint: Float
+  reorderQuantity: Float
+  isActive: Boolean
+}
+
+input BulkStockUpdate {
+  id: ID!
+  quantity: Float!
+  notes: String
+}
+
+input BulkPriceUpdate {
+  productId: ID!
+  unitCost: Float!
+  supplierCost: Float
+}
+
+type InventoryCountResult {
+  totalItemsCounted: Int!
+  discrepancies: [StockDiscrepancy!]!
+  adjustmentsCreated: [InventoryMovement!]!
+}
+
+type StockDiscrepancy {
+  product: InventoryProduct!
+  location: StorageLocation!
+  expectedQuantity: Float!
+  actualQuantity: Float!
+  variance: Float!
+}
+
+type SyncResult {
+  recordsProcessed: Int!
+  recordsUpdated: Int!
+  recordsCreated: Int!
+  errors: [String!]!
+}
+
+type ImportResult {
+  recordsProcessed: Int!
+  recordsImported: Int!
+  recordsSkipped: Int!
+  errors: [ImportError!]!
+}
+
+type ImportError {
+  row: Int!
+  field: String!
+  message: String!
+}
+
+type InventoryOverview {
+  totalProducts: Int!
+  totalValue: Float!
+  categories: [CategorySummary!]!
+  locations: [LocationSummary!]!
+  recentActivity: [InventoryMovement!]!
+}
+
+type CategorySummary {
+  category: InventoryCategory!
+  productCount: Int!
+  totalValue: Float!
+  lowStockCount: Int!
+}
+
+type LocationSummary {
+  location: StorageLocation!
+  productCount: Int!
+  totalValue: Float!
+  utilizationPercentage: Float!
+}
+
+type InventoryValuation {
+  date: String!
+  totalValue: Float!
+  valueByCategory: [CategoryValue!]!
+  valueByLocation: [LocationValue!]!
+  costMethod: String! # 'FIFO', 'LIFO', 'WeightedAverage'
+}
+
+type CategoryValue {
+  category: InventoryCategory!
+  value: Float!
+  percentage: Float!
+}
+
+type LocationValue {
+  location: StorageLocation!
+  value: Float!
+  percentage: Float!
+}
+
+type GlassUtilizationReport {
+  totalGlasses: Int!
+  availableGlasses: Int!
+  inUseGlasses: Int!
+  dirtyGlasses: Int!
+  brokenGlasses: Int!
+  utilizationRate: Float!
+  turnoverRate: Float!
+  breakageRate: Float!
+}
+
+# ================================
+# SCALAR TYPES
+# ================================
+
+scalar JSON
+scalar Date
+scalar DateTime
+scalar Upload

@@ -1,0 +1,447 @@
+/* ProductGrid Component Styles */
+.product-grid {
+  // Filter section styling
+  .filters-section {
+    .search-filter {
+      :host ::ng-deep .p-input-icon-left {
+        width: 100%;
+
+        input {
+          @apply w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg;
+          @apply focus:ring-2 focus:ring-blue-500 focus:border-transparent;
+        }
+
+        .p-input-icon {
+          @apply left-3 text-gray-400;
+        }
+      }
+    }
+
+    .category-filter,
+    .dietary-filter {
+      :host ::ng-deep .p-multiselect {
+        @apply w-full;
+
+        .p-multiselect-label {
+          @apply py-2;
+        }
+      }
+    }
+
+    .price-filter {
+      :host ::ng-deep .p-slider {
+        .p-slider-range {
+          @apply bg-blue-500;
+        }
+
+        .p-slider-handle {
+          @apply bg-blue-500 border-blue-600;
+
+          &:focus {
+            @apply ring-2 ring-blue-200;
+          }
+        }
+      }
+    }
+  }
+
+  // Controls section
+  .controls-section {
+    :host ::ng-deep .p-dropdown {
+      .p-dropdown-trigger {
+        @apply w-10;
+      }
+    }
+
+    .p-buttonset {
+      .p-button {
+        @apply border border-gray-300;
+
+        &:first-child {
+          @apply rounded-l-lg border-r-0;
+        }
+
+        &:last-child {
+          @apply rounded-r-lg border-l-0;
+        }
+
+        &.p-button-outlined {
+          &:not(.p-button-info) {
+            @apply bg-white text-gray-700;
+
+            &:hover {
+              @apply bg-gray-50;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // Product card styling
+  .product-card {
+    @apply h-full transition-transform duration-200;
+
+    &:hover {
+      @apply transform translate-y-[-2px];
+    }
+
+    :host ::ng-deep .p-card {
+      @apply h-full shadow-sm border border-gray-200 rounded-lg overflow-hidden;
+      @apply hover:shadow-md transition-shadow duration-200;
+
+      .p-card-header {
+        @apply p-0;
+      }
+
+      .p-card-body {
+        @apply p-0 flex flex-col h-full;
+      }
+
+      .p-card-content {
+        @apply flex-1;
+      }
+    }
+
+    .product-image-container {
+      @apply relative;
+
+      img {
+        @apply w-full h-48 object-cover;
+      }
+
+      .p-badge {
+        @apply text-xs font-medium;
+      }
+
+      .p-tag {
+        @apply text-xs font-bold;
+      }
+
+      .p-button {
+        @apply shadow-lg;
+      }
+    }
+
+    .product-info {
+      @apply flex flex-col h-full;
+
+      h3 {
+        @apply line-clamp-2 min-h-[3rem];
+      }
+
+      .product-details {
+        @apply flex-1;
+      }
+
+      .product-tags {
+        :host ::ng-deep .p-chip {
+          @apply text-xs;
+
+          .p-chip-text {
+            @apply font-medium;
+          }
+        }
+      }
+
+      .product-actions {
+        @apply mt-auto pt-4 border-t border-gray-100;
+
+        .price {
+          span {
+            @apply bg-gradient-to-r from-green-600 to-green-700 bg-clip-text text-transparent;
+          }
+        }
+
+        .p-button {
+          &:disabled {
+            @apply opacity-50 cursor-not-allowed;
+          }
+        }
+      }
+    }
+  }
+
+  // List item styling
+  .product-list-item {
+    @apply transition-all duration-200;
+
+    &:hover {
+      @apply shadow-md transform translate-x-1;
+    }
+
+    .product-image {
+      img {
+        @apply transition-transform duration-200;
+      }
+    }
+
+    &:hover .product-image img {
+      @apply scale-105;
+    }
+  }
+
+  // Loading state
+  .loading-grid {
+    :host ::ng-deep .p-skeleton {
+      @apply rounded-lg;
+
+      &::after {
+        @apply bg-gradient-to-r from-transparent via-gray-200 to-transparent;
+      }
+    }
+  }
+
+  // DataView styling
+  .product-dataview {
+    :host ::ng-deep .p-dataview {
+      .p-paginator {
+        @apply border-0 bg-transparent;
+        @apply justify-center py-4;
+
+        .p-paginator-pages {
+          .p-paginator-page {
+            @apply mx-1 rounded-lg;
+
+            &.p-highlight {
+              @apply bg-blue-500 text-white;
+            }
+          }
+        }
+      }
+
+      .p-dataview-emptymessage {
+        @apply text-center py-8;
+      }
+    }
+  }
+
+  // Empty state
+  .empty-state {
+    @apply bg-gray-50 rounded-lg;
+
+    i {
+      @apply block mx-auto;
+    }
+  }
+
+  // Filter chips
+  :host ::ng-deep .p-chip {
+    &.text-xs {
+      @apply px-2 py-1;
+
+      .p-chip-text {
+        @apply text-xs;
+      }
+
+      .p-chip-remove-icon {
+        @apply text-xs ml-1;
+      }
+    }
+  }
+
+  // Responsive design
+  @media (max-width: 640px) {
+    .filters-section {
+      .grid {
+        @apply grid-cols-1 gap-4;
+      }
+    }
+
+    .controls-section {
+      .flex {
+        @apply flex-col space-y-4;
+        @apply items-start;
+      }
+    }
+
+    .product-card {
+      :host ::ng-deep .p-card {
+        .p-card-content {
+          @apply p-3;
+        }
+      }
+    }
+
+    .product-list-item {
+      @apply flex-col;
+
+      .product-image {
+        @apply w-full h-48 mb-4;
+      }
+    }
+  }
+
+  @media (max-width: 768px) {
+    .product-grid {
+      @apply px-4;
+    }
+
+    .controls-section {
+      .sort-control {
+        :host ::ng-deep .p-dropdown {
+          @apply w-full;
+        }
+      }
+    }
+  }
+
+  // Dark mode support
+  @media (prefers-color-scheme: dark) {
+    .product-grid {
+      .filters-section {
+        .bg-white {
+          @apply bg-gray-800 border-gray-700;
+        }
+
+        .text-gray-700 {
+          @apply text-gray-300;
+        }
+
+        .border-gray-200 {
+          @apply border-gray-600;
+        }
+      }
+
+      .product-card {
+        :host ::ng-deep .p-card {
+          @apply bg-gray-800 border-gray-700;
+        }
+
+        .text-gray-900 {
+          @apply text-gray-100;
+        }
+
+        .text-gray-600 {
+          @apply text-gray-400;
+        }
+
+        .border-gray-100 {
+          @apply border-gray-600;
+        }
+      }
+
+      .product-list-item {
+        @apply bg-gray-800 border-gray-700;
+
+        .text-gray-900 {
+          @apply text-gray-100;
+        }
+
+        .text-gray-600 {
+          @apply text-gray-400;
+        }
+      }
+
+      .empty-state {
+        @apply bg-gray-800;
+
+        .text-gray-600 {
+          @apply text-gray-400;
+        }
+
+        .text-gray-500 {
+          @apply text-gray-500;
+        }
+      }
+    }
+  }
+
+  // Print styles
+  @media print {
+    .filters-section,
+    .controls-section {
+      @apply hidden;
+    }
+
+    .product-card {
+      @apply break-inside-avoid;
+
+      .product-actions {
+        @apply hidden;
+      }
+
+      :host ::ng-deep .p-card {
+        @apply shadow-none border border-gray-400;
+      }
+    }
+
+    .product-list-item {
+      .actions {
+        @apply hidden;
+      }
+    }
+  }
+
+  // High contrast mode
+  @media (prefers-contrast: high) {
+    .product-card {
+      :host ::ng-deep .p-card {
+        @apply border-2 border-black;
+      }
+    }
+
+    .product-list-item {
+      @apply border-2 border-black;
+    }
+
+    .p-button {
+      @apply border-2 border-current;
+    }
+  }
+
+  // Reduced motion
+  @media (prefers-reduced-motion: reduce) {
+    .product-card,
+    .product-list-item {
+      &:hover {
+        @apply transform-none;
+      }
+    }
+
+    * {
+      @apply transition-none;
+    }
+  }
+
+  // Focus states for accessibility
+  .p-button:focus-visible,
+  input:focus-visible,
+  .p-dropdown:focus-visible,
+  .p-multiselect:focus-visible {
+    @apply outline-2 outline-blue-500 outline-offset-2;
+  }
+
+  // Loading animations
+  @keyframes shimmer {
+    0% {
+      transform: translateX(-100%);
+    }
+    100% {
+      transform: translateX(100%);
+    }
+  }
+
+  .loading-grid {
+    :host ::ng-deep .p-skeleton {
+      position: relative;
+      overflow: hidden;
+
+      &::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          rgba(255, 255, 255, 0.4),
+          transparent
+        );
+        animation: shimmer 2s infinite;
+      }
+    }
+  }
+}

@@ -1,8 +1,55 @@
-import { User } from '@app/models';
+import {
+  User,
+  Cafe,
+  Product,
+  Order,
+  OrderItem,
+  Payment,
+  Counter,
+  Employee,
+  TimeSheet,
+  TimeEntry,
+  Stock,
+  StockMovement,
+  Purchase,
+  PurchaseItem,
+  Glass,
+  GlassMovement,
+  Credit,
+  Configuration
+} from '@app/models';
 import { ConfigService } from '@nestjs/config';
 import { DataSource, DataSourceOptions } from 'typeorm';
 
-const entities = [User];
+const entities = [
+  // Core entities
+  Cafe,
+  User,
+
+  // Order management
+  Product,
+  Order,
+  OrderItem,
+  Payment,
+
+  // Operations
+  Counter,
+  Employee,
+  TimeSheet,
+  TimeEntry,
+
+  // Inventory
+  Stock,
+  StockMovement,
+  Purchase,
+  PurchaseItem,
+
+  // Additional features
+  Glass,
+  GlassMovement,
+  Credit,
+  Configuration
+];
 
 export function getDbConfig(configService?: ConfigService): DataSourceOptions {
   const getEnvVar = (key: string, defaultValue?: string) => (configService ? configService.get<string>(key) : process.env[key] || defaultValue);
