@@ -251,16 +251,16 @@ export class OrderService {
 
       switch (input.status) {
         case OrderStatus.PREPARING:
-          updates.readyTime = null;
-          updates.completedTime = null;
+          updates.readyAt = null;
+          updates.deliveredAt = null;
           break;
         case OrderStatus.READY:
-          updates.readyTime = new Date()
-          updates.completedTime = null;
+          updates.readyAt = new Date()
+          updates.deliveredAt = null;
           break;
-        case OrderStatus.COMPLETED:
-          if (!order.readyTime) updates.readyTime = new Date()
-          updates.completedTime = new Date()
+        case OrderStatus.DELIVERED:
+          if (!order.readyAt) updates.readyAt = new Date()
+          updates.deliveredAt = new Date()
           break;
         case OrderStatus.CANCELLED:
           // Restore inventory if order was preparing or ready
@@ -330,7 +330,7 @@ export class OrderService {
         throw new NotFoundException(`Order with ID ${id} not found`);
       }
 
-      if (order.status === OrderStatus.COMPLETED) {
+      if (order.status === OrderStatus.DELIVERED) {
         throw new BadRequestException('Cannot cancel completed order');
       }
 
@@ -760,17 +760,17 @@ export class OrderService {
       .createQueryBuilder('order')
       .where('order.cafeId = :cafeId', { cafeId })
       .andWhere('order.createdAt BETWEEN :start AND :end', { start: startOfDay, end: endOfDay })
-      .andWhere('order.status = :status', { status: OrderStatus.COMPLETED })
+      .andWhere('order.status = :status', { status: OrderStatus.DELIVERED })
       .getMany()
 
     // Calculate metrics
     const preparationTimes = orders
-      .filter(o => o.readyTime && o.createdAt)
-      .map(o => (o.readyTime!.getTime() - o.createdAt.getTime()) / (1000 * 60)); // minutes
+      .filter(o => o.readyAt && o.createdAt)
+      .map(o => (o.readyAt!.getTime() - o.createdAt.getTime()) / (1000 * 60)); // minutes
 
     const waitTimes = orders
-      .filter(o => o.completedTime && o.readyTime)
-      .map(o => (o.completedTime!.getTime() - o.readyTime!.getTime()) / (1000 * 60)); // minutes
+      .filter(o => o.deliveredAt && o.readyAt)
+      .map(o => (o.deliveredAt!.getTime() - o.readyAt!.getTime()) / (1000 * 60)); // minutes
 
     const averagePreparationTime = preparationTimes.length > 0
       ? preparationTimes.reduce((a, b) => a + b) / preparationTimes.length : 0;
@@ -782,8 +782,8 @@ export class OrderService {
     const hourlyData = new Map<number, { count: number; totalWaitTime: number }>()
     orders.forEach(order => {
       const hour = order.createdAt.getHours()
-      const waitTime = order.completedTime && order.readyTime
-        ? (order.completedTime.getTime() - order.readyTime.getTime()) / (1000 * 60) : 0;
+      const waitTime = order.deliveredAt && order.readyAt
+        ? (order.deliveredAt.getTime() - order.readyAt.getTime()) / (1000 * 60) : 0;
 
       if (!hourlyData.has(hour)) {
         hourlyData.set(hour, { count: 0, totalWaitTime: 0 });
@@ -803,8 +803,8 @@ export class OrderService {
     // Calculate counter performance
     const counterData = new Map<string, { count: number; totalTime: number }>()
     orders.forEach(order => {
-      if (order.counterId && order.readyTime) {
-        const prepTime = (order.readyTime.getTime() - order.createdAt.getTime()) / (1000 * 60);
+      if (order.counterId && order.readyAt) {
+        const prepTime = (order.readyAt.getTime() - order.createdAt.getTime()) / (1000 * 60);
 
         if (!counterData.has(order.counterId)) {
           counterData.set(order.counterId, { count: 0, totalTime: 0 });
@@ -976,8 +976,8 @@ export class OrderService {
       [OrderStatus.PENDING]: [OrderStatus.CONFIRMED, OrderStatus.PREPARING, OrderStatus.CANCELLED],
       [OrderStatus.CONFIRMED]: [OrderStatus.PREPARING, OrderStatus.CANCELLED],
       [OrderStatus.PREPARING]: [OrderStatus.READY, OrderStatus.CANCELLED],
-      [OrderStatus.READY]: [OrderStatus.COMPLETED, OrderStatus.CANCELLED],
-      [OrderStatus.COMPLETED]: [OrderStatus.REFUNDED],
+      [OrderStatus.READY]: [OrderStatus.DELIVERED, OrderStatus.CANCELLED],
+      [OrderStatus.DELIVERED]: [OrderStatus.REFUNDED],
       [OrderStatus.CANCELLED]: [OrderStatus.REFUNDED],
       [OrderStatus.REFUNDED]: [],
     }
@@ -1066,11 +1066,11 @@ export class OrderService {
     });
 
     for (const orderItem of orderItems) {
-      // Ensure we have the menuItemId from the relation or the actual field
-      const menuItemId = (orderItem as any).menuItemId || orderItem.menuItem?.id;
-      if (!menuItemId) continue;
+      // Get productId from the orderItem
+      const productId = orderItem.productId || orderItem.product?.id;
+      if (!productId) continue;
 
-      const inventoryItems = await this.getInventoryForMenuItem(menuItemId, manager);
+      const inventoryItems = await this.getInventoryForMenuItem(productId, manager);
 
       for (const item of inventoryItems) {
         const quantityToRestore = item.quantityNeeded * ((orderItem as any).quantity || 0);
@@ -1328,7 +1328,7 @@ export class OrderService {
       .filter((p: any) => p.status === PaymentStatus.COMPLETED)
       .reduce((sum: number, p: any) => sum + p.amount, 0);
 
-    if (totalPaid >= order.total && order.status === OrderStatus.PENDING) {
+    if (totalPaid >= order.totalAmount && order.status === OrderStatus.PENDING) {
       await manager.update(Order, orderId, {
         status: OrderStatus.PREPARING
       });
@@ -1395,9 +1395,10 @@ export class OrderService {
       [OrderStatus.CONFIRMED]: 0,
       [OrderStatus.PREPARING]: 0,
       [OrderStatus.READY]: 0,
-      [OrderStatus.COMPLETED]: 0,
+      [OrderStatus.DELIVERED]: 0,
       [OrderStatus.CANCELLED]: 0,
       [OrderStatus.REFUNDED]: 0,
+      [OrderStatus.FAILED]: 0,
     }
 
     result.forEach(row => {
@@ -1413,7 +1414,7 @@ export class OrderService {
       .select('SUM(order.total)', 'total')
       .where('order.cafeId = :cafeId', { cafeId })
       .andWhere('order.createdAt BETWEEN :startDate AND :endDate', { startDate, endDate })
-      .andWhere('order.status IN (:...statuses)', { statuses: [OrderStatus.COMPLETED] })
+      .andWhere('order.status IN (:...statuses)', { statuses: [OrderStatus.DELIVERED] })
       .getRawOne()
 
     return parseFloat(result.total) || 0;
@@ -1435,7 +1436,7 @@ export class OrderService {
       .addSelect('SUM(orderItem.subtotal)', 'revenue')
       .where('order.cafeId = :cafeId', { cafeId })
       .andWhere('order.createdAt BETWEEN :startDate AND :endDate', { startDate, endDate })
-      .andWhere('order.status = :status', { status: OrderStatus.COMPLETED })
+      .andWhere('order.status = :status', { status: OrderStatus.DELIVERED })
       .groupBy('orderItem.menuItemId, menuItem.name')
       .orderBy('SUM(orderItem.quantity)', 'DESC')
       .limit(10)
@@ -1519,9 +1520,9 @@ export class OrderService {
     }
 
     // Calculate average preparation time for completed orders
-    const completedOrders = orders.filter(o => o.status === OrderStatus.COMPLETED && o.readyTime);
+    const completedOrders = orders.filter(o => o.status === OrderStatus.DELIVERED && o.readyAt);
     const preparationTimes = completedOrders.map(o =>
-      (o.readyTime!.getTime() - o.createdAt.getTime()) / (1000 * 60) // minutes
+      (o.readyAt!.getTime() - o.createdAt.getTime()) / (1000 * 60) // minutes
     );
 
     const averagePreparationTime = preparationTimes.length > 0

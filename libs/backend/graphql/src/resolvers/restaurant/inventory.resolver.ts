@@ -5,15 +5,12 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { PubSub } from 'graphql-subscriptions';
 import { PermGuard, ReqUser } from '@app/backend-authorization';
-import { User } from '@app/models';
+import { User, Stock, Cafe } from '@app/models';
 import {
-  Stock,
-  Cafe,
   CreateInventoryItemInput,
   UpdateInventoryItemInput,
-  UpdateInventoryStockInput,
-  PaginatedInventoryResponse
-} from '@app/models';
+  UpdateInventoryStockInput
+} from '../../inputs';
 import { InventoryService } from '@app/backend-services';
 import { DataLoaderService } from '../../dataloaders';
 
@@ -31,15 +28,15 @@ export class InventoryResolver {
   ) {}
 
   // Queries
-  @Query(() => PaginatedInventoryResponse)
+  @Query(() => [Stock])
   @UseGuards(PermGuard)
   @UseInterceptors(CacheInterceptor)
   async inventory(
     @Args('cafeId') cafeId: string,
     @ReqUser() user?: User,
-  ): Promise<PaginatedInventoryResponse> {
+  ): Promise<Stock[]> {
     try {
-      return await this.inventoryService.findByCafe(cafeId, { pagination, sort, user });
+      return await this.inventoryService.findByCafe(cafeId, { user });
     } catch (error) {
       this.logger.error(`Failed to fetch inventory for cafe ${cafeId}: ${error.message}`, error.stack);
       throw error;
@@ -97,7 +94,7 @@ export class InventoryResolver {
     @Args('query') query: string,
     @ReqUser() user?: User,
   ): Promise<Stock[]> {
-    return this.inventoryService.search(cafeId, query, { pagination, user });
+    return this.inventoryService.search(cafeId, query, { user });
   }
 
   // Mutations

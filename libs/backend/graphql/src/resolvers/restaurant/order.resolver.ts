@@ -29,11 +29,13 @@ export class OrderResolver {
   ) {}
 
   // Queries
+  @Query(() => [Order])
   @UseGuards(PermGuard)
   async orders(
     @ReqUser() user?: User,
+  ): Promise<Order[]> {
     try {
-      return await this.orderService.findAll({ filters, pagination, sort, user });
+      return await this.orderService.findAll({ user });
     } catch (error) {
       this.logger.error(`Failed to fetch orders: ${error.message}`, error.stack);
       throw error;

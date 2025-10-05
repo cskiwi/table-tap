@@ -216,7 +216,8 @@ export class DataLoaderService {
   private async batchInventoryByCafe(cafeIds: readonly string[]): Promise<Stock[][]> {
     const inventory = await this.inventoryRepository.find({
       where: { cafeId: In([...cafeIds]) },
-      order: { itemName: 'ASC' }
+      relations: ['product'],
+      order: { id: 'ASC' }
     });
 
     const grouped = this.groupBy(inventory, 'cafeId');

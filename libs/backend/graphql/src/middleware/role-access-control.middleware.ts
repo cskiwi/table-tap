@@ -331,30 +331,30 @@ export class EmployeeContextEnhancer {
  * Permission definitions for different roles
  */
 export const ROLE_PERMISSIONS: Record<UserRole, string[]> = {
-  [UserRole.ADMIN]: ['*'], // All permissions
+  [UserRole.CUSTOMER]: [
+    'view_menu', 'create_orders', 'view_own_orders'
+  ],
+  [UserRole.EMPLOYEE]: [
+    'view_orders', 'update_order_status', 'view_menu'
+  ],
   [UserRole.MANAGER]: [
     'view_all_orders', 'manage_orders', 'view_inventory', 'manage_inventory',
     'view_employees', 'manage_employees', 'view_reports', 'manage_cafe',
     'view_schedule', 'manage_schedule'
   ],
-  [UserRole.SUPERVISOR]: [
-    'view_all_orders', 'manage_orders', 'view_inventory', 'view_employees',
-    'view_schedule', 'manage_schedule', 'view_menu'
-  ],
+  [UserRole.ADMIN]: ['*'], // All permissions
+  [UserRole.OWNER]: ['*'], // All permissions
   [UserRole.CASHIER]: [
     'view_orders', 'create_orders', 'process_payments', 'view_menu'
   ],
   [UserRole.BARISTA]: [
     'view_orders', 'update_order_status', 'view_inventory', 'view_menu'
   ],
-  [UserRole.KITCHEN_STAFF]: [
+  [UserRole.KITCHEN]: [
     'view_orders', 'update_order_status', 'view_inventory', 'view_menu'
   ],
-  [UserRole.SERVER]: [
+  [UserRole.WAITER]: [
     'view_orders', 'create_orders', 'update_order_status', 'view_menu'
-  ],
-  [UserRole.CLEANER]: [
-    'view_schedule', 'view_menu'
   ],
 }
 
