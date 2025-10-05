@@ -23,7 +23,7 @@ export function transferState<T>(
       if (transferStateService.hasKey(STATE_KEY)) {
         const state = transferStateService.get<T | null>(STATE_KEY, null);
         observer.next(state);
-        observer.complete();
+        observer.complete()
       } else {
         source
           .pipe(
@@ -36,5 +36,5 @@ export function transferState<T>(
           .subscribe(observer);
       }
     });
-  };
+  }
 }

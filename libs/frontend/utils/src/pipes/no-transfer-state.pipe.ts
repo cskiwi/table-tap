@@ -9,10 +9,10 @@ export function noTransferState<T>(platformId: string) {
     return new Observable<T | null>((observer) => {
       if (isPlatformServer(platformId)) {
         observer.next(null);
-        observer.complete();
+        observer.complete()
       } else {
         source.subscribe(observer);
       }
     });
-  };
+  }
 }

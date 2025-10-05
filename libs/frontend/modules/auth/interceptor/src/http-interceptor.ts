@@ -1,7 +1,7 @@
 import {
   HttpHandler,
   HttpInterceptor,
-  HttpRequest,
+  HttpRequest
 } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { AUTH_KEY } from '@app/frontend-modules-auth/service';
@@ -16,9 +16,9 @@ export class AuthInterceptor implements HttpInterceptor {
         setHeaders: {
           Authorization: cookie.check(AUTH_KEY)
             ? `Bearer ${cookie.get(AUTH_KEY)}`
-            : '',
-        },
-      }),
+            : ''
+        }
+      })
     );
   }
 }

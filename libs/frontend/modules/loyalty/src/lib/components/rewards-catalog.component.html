@@ -1,0 +1,291 @@
+,
+    <div class="rewards-catalog">
+      <!-- Header -->
+      <div class="catalog-header">
+        <h2 class="page-title">
+          <i class="fas fa-gift"></i>
+          Rewards Catalog
+        </h2>
+        <p class="page-subtitle">Redeem your points for amazing rewards</p>
+    
+        <!-- Points Balance -->
+        @if (loyaltyAccount()) {
+          <div class="points-display">
+            <div class="points-card">
+              <span class="points-amount">{{ loyaltyAccount()?.currentPoints | number:'1.0-0' }}</span>
+              <span class="points-label">Points Available</span>
+            </div>
+          </div>
+        }
+      </div>
+    
+      <!-- Filters -->
+      <div class="filters-section">
+        <div class="filter-row">
+          <!-- Category Filter -->
+          <div class="filter-group">
+            <label for="category-filter">Category</label>
+            <select id="category-filter" [(ngModel)]="selectedCategory" (change)="applyFilters()">
+              <option value="">All Categories</option>
+              <option value="food">Food</option>
+              <option value="beverage">Beverage</option>
+              <option value="discount">Discounts</option>
+              <option value="delivery">Delivery</option>
+              <option value="experience">Experiences</option>
+              <option value="merchandise">Merchandise</option>
+            </select>
+          </div>
+    
+          <!-- Points Range Filter -->
+          <div class="filter-group">
+            <label for="points-range">Points Range</label>
+            <select id="points-range" [(ngModel)]="selectedPointsRange" (change)="applyFilters()">
+              <option value="">Any Points</option>
+              <option value="0-100">0 - 100 points</option>
+              <option value="101-500">101 - 500 points</option>
+              <option value="501-1000">501 - 1,000 points</option>
+              <option value="1001-">1,000+ points</option>
+            </select>
+          </div>
+    
+          <!-- Availability Filter -->
+          <div class="filter-group">
+            <label for="availability-filter">Availability</label>
+            <select id="availability-filter" [(ngModel)]="selectedAvailability" (change)="applyFilters()">
+              <option value="">All Rewards</option>
+              <option value="available">Available Now</option>
+              <option value="affordable">I Can Afford</option>
+              <option value="featured">Featured</option>
+              <option value="limited">Limited Time</option>
+            </select>
+          </div>
+    
+          <!-- Sort Options -->
+          <div class="filter-group">
+            <label for="sort-filter">Sort By</label>
+            <select id="sort-filter" [(ngModel)]="selectedSort" (change)="applyFilters()">
+              <option value="points-asc">Points: Low to High</option>
+              <option value="points-desc">Points: High to Low</option>
+              <option value="name">Name A-Z</option>
+              <option value="newest">Newest First</option>
+              <option value="popularity">Most Popular</option>
+            </select>
+          </div>
+        </div>
+    
+        <!-- Active Filters Display -->
+        @if (hasActiveFilters()) {
+          <div class="active-filters">
+            <span class="filters-label">Active filters:</span>
+            <div class="filter-tags">
+              @if (selectedCategory) {
+                <span class="filter-tag">
+                  Category: {{ getCategoryDisplayName(selectedCategory) }},
+                  <button (click)="clearFilter('category')" class="remove-filter">×</button>
+                </span>
+              }
+              @if (selectedPointsRange) {
+                <span class="filter-tag">
+                  Points: {{ selectedPointsRange }},
+                  <button (click)="clearFilter('pointsRange')" class="remove-filter">×</button>
+                </span>
+              }
+              @if (selectedAvailability) {
+                <span class="filter-tag">
+                  {{ getAvailabilityDisplayName(selectedAvailability) }}
+                  <button (click)="clearFilter('availability')" class="remove-filter">×</button>
+                </span>
+              }
+              <button class="clear-all-filters" (click)="clearAllFilters()">Clear All</button>
+            </div>
+          </div>
+        }
+      </div>
+    
+      <!-- Loading State -->
+      @if (isLoading) {
+        <div class="loading-state">
+          <div class="loading-spinner">
+            <i class="fas fa-spinner fa-spin"></i>
+          </div>
+          <p>Loading rewards...</p>
+        </div>
+      }
+    
+      <!-- Rewards Grid -->
+      @if (!isLoading && filteredRewards.length > 0) {
+        <div class="rewards-grid">
+          @for (reward of filteredRewards; track reward) {
+            <div class="reward-card"
+              [class.affordable]="isAffordable(reward)"
+              [class.featured]="reward.isFeatured"
+              [class.limited-time]="reward.isLimitedTime"
+              [class.out-of-stock]="!reward.isAvailable"
+              (click)="selectReward(reward)">
+              <!-- Reward Image -->
+              <div class="reward-image">
+                <img [src]="reward.image || getDefaultImage(reward.category)"
+                  [alt]="reward.name"
+                  loading="lazy">
+                <!-- Badges -->
+                <div class="reward-badges">
+                  @if (reward.isFeatured) {
+                    <span class="badge featured">Featured</span>
+                  }
+                  @if (reward.isLimitedTime) {
+                    <span class="badge limited-time">
+                      Limited Time
+                    </span>
+                  }
+                  @if (reward.isNearExpiry) {
+                    <span class="badge expiring">
+                      {{ reward.daysUntilExpiry }} days left
+                    </span>
+                  }
+                  @if (!reward.isAvailable) {
+                    <span class="badge out-of-stock">
+                      Unavailable
+                    </span>
+                  }
+                </div>
+                <!-- Category Icon -->
+                <div class="category-icon" [class]="getCategoryIcon(reward.category)"></div>
+              </div>
+              <!-- Reward Content -->
+              <div class="reward-content">
+                <div class="reward-header">
+                  <h3 class="reward-name">{{ reward.name }}</h3>
+                  <div class="reward-type">{{ getTypeDisplayName(reward.type) }}</div>
+                </div>
+                <p class="reward-description">{{ reward.description }}</p>
+                <!-- Reward Value -->
+                <div class="reward-value">
+                  <span class="display-value">{{ reward.displayValue }}</span>
+                  @if (reward.cashValue) {
+                    <span class="cash-value">
+                      ({{ reward.cashValue | currency:'USD':'symbol':'1.2-2' }} value)
+                    </span>
+                  }
+                </div>
+                <!-- Points Cost -->
+                <div class="reward-cost">
+                  <div class="points-cost" [class.affordable]="isAffordable(reward)">
+                    <i class="fas fa-coins"></i>
+                    <span class="cost-amount">{{ reward.pointsCost | number:'1.0-0' }}</span>
+                    <span class="cost-label">points</span>
+                  </div>
+                  <!-- Redemption Limits -->
+                  @if (hasRedemptionLimits(reward)) {
+                    <div class="redemption-info">
+                      <small class="limit-text">
+                        <i class="fas fa-info-circle"></i>
+                        {{ getRedemptionLimitText(reward) }}
+                      </small>
+                    </div>
+                  }
+                </div>
+                <!-- Tier Requirements -->
+                @if (reward.requiredTierLevels.length > 0) {
+                  <div class="tier-requirement">
+                    <i class="fas fa-crown"></i>
+                    <span>Requires {{ getTierRequirementText(reward) }}</span>
+                  </div>
+                }
+                <!-- Redemption Button -->
+                <div class="reward-actions">
+                  <button class="redeem-btn"
+                    [disabled]="!canRedeem(reward)"
+                    [class.affordable]="isAffordable(reward)"
+                    (click)="redeemReward(reward, $event)">
+                    @if (canRedeem(reward)) {
+                      <span>
+                        <i class="fas fa-gift"></i>
+                        Redeem Now
+                      </span>
+                    }
+                    @if (!isAffordable(reward) && reward.isAvailable) {
+                      <span>
+                        <i class="fas fa-coins"></i>
+                        Need {{ reward.pointsCost - (loyaltyAccount()?.currentPoints || 0) }} more points
+                      </span>
+                    }
+                    @if (!reward.isAvailable) {
+                      <span>
+                        <i class="fas fa-ban"></i>
+                        Unavailable
+                      </span>
+                    }
+                  </button>
+                  <button class="details-btn" (click)="viewRewardDetails(reward, $event)">
+                    <i class="fas fa-info"></i>
+                    Details
+                  </button>
+                </div>
+                <!-- Popularity Indicator -->
+                @if (reward.redemptionCount > 0) {
+                  <div class="popularity-indicator">
+                    <i class="fas fa-users"></i>
+                    <span>{{ reward.redemptionCount }} redeemed</span>
+                  </div>
+                }
+              </div>
+            </div>
+          }
+        </div>
+      }
+    
+      <!-- Empty State -->
+      @if (!isLoading && filteredRewards.length === 0 && !error) {
+        <div class="empty-state">
+          <div class="empty-icon">
+            <i class="fas fa-search"></i>
+          </div>
+          <h3>No Rewards Found</h3>
+          @if (hasActiveFilters()) {
+            <p>
+              Try adjusting your filters to see more rewards.
+            </p>
+          }
+          @if (!hasActiveFilters()) {
+            <p>
+              No rewards are currently available. Check back soon!
+            </p>
+          }
+          @if (hasActiveFilters()) {
+            <button class="clear-filters-btn"
+              (click)="clearAllFilters()">
+              Clear Filters
+            </button>
+          }
+        </div>
+      }
+    
+      <!-- Error State -->
+      @if (error && !isLoading) {
+        <div class="error-state">
+          <div class="error-icon">
+            <i class="fas fa-exclamation-triangle"></i>
+          </div>
+          <h3>Unable to Load Rewards</h3>
+          <p>{{ error }}</p>
+          <button class="retry-btn" (click)="loadRewards()">Try Again</button>
+        </div>
+      }
+    
+      <!-- Load More Button -->
+      @if (!isLoading && hasMoreRewards) {
+        <div class="load-more-section">
+          <button class="load-more-btn"
+            (click)="loadMoreRewards()"
+            [disabled]="isLoadingMore">
+            @if (isLoadingMore) {
+              <i class="fas fa-spinner fa-spin"></i>
+            }
+            @if (!isLoadingMore) {
+              <i class="fas fa-arrow-down"></i>
+            }
+            {{ isLoadingMore ? 'Loading...' : 'Load More Rewards' }}
+          </button>
+        </div>
+      }
+    </div>

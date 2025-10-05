@@ -10,20 +10,20 @@ import {
   Order,
   ProcessPaymentInput,
   RefundPaymentInput
-} from '@app/models/restaurant';
-import { PaymentService } from '../services/payment.service';
-import { DataLoader } from '../../dataloaders';
+} from '@app/models';
+import { PaymentService } from '@app/backend-services';
+import { DataLoaderService } from '../../dataloaders';
 
 @Injectable()
 @Resolver(() => Payment)
 export class PaymentResolver {
-  private pubSub = new PubSub();
+  private pubSub = new PubSub()
 
   constructor(
     @InjectRepository(Payment)
     private readonly paymentRepository: Repository<Payment>,
     private readonly paymentService: PaymentService,
-    private readonly dataLoader: DataLoader,
+    private readonly dataLoader: DataLoaderService,
   ) {}
 
   // Queries

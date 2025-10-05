@@ -70,13 +70,13 @@ export class RankingSystemService {
 
         const queryParams: { [key: string]: string | undefined } = {
           ...this.route.snapshot.queryParams,
-          watch: undefined,
+          watch: undefined
         };
 
         this.router.navigate([], {
           relativeTo: this.route,
           queryParams,
-          queryParamsHandling: 'merge',
+          queryParamsHandling: 'merge'
         });
       }
     });
@@ -86,7 +86,7 @@ export class RankingSystemService {
   initialState: RankingState = {
     rankingSystem: null,
     loaded: false,
-  };
+  }
 
   // selectors
   system = computed(() => this.state().rankingSystem);
@@ -97,16 +97,16 @@ export class RankingSystemService {
   private servicesLoaded$ = of(
     this.isBrowser
       ? sessionStorage?.getItem(WATCH_SYSTEM_ID_KEY) ?? null
-      : null,
+      : null
   ).pipe(switchMap((saved) => this._loadSystem(saved)));
 
   sources$ = merge(
     this.servicesLoaded$.pipe(
       map((rankingSystem) => ({
         rankingSystem,
-        loaded: true,
-      })),
-    ),
+        loaded: true
+      }))
+    )
   );
 
   state = signalSlice({
@@ -119,9 +119,9 @@ export class RankingSystemService {
           tap((id) => sessionStorage.setItem(WATCH_SYSTEM_ID_KEY, id)),
           switchMap((id) =>
             this._loadSystem(id).pipe(
-              map((system) => ({ rankingSystem: system, loaded: true })),
-            ),
-          ),
+              map((system) => ({ rankingSystem: system, loaded: true }))
+            )
+          )
         ),
       clearWatchSystem: (_state, action$: Observable<void>) =>
         action$.pipe(
@@ -129,9 +129,9 @@ export class RankingSystemService {
           tap(() => sessionStorage.removeItem(WATCH_SYSTEM_ID_KEY)),
           switchMap(() =>
             this._loadSystem(null).pipe(
-              map((system) => ({ rankingSystem: system, loaded: true })),
-            ),
-          ),
+              map((system) => ({ rankingSystem: system, loaded: true }))
+            )
+          )
         ),
       deleteSystem: (_state, action$: Observable<string>) =>
         action$.pipe(
@@ -140,11 +140,11 @@ export class RankingSystemService {
           // load the default system
           switchMap(() =>
             this._loadSystem(null).pipe(
-              map((system) => ({ rankingSystem: system, loaded: true })),
-            ),
-          ),
-        ),
-    },
+              map((system) => ({ rankingSystem: system, loaded: true }))
+            )
+          )
+        )
+    }
   
   });
 
@@ -155,8 +155,8 @@ export class RankingSystemService {
       }>({
         query: SYSTEM_QUERY,
         variables: {
-          id: id ?? null,
-        },
+          id: id ?? null
+        }
       })
       .pipe(map((res) => res.data?.rankingSystem));
   }
@@ -169,8 +169,8 @@ export class RankingSystemService {
         }
       `,
       variables: {
-        id: id,
-      },
+        id: id
+      }
     });
   }
 }

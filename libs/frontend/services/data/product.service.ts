@@ -192,7 +192,7 @@ export interface ProductFilters {
   priceMax?: number;
   isVegan?: boolean;
   isGlutenFree?: boolean;
-  allergens?: string[];
+  allergens?: string[]
 }
 
 export interface CreateProductInput {
@@ -202,10 +202,10 @@ export interface CreateProductInput {
   categoryId: string;
   imageUrl?: string;
   preparationTime: number;
-  allergens?: string[];
+  allergens?: string[]
   nutritionalInfo?: any;
-  customizationOptions?: any[];
-  ingredients?: string[];
+  customizationOptions?: any[]
+  ingredients?: string[]
   isVegan?: boolean;
   isGlutenFree?: boolean;
   isSpicy?: boolean;
@@ -220,10 +220,10 @@ export interface UpdateProductInput {
   imageUrl?: string;
   isAvailable?: boolean;
   preparationTime?: number;
-  allergens?: string[];
+  allergens?: string[]
   nutritionalInfo?: any;
-  customizationOptions?: any[];
-  ingredients?: string[];
+  customizationOptions?: any[]
+  ingredients?: string[]
   isVegan?: boolean;
   isGlutenFree?: boolean;
   isSpicy?: boolean;
@@ -245,11 +245,11 @@ export class ProductService extends BaseService {
   private filtersSubject = new BehaviorSubject<ProductFilters>({});
 
   // Observables
-  public readonly products$ = this.productsSubject.asObservable();
-  public readonly categories$ = this.categoriesSubject.asObservable();
-  public readonly selectedCategory$ = this.selectedCategorySubject.asObservable();
-  public readonly searchTerm$ = this.searchTermSubject.asObservable();
-  public readonly filters$ = this.filtersSubject.asObservable();
+  public readonly products$ = this.productsSubject.asObservable()
+  public readonly categories$ = this.categoriesSubject.asObservable()
+  public readonly selectedCategory$ = this.selectedCategorySubject.asObservable()
+  public readonly searchTerm$ = this.searchTermSubject.asObservable()
+  public readonly filters$ = this.filtersSubject.asObservable()
 
   // Filtered products based on category, search, and filters
   public readonly filteredProducts$ = combineLatest([
@@ -283,7 +283,7 @@ export class ProductService extends BaseService {
   public readonly isSavingProduct$ = this.getLoading('saveProduct');
 
   constructor() {
-    super();
+    super()
   }
 
   /**
@@ -302,7 +302,7 @@ export class ProductService extends BaseService {
       limit: options?.limit,
       search: options?.search,
       available: options?.available
-    };
+    }
 
     return this.query<{ products: ApiResponse<Product[]> }>(GET_PRODUCTS, variables, {
       useCache: true,
@@ -556,7 +556,7 @@ export class ProductService extends BaseService {
   getProductsByDiet(cafeId: string, requirements: {
     vegan?: boolean;
     glutenFree?: boolean;
-    excludeAllergens?: string[];
+    excludeAllergens?: string[]
   }): Observable<Product[]> {
     return this.availableProducts$.pipe(
       map(products => products.filter(product => {
@@ -579,7 +579,7 @@ export class ProductService extends BaseService {
     searchTerm: string,
     filters: ProductFilters
   ): Product[] {
-    let filtered = [...products];
+    let filtered = [...products]
 
     // Filter by category
     if (categoryId) {
@@ -588,7 +588,7 @@ export class ProductService extends BaseService {
 
     // Filter by search term
     if (searchTerm.trim()) {
-      const term = searchTerm.toLowerCase();
+      const term = searchTerm.toLowerCase()
       filtered = filtered.filter(product =>
         product.name.toLowerCase().includes(term) ||
         product.description.toLowerCase().includes(term) ||
@@ -637,7 +637,7 @@ export class ProductService extends BaseService {
           ...product,
           isAvailable: productUpdate.isAvailable,
           updatedAt: new Date()
-        };
+        }
       }
       return product;
     });
@@ -655,7 +655,7 @@ export class ProductService extends BaseService {
     const updatedProducts = currentProducts.map(product => {
       const update = updates.find(u => u.productId === product.id);
       if (update) {
-        return { ...product, isAvailable: update.isAvailable };
+        return { ...product, isAvailable: update.isAvailable }
       }
       return product;
     });
@@ -665,7 +665,7 @@ export class ProductService extends BaseService {
 
     return new Observable(observer => {
       observer.next(true);
-      observer.complete();
+      observer.complete()
     });
   }
 }

@@ -1,0 +1,192 @@
+<div class="p-4">
+  <div class="flex items-center gap-3 mb-4">
+    <i class="pi pi-user-plus text-2xl"></i>
+    <h2 class="text-xl font-semibold">Assign Staff to Order</h2>
+  </div>
+
+  <!-- Order Information -->
+  <div class="mb-4 p-3 bg-surface-50 dark:bg-surface-800 rounded-lg">
+    <h3 class="font-medium mb-2">Order Details</h3>
+    <div class="flex flex-col gap-2">
+      <div class="flex items-center gap-2">
+        <i class="pi pi-receipt"></i>
+        <span>Order #{{ data.order.orderNumber }}</span>
+      </div>
+      @if (data.order.customerName) {
+        <div class="flex items-center gap-2">
+          <i class="pi pi-user"></i>
+          <span>{{ data.order.customerName }}</span>
+        </div>
+      }
+      @if (data.order.tableNumber) {
+        <div class="flex items-center gap-2">
+          <i class="pi pi-table"></i>
+          <span>Table {{ data.order.tableNumber }}</span>
+        </div>
+      }
+      <div class="flex items-center gap-2">
+        <i class="pi pi-clock"></i>
+        <span>{{ data.order.items.length }} items</span>
+      </div>
+    </div>
+
+    <!-- Current Assignment -->
+    @if (data.order.assignedStaff) {
+      <div class="mt-3 pt-3 border-t border-surface-200 dark:border-surface-700">
+        <h4 class="font-medium mb-2">Currently Assigned To:</h4>
+        <div class="flex items-center gap-2">
+          <i class="pi pi-user"></i>
+          <span>{{ data.order.assignedStaff.firstName }} {{ data.order.assignedStaff.lastName }}</span>
+          <p-chip [label]="data.order.assignedStaff.position | titlecase"></p-chip>
+        </div>
+      </div>
+    }
+  </div>
+
+  <p-divider></p-divider>
+
+  <!-- Assignment Form -->
+  <form [formGroup]="assignmentForm" class="flex flex-col gap-4">
+    <!-- Auto-Recommendation Banner -->
+    @if (recommendedStaff()) {
+      <div class="flex items-center gap-3 p-3 rounded-lg bg-blue-50 dark:bg-blue-900/20">
+        <i class="pi pi-lightbulb text-blue-500"></i>
+        <div class="flex-1">
+          <strong>Recommended:</strong>
+          {{ recommendedStaff()!.firstName }} {{ recommendedStaff()!.lastName }}
+          ({{ getRecommendationReason() }})
+        </div>
+        <p-button
+          label="Auto-Assign"
+          severity="secondary"
+          size="small"
+          (click)="selectRecommended()">
+        </p-button>
+      </div>
+    }
+
+    <!-- Staff Selection -->
+    <p-floatlabel>
+      <p-select
+        formControlName="staffId"
+        [options]="availableStaff()"
+        optionLabel="fullName"
+        optionValue="id"
+        [filter]="true"
+        filterBy="fullName,position"
+        class="w-full"
+        inputId="staffId">
+        <ng-template pTemplate="item" let-staff>
+          <div class="p-2" [class.opacity-50]="!isStaffAvailable(staff)">
+            <div class="flex items-center justify-between">
+              <div class="flex-1">
+                <div class="font-medium flex items-center gap-2">
+                  {{ staff.firstName }} {{ staff.lastName }}
+                  @if (staff.isRecommended) {
+                    <i class="pi pi-star-fill text-yellow-500"></i>
+                  }
+                </div>
+                <div class="flex gap-2 mt-1">
+                  <p-chip [label]="staff.position | titlecase" size="small"></p-chip>
+                  <p-chip [label]="getStaffStatus(staff) | titlecase" size="small" [severity]="getStaffStatus(staff) === 'available' ? 'success' : getStaffStatus(staff) === 'busy' ? 'warning' : 'danger'"></p-chip>
+                </div>
+              </div>
+              @if (isStaffAvailable(staff)) {
+                <div class="text-sm text-surface-600 dark:text-surface-400">
+                  <div>Orders: {{ staff.currentOrders }}</div>
+                  <div>Efficiency: {{ staff.efficiency }}%</div>
+                  <div class="w-24 mt-1">
+                    <p-progressbar [value]="staff.workload" [showValue]="false"></p-progressbar>
+                  </div>
+                </div>
+              }
+              @if (!isStaffAvailable(staff)) {
+                <div class="flex items-center gap-2 text-sm text-red-500">
+                  <i class="pi pi-exclamation-circle"></i>
+                  <span>{{ staff.unavailableReason }}</span>
+                </div>
+              }
+            </div>
+          </div>
+        </ng-template>
+      </p-select>
+      <label for="staffId">Select Staff Member</label>
+    </p-floatlabel>
+
+    <!-- Assignment Reason (for reassignment) -->
+    @if (data.order.assignedStaff) {
+      <p-floatlabel>
+        <p-select
+          formControlName="reassignmentReason"
+          [options]="[
+            { label: 'Better workload distribution', value: 'workload' },
+            { label: 'Staff expertise match', value: 'expertise' },
+            { label: 'Performance optimization', value: 'efficiency' },
+            { label: 'Staff availability', value: 'availability' },
+            { label: 'Staff/Customer request', value: 'request' },
+            { label: 'Other reason', value: 'other' }
+          ]"
+          optionLabel="label"
+          optionValue="value"
+          class="w-full"
+          inputId="reason">
+        </p-select>
+        <label for="reason">Reassignment Reason</label>
+      </p-floatlabel>
+    }
+  </form>
+
+  <!-- Staff Performance Overview -->
+  @if (selectedStaff()) {
+    <div class="mt-4 p-4 bg-surface-50 dark:bg-surface-800 rounded-lg">
+      <h3 class="font-medium mb-3">Staff Performance Overview</h3>
+      <div class="flex items-start gap-4">
+        <div class="w-12 h-12 rounded-full bg-surface-200 dark:bg-surface-700 flex items-center justify-center">
+          <i class="pi pi-user text-xl"></i>
+        </div>
+        <div class="flex-1">
+          <h4 class="font-medium">{{ selectedStaff()!.firstName }} {{ selectedStaff()!.lastName }}</h4>
+          <p class="text-sm text-surface-600 dark:text-surface-400">{{ selectedStaff()!.position | titlecase }}</p>
+          @if (selectedStaff()!.isRecommended) {
+            <p-chip label="Recommended" severity="success" class="mt-1">
+              <i class="pi pi-star-fill mr-1"></i>
+            </p-chip>
+          }
+        </div>
+      </div>
+      <div class="grid grid-cols-3 gap-3 mt-4">
+        <div class="text-center p-3 rounded-lg bg-surface-100 dark:bg-surface-900">
+          <i class="pi pi-file text-xl mb-2"></i>
+          <div class="text-2xl font-bold">{{ selectedStaff()!.currentOrders }}</div>
+          <div class="text-xs text-surface-600 dark:text-surface-400">Current Orders</div>
+        </div>
+        <div class="text-center p-3 rounded-lg bg-surface-100 dark:bg-surface-900">
+          <i class="pi pi-chart-line text-xl mb-2"></i>
+          <div class="text-2xl font-bold">{{ selectedStaff()!.efficiency }}%</div>
+          <div class="text-xs text-surface-600 dark:text-surface-400">Efficiency</div>
+        </div>
+        <div class="text-center p-3 rounded-lg bg-surface-100 dark:bg-surface-900">
+          <i class="pi pi-briefcase text-xl mb-2"></i>
+          <div class="text-2xl font-bold">{{ selectedStaff()!.workload }}%</div>
+          <div class="text-xs text-surface-600 dark:text-surface-400">Workload</div>
+          <p-progressbar [value]="selectedStaff()!.workload" [showValue]="false" class="mt-2"></p-progressbar>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Dialog Actions -->
+  <div class="flex justify-end gap-2 mt-4 pt-4 border-t border-surface-200 dark:border-surface-700">
+    <p-button
+      label="Cancel"
+      severity="secondary"
+      (click)="onCancel()">
+    </p-button>
+    <p-button
+      [label]="data.order.assignedStaff ? 'Reassign' : 'Assign' + ' Staff'"
+      icon="pi pi-user-plus"
+      (click)="onAssign()"
+      [disabled]="!assignmentForm.valid">
+    </p-button>
+  </div>
+</div>

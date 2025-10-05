@@ -14,7 +14,8 @@
         "packageJson": "libs/models/models/package.json",
         "main": "libs/models/models/src/index.ts",
         "assets": ["libs/models/models/*.md"]
-      }
+      },
+      "dependsOn": ["enums:build"]
     },
     "test": {
       "executor": "@nx/jest:jest",

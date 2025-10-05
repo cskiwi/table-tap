@@ -1,0 +1,512 @@
+
+ NX   Running target build for 30 projects:
+
+- frontend-modules-kitchen-mobile
+- frontend-modules-translation
+- frontend-modules-graphql
+- frontend-modules-loyalty
+- frontend-modules-admin
+- frontend-modules-order
+- backend-authorization
+- frontend-modules-auth
+- frontend-modules-cart
+- frontend-modules-menu
+- frontend-modules-seo
+- frontend-components
+- frontend-pages-home
+- backend-translate
+- backend-database
+- backend-services
+- backend-graphql
+- backend-shared
+- shared-services
+- backend-health
+- frontend-utils
+- backend-redis
+- models
+- backend-seo
+- enums
+- shared-ui
+- set-env
+- utils
+- api
+- app
+
+
+
+> nx run enums:build  [local cache]
+
+Compiling TypeScript files for project "enums"...
+Done compiling TypeScript files for project "enums".
+
+[2m..\..\..\dist\libs\models\enum\README.md[22m
+
+> nx run utils:build  [local cache]
+
+Compiling TypeScript files for project "utils"...
+Done compiling TypeScript files for project "utils".
+
+[2m..\..\dist\libs\utils\README.md[22m
+
+> nx run backend-health:build  [local cache]
+
+Compiling TypeScript files for project "backend-health"...
+Done compiling TypeScript files for project "backend-health".
+
+> nx run shared-services:build  [local cache]
+
+[34mBuilding Angular Package[39m
+[37m[39m
+[37m------------------------------------------------------------------------------[39m
+[37mBuilding entry point '@app/shared-services'[39m
+[37m------------------------------------------------------------------------------[39m
+- Compiling with Angular sources in partial compilation mode.
+[32m✔[39m Compiling with Angular sources in partial compilation mode.
+- Copying assets
+[32m✔[39m Copying assets
+- Writing package manifest
+[32m✔[39m Writing package manifest
+[32m✔[39m Built @app/shared-services
+[32m[39m
+[32m------------------------------------------------------------------------------[39m
+[32mBuilt Angular Package[39m
+[32m- from: C:/Users/glenn/Documents/Code/cskiwi/table-tap/libs/shared/services[39m
+[32m- to:   C:/Users/glenn/Documents/Code/cskiwi/table-tap/dist/libs/shared/services[39m
+[32m------------------------------------------------------------------------------[39m
+[37m[37m[39m[37m[39m
+[37m[37mBuild at: [1m2025-10-03T11:50:24.367Z[22m - Time: [1m4410[22mms[39m[37m[39m
+[37m[37m[39m[37m[39m
+
+> nx run frontend-modules-admin:build  [local cache]
+
+[34mBuilding Angular Package[39m
+[37m[39m
+[37m------------------------------------------------------------------------------[39m
+[37mBuilding entry point '@app/frontend-modules-admin'[39m
+[37m------------------------------------------------------------------------------[39m
+- Compiling with Angular sources in partial compilation mode.
+
+[32m✔[39m Compiling with Angular sources in partial compilation mode.
+- Copying assets
+[32m✔[39m Copying assets
+- Writing package manifest
+[32m✔[39m Writing package manifest
+[32m✔[39m Built @app/frontend-modules-admin
+[32m[39m
+[32m------------------------------------------------------------------------------[39m
+[32mBuilt Angular Package[39m
+[32m- from: C:/Users/glenn/Documents/Code/cskiwi/table-tap/libs/frontend/modules/admin[39m
+[32m- to:   C:/Users/glenn/Documents/Code/cskiwi/table-tap/libs/dist/libs/frontend/modules/admin[39m
+[32m------------------------------------------------------------------------------[39m
+[37m[37m[39m[37m[39m
+[37m[37mBuild at: [1m2025-10-05T19:01:43.840Z[22m - Time: [1m10232[22mms[39m[37m[39m
+[37m[37m[39m[37m[39m
+
+> nx run frontend-modules-order:build  [local cache]
+
+[34mBuilding Angular Package[39m
+[37m[39m
+[37m------------------------------------------------------------------------------[39m
+[37mBuilding entry point '@tabletap/frontend-order'[39m
+[37m------------------------------------------------------------------------------[39m
+- Compiling with Angular sources in partial compilation mode.
+[32m✔[39m Compiling with Angular sources in partial compilation mode.
+- Copying assets
+[32m✔[39m Copying assets
+- Writing package manifest
+[34mℹ[39m Removing scripts section in package.json as it's considered a potential security vulnerability.
+[34mℹ[39m Removing devDependencies section in package.json.
+[32m✔[39m Writing package manifest
+[32m✔[39m Built @tabletap/frontend-order
+[32m[39m
+[32m------------------------------------------------------------------------------[39m
+[32mBuilt Angular Package[39m
+[32m- from: C:/Users/glenn/Documents/Code/cskiwi/table-tap/libs/frontend/modules/order[39m
+[32m- to:   C:/Users/glenn/Documents/Code/cskiwi/table-tap/dist/libs/frontend/modules/order[39m
+[32m------------------------------------------------------------------------------[39m
+[37m[37m[39m[37m[39m
+[37m[37mBuild at: [1m2025-10-05T19:01:49.255Z[22m - Time: [1m6740[22mms[39m[37m[39m
+[37m[37m[39m[37m[39m
+
+> nx run frontend-pages-home:build:production  [local cache]
+
+[34mBuilding Angular Package[39m
+[37m[39m
+[37m------------------------------------------------------------------------------[39m
+[37mBuilding entry point '@app/frontend-pages-home'[39m
+[37m------------------------------------------------------------------------------[39m
+- Compiling with Angular sources in full compilation mode.
+[32m✔[39m Compiling with Angular sources in full compilation mode.
+- Copying assets
+[32m✔[39m Copying assets
+- Writing package manifest
+[32m✔[39m Writing package manifest
+[32m✔[39m Built @app/frontend-pages-home
+[32m[39m
+[32m------------------------------------------------------------------------------[39m
+[32mBuilt Angular Package[39m
+[32m- from: C:/Users/glenn/Documents/Code/cskiwi/table-tap/libs/frontend/pages/home[39m
+[32m- to:   C:/Users/glenn/Documents/Code/cskiwi/table-tap/dist/libs/frontend/pages/home[39m
+[32m------------------------------------------------------------------------------[39m
+[37m[37m[39m[37m[39m
+[37m[37mBuild at: [1m2025-10-05T14:16:52.057Z[22m - Time: [1m1118[22mms[39m[37m[39m
+[37m[37m[39m[37m[39m
+
+> nx run shared-ui:build  [local cache]
+
+[34mBuilding Angular Package[39m
+[37m[39m
+[37m------------------------------------------------------------------------------[39m
+[37mBuilding entry point '@tabletap/shared-ui'[39m
+[37m------------------------------------------------------------------------------[39m
+- Compiling with Angular sources in partial compilation mode.
+[32m✔[39m Compiling with Angular sources in partial compilation mode.
+- Copying assets
+[32m✔[39m Copying assets
+- Writing package manifest
+[32m✔[39m Writing package manifest
+[32m✔[39m Built @tabletap/shared-ui
+[32m[39m
+[32m------------------------------------------------------------------------------[39m
+[32mBuilt Angular Package[39m
+[32m- from: C:/Users/glenn/Documents/Code/cskiwi/table-tap/libs/shared/ui[39m
+[32m- to:   C:/Users/glenn/Documents/Code/cskiwi/table-tap/dist/libs/shared/ui[39m
+[32m------------------------------------------------------------------------------[39m
+[37m[37m[39m[37m[39m
+[37m[37mBuild at: [1m2025-10-05T19:03:16.871Z[22m - Time: [1m4211[22mms[39m[37m[39m
+[37m[37m[39m[37m[39m
+
+> nx run set-env:build  [local cache]
+
+Compiling TypeScript files for project "set-env"...
+Done compiling TypeScript files for project "set-env".
+
+[2m..\..\dist\libs\set-env\README.md[22m
+
+[2m..\..\..\..\..\dist\libs\set-env\src\executors\set-env\schema.json[22m
+
+[2m..\..\..\..\..\dist\libs\set-env\src\executors\set-env\schema.d.ts[22m
+
+[2m..\..\dist\libs\set-env\executors.json[22m
+
+> nx run models:build
+
+Compiling TypeScript files for project "models"...
+[1m[31m[96m/Users/glenn/Documents/Code/cskiwi/table-tap/libs/models/models/src/models/employee/employee.model.ts[0m:[93m259[0m:[93m30[0m - [91merror[0m[90m TS2339: [0mProperty 'toLocaleLowerCase' does not exist on type 'Date'.[39m[22m
+[1m[31m[39m[22m
+[1m[31m[7m259[0m     const today = new Date().toLocaleLowerCase();[39m[22m
+[1m[31m[7m   [0m [91m                             ~~~~~~~~~~~~~~~~~[0m[39m[22m
+[1m[31m[96m/Users/glenn/Documents/Code/cskiwi/table-tap/libs/models/models/src/models/loyalty/loyalty-account.model.ts[0m:[93m52[0m:[93m39[0m - [91merror[0m[90m TS2339: [0mProperty 'loyaltyAccounts' does not exist on type 'Cafe'.[39m[22m
+[1m[31m[39m[22m
+[1m[31m[7m52[0m   @ManyToOne(() => Cafe, cafe => cafe.loyaltyAccounts, { onDelete: 'CASCADE' })[39m[22m
+[1m[31m[7m  [0m [91m                                      ~~~~~~~~~~~~~~~[0m[39m[22m
+[1m[31m[96m/Users/glenn/Documents/Code/cskiwi/table-tap/libs/models/models/src/models/loyalty/loyalty-account.model.ts[0m:[93m62[0m:[93m39[0m - [91merror[0m[90m TS2339: [0mProperty 'loyaltyAccount' does not exist on type 'User'.[39m[22m
+[1m[31m[39m[22m
+[1m[31m[7m62[0m   @ManyToOne(() => User, user => user.loyaltyAccount, { onDelete: 'CASCADE' })[39m[22m
+[1m[31m[7m  [0m [91m                                      ~~~~~~~~~~~~~~[0m[39m[22m
+[1m[31m[96m/Users/glenn/Documents/Code/cskiwi/table-tap/libs/models/models/src/models/loyalty/loyalty-challenge.model.ts[0m:[93m86[0m:[93m41[0m - [91merror[0m[90m TS2339: [0mProperty 'loyaltyChallenges' does not exist on type 'Cafe'.[39m[22m
+[1m[31m[39m[22m
+[1m[31m[7m86[0m   @ManyToOne(() => Cafe, (cafe) => cafe.loyaltyChallenges, { onDelete: 'CASCADE' })[39m[22m
+[1m[31m[7m  [0m [91m                                        ~~~~~~~~~~~~~~~~~[0m[39m[22m
+[1m[31m[96m/Users/glenn/Documents/Code/cskiwi/table-tap/libs/models/models/src/models/loyalty/loyalty-promotion.model.ts[0m:[93m83[0m:[93m39[0m - [91merror[0m[90m TS2339: [0mProperty 'loyaltyPromotions' does not exist on type 'Cafe'.[39m[22m
+[1m[31m[39m[22m
+[1m[31m[7m83[0m   @ManyToOne(() => Cafe, cafe => cafe.loyaltyPromotions, { onDelete: 'CASCADE' })[39m[22m
+[1m[31m[7m  [0m [91m                                      ~~~~~~~~~~~~~~~~~[0m[39m[22m
+[1m[31m[96m/Users/glenn/Documents/Code/cskiwi/table-tap/libs/models/models/src/models/loyalty/loyalty-reward-redemption.model.ts[0m:[93m56[0m:[93m39[0m - [91merror[0m[90m TS2339: [0mProperty 'loyaltyRedemptions' does not exist on type 'Cafe'.[39m[22m
+[1m[31m[39m[22m
+[1m[31m[7m56[0m   @ManyToOne(() => Cafe, cafe => cafe.loyaltyRedemptions, { onDelete: 'CASCADE' })[39m[22m
+[1m[31m[7m  [0m [91m                                      ~~~~~~~~~~~~~~~~~~[0m[39m[22m
+[1m[31m[96m/Users/glenn/Documents/Code/cskiwi/table-tap/libs/models/models/src/models/loyalty/loyalty-reward.model.ts[0m:[93m81[0m:[93m39[0m - [91merror[0m[90m TS2339: [0mProperty 'loyaltyRewards' does not exist on type 'Cafe'.[39m[22m
+[1m[31m[39m[22m
+[1m[31m[7m81[0m   @ManyToOne(() => Cafe, cafe => cafe.loyaltyRewards, { onDelete: 'CASCADE' })[39m[22m
+[1m[31m[7m  [0m [91m                                      ~~~~~~~~~~~~~~[0m[39m[22m
+[1m[31m[96m/Users/glenn/Documents/Code/cskiwi/table-tap/libs/models/models/src/models/loyalty/loyalty-tier.model.ts[0m:[93m48[0m:[93m39[0m - [91merror[0m[90m TS2339: [0mProperty 'loyaltyTiers' does not exist on type 'Cafe'.[39m[22m
+[1m[31m[39m[22m
+[1m[31m[7m48[0m   @ManyToOne(() => Cafe, cafe => cafe.loyaltyTiers, { onDelete: 'CASCADE' })[39m[22m
+[1m[31m[7m  [0m [91m                                      ~~~~~~~~~~~~[0m[39m[22m
+[1m[31m[96m/Users/glenn/Documents/Code/cskiwi/table-tap/libs/models/models/src/models/loyalty/loyalty-transaction.model.ts[0m:[93m66[0m:[93m39[0m - [91merror[0m[90m TS2339: [0mProperty 'loyaltyTransactions' does not exist on type 'Cafe'.[39m[22m
+[1m[31m[39m[22m
+[1m[31m[7m66[0m   @ManyToOne(() => Cafe, cafe => cafe.loyaltyTransactions, { onDelete: 'CASCADE' })[39m[22m
+[1m[31m[7m  [0m [91m                                      ~~~~~~~~~~~~~~~~~~~[0m[39m[22m
+[1m[31m[39m[22m
+
+[2m..\..\..\dist\libs\models\models\README.md[22m
+
+> nx run frontend-utils:build:production
+
+[34mBuilding Angular Package[39m
+[37m[39m
+[37m------------------------------------------------------------------------------[39m
+[37mBuilding entry point '@app/frontend-utils'[39m
+[37m------------------------------------------------------------------------------[39m
+- Compiling with Angular sources in full compilation mode.
+[32m✔[39m Compiling with Angular sources in full compilation mode.
+- Writing FESM and DTS bundles
+[32m✔[39m Writing FESM and DTS bundles
+- Copying assets
+[32m✔[39m Copying assets
+- Writing package manifest
+[32m✔[39m Writing package manifest
+[32m✔[39m Built @app/frontend-utils
+[37m[39m
+[37m------------------------------------------------------------------------------[39m
+[37mBuilding entry point '@app/frontend-utils/dayjs/add'[39m
+[37m------------------------------------------------------------------------------[39m
+- Compiling with Angular sources in full compilation mode.
+[32m✔[39m Compiling with Angular sources in full compilation mode.
+- Writing FESM and DTS bundles
+[32m✔[39m Writing FESM and DTS bundles
+[32m✔[39m Built @app/frontend-utils/dayjs/add
+[37m[39m
+[37m------------------------------------------------------------------------------[39m
+[37mBuilding entry point '@app/frontend-utils/dayjs/calendar'[39m
+[37m------------------------------------------------------------------------------[39m
+- Compiling with Angular sources in full compilation mode.
+[32m✔[39m Compiling with Angular sources in full compilation mode.
+- Writing FESM and DTS bundles
+[32m✔[39m Writing FESM and DTS bundles
+[32m✔[39m Built @app/frontend-utils/dayjs/calendar
+[37m[39m
+[37m------------------------------------------------------------------------------[39m
+[37mBuilding entry point '@app/frontend-utils/dayjs/date'[39m
+[37m------------------------------------------------------------------------------[39m
+- Compiling with Angular sources in full compilation mode.
+[32m✔[39m Compiling with Angular sources in full compilation mode.
+- Writing FESM and DTS bundles
+[32m✔[39m Writing FESM and DTS bundles
+[32m✔[39m Built @app/frontend-utils/dayjs/date
+[37m[39m
+[37m------------------------------------------------------------------------------[39m
+[37mBuilding entry point '@app/frontend-utils/dayjs/diff'[39m
+[37m------------------------------------------------------------------------------[39m
+- Compiling with Angular sources in full compilation mode.
+[32m✔[39m Compiling with Angular sources in full compilation mode.
+- Writing FESM and DTS bundles
+[32m✔[39m Writing FESM and DTS bundles
+[32m✔[39m Built @app/frontend-utils/dayjs/diff
+[37m[39m
+[37m------------------------------------------------------------------------------[39m
+[37mBuilding entry point '@app/frontend-utils/dayjs/end-of'[39m
+[37m------------------------------------------------------------------------------[39m
+- Compiling with Angular sources in full compilation mode.
+[32m✔[39m Compiling with Angular sources in full compilation mode.
+- Writing FESM and DTS bundles
+[32m✔[39m Writing FESM and DTS bundles
+[32m✔[39m Built @app/frontend-utils/dayjs/end-of
+[37m[39m
+[37m------------------------------------------------------------------------------[39m
+[37mBuilding entry point '@app/frontend-utils/dayjs/fmt'[39m
+[37m------------------------------------------------------------------------------[39m
+- Compiling with Angular sources in full compilation mode.
+[32m✔[39m Compiling with Angular sources in full compilation mode.
+- Writing FESM and DTS bundles
+[32m✔[39m Writing FESM and DTS bundles
+[32m✔[39m Built @app/frontend-utils/dayjs/fmt
+[37m[39m
+[37m------------------------------------------------------------------------------[39m
+[37mBuilding entry point '@app/frontend-utils/dayjs/from-now'[39m
+[37m------------------------------------------------------------------------------[39m
+- Compiling with Angular sources in full compilation mode.
+[32m✔[39m Compiling with Angular sources in full compilation mode.
+- Writing FESM and DTS bundles
+[32m✔[39m Writing FESM and DTS bundles
+[32m✔[39m Built @app/frontend-utils/dayjs/from-now
+[37m[39m
+[37m------------------------------------------------------------------------------[39m
+[37mBuilding entry point '@app/frontend-utils/dayjs/is-after'[39m
+[37m------------------------------------------------------------------------------[39m
+- Compiling with Angular sources in full compilation mode.
+[32m✔[39m Compiling with Angular sources in full compilation mode.
+- Writing FESM and DTS bundles
+[32m✔[39m Writing FESM and DTS bundles
+[32m✔[39m Built @app/frontend-utils/dayjs/is-after
+[37m[39m
+[37m------------------------------------------------------------------------------[39m
+[37mBuilding entry point '@app/frontend-utils/dayjs/is-before'[39m
+[37m------------------------------------------------------------------------------[39m
+- Compiling with Angular sources in full compilation mode.
+[32m✔[39m Compiling with Angular sources in full compilation mode.
+- Writing FESM and DTS bundles
+[32m✔[39m Writing FESM and DTS bundles
+[32m✔[39m Built @app/frontend-utils/dayjs/is-before
+[37m[39m
+[37m------------------------------------------------------------------------------[39m
+[37mBuilding entry point '@app/frontend-utils/dayjs/is-same'[39m
+[37m------------------------------------------------------------------------------[39m
+- Compiling with Angular sources in full compilation mode.
+[32m✔[39m Compiling with Angular sources in full compilation mode.
+- Writing FESM and DTS bundles
+[32m✔[39m Writing FESM and DTS bundles
+[32m✔[39m Built @app/frontend-utils/dayjs/is-same
+[37m[39m
+[37m------------------------------------------------------------------------------[39m
+[37mBuilding entry point '@app/frontend-utils/dayjs/is-valid'[39m
+[37m------------------------------------------------------------------------------[39m
+- Compiling with Angular sources in full compilation mode.
+[32m✔[39m Compiling with Angular sources in full compilation mode.
+- Writing FESM and DTS bundles
+[32m✔[39m Writing FESM and DTS bundles
+[32m✔[39m Built @app/frontend-utils/dayjs/is-valid
+[37m[39m
+[37m------------------------------------------------------------------------------[39m
+[37mBuilding entry point '@app/frontend-utils/dayjs/local'[39m
+[37m------------------------------------------------------------------------------[39m
+- Compiling with Angular sources in full compilation mode.
+[32m✔[39m Compiling with Angular sources in full compilation mode.
+- Writing FESM and DTS bundles
+[32m✔[39m Writing FESM and DTS bundles
+[32m✔[39m Built @app/frontend-utils/dayjs/local
+[37m[39m
+[37m------------------------------------------------------------------------------[39m
+[37mBuilding entry point '@app/frontend-utils/dayjs/parse'[39m
+[37m------------------------------------------------------------------------------[39m
+- Compiling with Angular sources in full compilation mode.
+[32m✔[39m Compiling with Angular sources in full compilation mode.
+- Writing FESM and DTS bundles
+[32m✔[39m Writing FESM and DTS bundles
+[32m✔[39m Built @app/frontend-utils/dayjs/parse
+[37m[39m
+[37m------------------------------------------------------------------------------[39m
+[37mBuilding entry point '@app/frontend-utils/dayjs/start-of'[39m
+[37m------------------------------------------------------------------------------[39m
+- Compiling with Angular sources in full compilation mode.
+[32m✔[39m Compiling with Angular sources in full compilation mode.
+- Writing FESM and DTS bundles
+[32m✔[39m Writing FESM and DTS bundles
+[32m✔[39m Built @app/frontend-utils/dayjs/start-of
+[37m[39m
+[37m------------------------------------------------------------------------------[39m
+[37mBuilding entry point '@app/frontend-utils/dayjs/subtract'[39m
+[37m------------------------------------------------------------------------------[39m
+- Compiling with Angular sources in full compilation mode.
+[32m✔[39m Compiling with Angular sources in full compilation mode.
+- Writing FESM and DTS bundles
+[32m✔[39m Writing FESM and DTS bundles
+[32m✔[39m Built @app/frontend-utils/dayjs/subtract
+[37m[39m
+[37m------------------------------------------------------------------------------[39m
+[37mBuilding entry point '@app/frontend-utils/dayjs/timezone'[39m
+[37m------------------------------------------------------------------------------[39m
+- Compiling with Angular sources in full compilation mode.
+[32m✔[39m Compiling with Angular sources in full compilation mode.
+- Writing FESM and DTS bundles
+[32m✔[39m Writing FESM and DTS bundles
+[32m✔[39m Built @app/frontend-utils/dayjs/timezone
+[37m[39m
+[37m------------------------------------------------------------------------------[39m
+[37mBuilding entry point '@app/frontend-utils/dayjs/utc'[39m
+[37m------------------------------------------------------------------------------[39m
+- Compiling with Angular sources in full compilation mode.
+[32m✔[39m Compiling with Angular sources in full compilation mode.
+- Writing FESM and DTS bundles
+[32m✔[39m Writing FESM and DTS bundles
+[32m✔[39m Built @app/frontend-utils/dayjs/utc
+[32m[39m
+[32m------------------------------------------------------------------------------[39m
+[32mBuilt Angular Package[39m
+[32m- from: C:/Users/glenn/Documents/Code/cskiwi/table-tap/libs/frontend/utils[39m
+[32m- to:   C:/Users/glenn/Documents/Code/cskiwi/table-tap/dist/libs/frontend/utils[39m
+[32m------------------------------------------------------------------------------[39m
+[37m[37m[39m[37m[39m
+[37m[37mBuild at: [1m2025-10-05T19:42:16.252Z[22m - Time: [1m4015[22mms[39m[37m[39m
+[37m[37m[39m[37m[39m
+
+> nx run frontend-modules-translation:build:production  [local cache]
+
+[34mBuilding Angular Package[39m
+[37m[39m
+[37m------------------------------------------------------------------------------[39m
+[37mBuilding entry point '@app/frontend-modules-translation/languages'[39m
+[37m------------------------------------------------------------------------------[39m
+- Compiling with Angular sources in full compilation mode.
+[32m✔[39m Compiling with Angular sources in full compilation mode.
+[32m✔[39m Built @app/frontend-modules-translation/languages
+[37m[39m
+[37m------------------------------------------------------------------------------[39m
+[37mBuilding entry point '@app/frontend-modules-translation'[39m
+[37m------------------------------------------------------------------------------[39m
+- Compiling with Angular sources in full compilation mode.
+[32m✔[39m Compiling with Angular sources in full compilation mode.
+- Copying assets
+[32m✔[39m Copying assets
+- Writing package manifest
+[32m✔[39m Writing package manifest
+[32m✔[39m Built @app/frontend-modules-translation
+[37m[39m
+[37m------------------------------------------------------------------------------[39m
+[37mBuilding entry point '@app/frontend-modules-translation/selection'[39m
+[37m------------------------------------------------------------------------------[39m
+- Compiling with Angular sources in full compilation mode.
+[32m✔[39m Compiling with Angular sources in full compilation mode.
+[32m✔[39m Built @app/frontend-modules-translation/selection
+[32m[39m
+[32m------------------------------------------------------------------------------[39m
+[32mBuilt Angular Package[39m
+[32m- from: C:/Users/glenn/Documents/Code/cskiwi/table-tap/libs/frontend/modules/translation[39m
+[32m- to:   C:/Users/glenn/Documents/Code/cskiwi/table-tap/dist/libs/frontend/modules/translation[39m
+[32m------------------------------------------------------------------------------[39m
+[37m[37m[39m[37m[39m
+[37m[37mBuild at: [1m2025-10-05T14:12:02.543Z[22m - Time: [1m2495[22mms[39m[37m[39m
+[37m[37m[39m[37m[39m
+
+> nx run frontend-modules-graphql:build:production  [local cache]
+
+[34mBuilding Angular Package[39m
+[37m[39m
+[37m------------------------------------------------------------------------------[39m
+[37mBuilding entry point '@app/frontend-modules-graphql'[39m
+[37m------------------------------------------------------------------------------[39m
+- Compiling with Angular sources in full compilation mode.
+[32m✔[39m Compiling with Angular sources in full compilation mode.
+- Copying assets
+[32m✔[39m Copying assets
+- Writing package manifest
+[32m✔[39m Writing package manifest
+[32m✔[39m Built @app/frontend-modules-graphql
+[37m[39m
+[37m------------------------------------------------------------------------------[39m
+[37mBuilding entry point '@app/frontend-modules-graphql/ranking'[39m
+[37m------------------------------------------------------------------------------[39m
+- Compiling with Angular sources in full compilation mode.
+[32m✔[39m Compiling with Angular sources in full compilation mode.
+[32m✔[39m Built @app/frontend-modules-graphql/ranking
+[32m[39m
+[32m------------------------------------------------------------------------------[39m
+[32mBuilt Angular Package[39m
+[32m- from: C:/Users/glenn/Documents/Code/cskiwi/table-tap/libs/frontend/modules/graphql[39m
+[32m- to:   C:/Users/glenn/Documents/Code/cskiwi/table-tap/dist/libs/frontend/modules/graphql[39m
+[32m------------------------------------------------------------------------------[39m
+[37m[37m[39m[37m[39m
+[37m[37mBuild at: [1m2025-10-02T16:41:11.366Z[22m - Time: [1m3086[22mms[39m[37m[39m
+[37m[37m[39m[37m[39m
+
+
+
+ NX   Running target build for 30 projects failed
+
+Tasks not run because their dependencies failed or --nx-bail=true:
+
+- frontend-modules-kitchen-mobile:build:production
+- frontend-modules-loyalty:build:production
+- backend-authorization:build
+- frontend-modules-auth:build:production
+- frontend-modules-cart:build
+- frontend-modules-menu:build
+- frontend-modules-seo:build:production
+- frontend-components:build:production
+- backend-translate:build
+- backend-database:build
+- backend-services:build
+- backend-graphql:build
+- backend-shared:build
+- backend-redis:build
+- backend-seo:build
+- api:build:development
+- app:build:production
+
+Failed tasks:
+
+- models:build
+
+View structured, searchable error logs at https://cloud.nx.app/runs/JABp9ehhGe
+

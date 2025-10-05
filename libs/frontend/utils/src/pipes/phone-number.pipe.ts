@@ -13,7 +13,7 @@ export class PhoneNumberPipe implements PipeTransform {
 
     // Extract the digits we need
     let digits = cleaned;
-    
+
     // Handle different formats
     if (cleaned.startsWith('+32')) {
       digits = cleaned.substring(3); // Remove +32
@@ -38,9 +38,6 @@ export class PhoneNumberPipe implements PipeTransform {
     if (cleaned.startsWith('32')) {
       return '+' + cleaned.replace(/(\d{2})(\d{3})(\d{2})(\d{2})(\d{2})/, '$1 $2 $3 $4 $5');
     }
-    return cleaned;
-
-    // If no format matches, return the cleaned number
     return cleaned;
   }
 }

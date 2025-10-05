@@ -1,6 +1,6 @@
 import {
   AvaliableLanguages,
-  languages,
+  languages
 } from '@app/frontend-modules-translation/languages';
 import { TranslateService } from '@ngx-translate/core';
 import { SsrCookieService } from 'ngx-cookie-service-ssr';
@@ -8,7 +8,7 @@ import { lastValueFrom } from 'rxjs';
 
 export function langulageInitializer(
   translate: TranslateService,
-  cookieService: SsrCookieService,
+  cookieService: SsrCookieService
 ) {
   return async () => {
     const setLang = async (savedLang?: AvaliableLanguages) => {
@@ -17,7 +17,7 @@ export function langulageInitializer(
       }
 
       const values = languages.get(
-        savedLang ? savedLang : AvaliableLanguages.nl_BE,
+        savedLang ? savedLang : AvaliableLanguages.nl_BE
       );
 
       if (!values) {
@@ -25,7 +25,7 @@ export function langulageInitializer(
       }
 
       await setLanguage(values.translate, translate, cookieService);
-    };
+    }
 
     try {
       translate.addLangs([...languages.keys()]);
@@ -37,13 +37,13 @@ export function langulageInitializer(
     } catch (err) {
       console.error('Error', err);
     }
-  };
+  }
 }
 
 export async function setLanguage(
   translateFormat: string,
   translateService: TranslateService,
-  cookieService: SsrCookieService,
+  cookieService: SsrCookieService
 ) {
   // Set cookie
   cookieService.set('translation.language', translateFormat);

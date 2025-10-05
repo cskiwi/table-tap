@@ -16,7 +16,6 @@ import {
   JoinColumn,
   Unique,
 } from 'typeorm';
-import { Cafe, User, Order } from '@app/models/restaurant';
 
 // ================================
 // ENUMS
@@ -231,8 +230,6 @@ export class StorageLocation extends BaseEntity {
 @ObjectType('InventoryProduct')
 @Entity('inventory_products')
 @Index(['cafeId', 'categoryId'])
-@Index(['sku'])
-@Index(['barcode'])
 @Index(['reorderPoint', 'isActive'])
 export class InventoryProduct extends BaseEntity {
   @Field(() => ID)
@@ -343,7 +340,6 @@ export class InventoryProduct extends BaseEntity {
 @ObjectType('InventoryStock')
 @Entity('inventory_stock')
 @Index(['productId', 'locationId'])
-@Index(['expirationDate'])
 @Index(['quantity', 'reservedQuantity'])
 @Unique(['productId', 'locationId', 'batchNumber'])
 export class InventoryStock extends BaseEntity {
@@ -425,7 +421,6 @@ export class InventoryStock extends BaseEntity {
 @ObjectType('Supplier')
 @Entity('suppliers')
 @Index(['cafeId', 'isActive'])
-@Index(['rating'])
 export class Supplier extends BaseEntity {
   @Field(() => ID)
   @PrimaryGeneratedColumn('uuid')
@@ -505,9 +500,6 @@ export class Supplier extends BaseEntity {
 
 @ObjectType('SupplierProduct')
 @Entity('supplier_products')
-@Index(['productId'])
-@Index(['unitCost'])
-@Index(['isPreferred'])
 @Unique(['supplierId', 'productId'])
 export class SupplierProduct extends BaseEntity {
   @Field(() => ID)
@@ -577,7 +569,6 @@ export class SupplierProduct extends BaseEntity {
 @Index(['supplierId', 'status'])
 @Index(['cafeId', 'orderDate'])
 @Index(['status', 'paymentStatus'])
-@Index(['poNumber'])
 export class PurchaseOrder extends BaseEntity {
   @Field(() => ID)
   @PrimaryGeneratedColumn('uuid')
@@ -708,7 +699,6 @@ export class PurchaseOrder extends BaseEntity {
 @ObjectType('PurchaseOrderItem')
 @Entity('purchase_order_items')
 @Index(['purchaseOrderId'])
-@Index(['productId'])
 export class PurchaseOrderItem extends BaseEntity {
   @Field(() => ID)
   @PrimaryGeneratedColumn('uuid')
@@ -776,7 +766,6 @@ export class PurchaseOrderItem extends BaseEntity {
 @Entity('purchase_receipts')
 @Index(['purchaseOrderId'])
 @Index(['cafeId', 'receiptDate'])
-@Index(['isVerified'])
 export class PurchaseReceipt extends BaseEntity {
   @Field(() => ID)
   @PrimaryGeneratedColumn('uuid')
@@ -967,7 +956,6 @@ export class InventoryMovement extends BaseEntity {
 @Entity('product_analytics')
 @Index(['productId', 'periodStart'])
 @Index(['cafeId', 'periodStart'])
-@Index(['profitMargin'])
 @Index(['totalSold', 'profitMargin'])
 @Unique(['productId', 'periodStart', 'periodEnd', 'periodType'])
 export class ProductAnalytics extends BaseEntity {

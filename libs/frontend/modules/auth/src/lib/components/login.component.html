@@ -1,0 +1,88 @@
+<div class="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-primary to-primary-emphasis">
+  <div class="w-full max-w-md">
+    <p-card>
+      <ng-template pTemplate="header">
+        <div class="text-center pt-8 pb-4">
+          <h2 class="m-0 mb-2 text-color">Welcome Back</h2>
+          <p class="m-0 text-color-secondary">Sign in to your TableTap account</p>
+        </div>
+      </ng-template>
+
+      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+        <div class="mb-6">
+          <label for="email" class="block mb-2 text-color font-medium">Email</label>
+          <input
+            pInputText
+            id="email"
+            type="email"
+            formControlName="email"
+            placeholder="Enter your email"
+            class="w-full"
+            [class.ng-invalid]="loginForm.get('email')?.invalid && loginForm.get('email')?.touched"
+          />
+          @if (loginForm.get('email')?.invalid && loginForm.get('email')?.touched) {
+            <small class="p-error">Email is required and must be valid</small>
+          }
+        </div>
+
+        <div class="mb-6">
+          <label for="password" class="block mb-2 text-color font-medium">Password</label>
+          <p-password
+            id="password"
+            formControlName="password"
+            placeholder="Enter your password"
+            [toggleMask]="true"
+            [feedback]="false"
+            styleClass="w-full"
+            [class.ng-invalid]="loginForm.get('password')?.invalid && loginForm.get('password')?.touched"
+          />
+          @if (loginForm.get('password')?.invalid && loginForm.get('password')?.touched) {
+            <small class="p-error">Password is required</small>
+          }
+        </div>
+
+        @if (errorMessage()) {
+          <p-message severity="error" [text]="errorMessage()"></p-message>
+        }
+
+        <div class="my-6">
+          <button
+            pButton
+            type="submit"
+            label="Sign In"
+            [loading]="isLoading()"
+            [disabled]="loginForm.invalid"
+            class="w-full"
+          ></button>
+        </div>
+      </form>
+
+      <p-divider align="center">
+        <span class="text-sm text-muted-color">or</span>
+      </p-divider>
+
+      <div class="my-4">
+        <button
+          pButton
+          label="Continue with Auth0"
+          icon="pi pi-sign-in"
+          class="p-button-outlined w-full"
+          (click)="loginWithAuth0()"
+          [loading]="isLoading()"
+        ></button>
+      </div>
+
+      <ng-template pTemplate="footer">
+        <div class="text-center pt-4">
+          <p class="my-2 text-color-secondary">
+            Don't have an account?
+            <a routerLink="/auth/register" class="text-primary no-underline font-medium hover:underline">Sign up</a>
+          </p>
+          <p class="my-2 text-color-secondary">
+            <a routerLink="/auth/forgot-password" class="text-primary no-underline font-medium hover:underline">Forgot password?</a>
+          </p>
+        </div>
+      </ng-template>
+    </p-card>
+  </div>
+</div>

@@ -1,16 +1,177 @@
-<div class="layout-wrapper">
-  <header class="header">
-    <div style="display: flex; align-items: center; justify-content: space-between; width: 100%">
-      <a href="/" class="logo">☕ Cafe App</a>
-     
+<div class="min-h-screen flex flex-col">
+  <header class="header sticky top-0 z-[1000] shadow-md">
+    <div class="flex items-center justify-between p-3 max-w-[1200px] mx-auto">
+      <button
+        class="menu-toggle md:hidden bg-transparent border-0 text-white text-xl p-2 rounded cursor-pointer transition-colors duration-200 hover:bg-white/10"
+        type="button"
+        (click)="toggleSidebar()"
+        [attr.aria-expanded]="sidebarVisible"
+        aria-label="Toggle navigation menu">
+        <i class="pi pi-bars"></i>
+      </button>
+
+      <a routerLink="/" class="flex items-center gap-2 text-white no-underline text-2xl font-bold transition-colors duration-200 hover:text-gray-200">
+        <i class="pi pi-coffee text-[1.75rem]"></i>
+        <span>TableTap</span>
+      </a>
+
+      @if (visibleNavigation$ | async; as navigation) {
+        <nav class="hidden md:flex items-center gap-2">
+          @for (item of navigation; track item) {
+            <a
+              [routerLink]="item.route"
+              [routerLinkActive]="'active'"
+              [routerLinkActiveOptions]="{ exact: item.exact || false }"
+              class="nav-link flex items-center gap-2 px-4 py-2 text-white no-underline rounded-md transition-all duration-200 relative hover:bg-white/10 hover:-translate-y-px">
+              <i [class]="item.icon"></i>
+              <span>{{ item.label }}</span>
+              @if (item.badge) {
+                <span class="badge bg-red-500 text-white px-1.5 py-0.5 rounded-xl text-xs font-semibold min-w-5 text-center">{{ item.badge }}</span>
+              }
+            </a>
+          }
+        </nav>
+      }
+
+      <div class="flex items-center gap-4">
+        @if (user(); as currentUser) {
+          <div class="relative user-menu">
+            <button class="flex items-center gap-2 bg-transparent border-0 text-white p-2 rounded-md cursor-pointer transition-colors duration-200 hover:bg-white/10" (click)="toggleUserMenu()" type="button">
+              <img
+                [src]="currentUser.picture"
+                [alt]="currentUser.name"
+                onerror="this.src='assets/default-avatar.png'"
+                class="w-8 h-8 rounded-full object-cover">
+                <span class="hidden sm:inline font-medium">{{ currentUser.name }}</span>
+                <i class="pi pi-chevron-down"></i>
+              </button>
+              <div class="user-dropdown absolute top-full right-0 bg-white rounded-lg shadow-lg min-w-[200px] transition-all duration-200 z-[1000]"
+                   [class.opacity-0]="!userMenuVisible"
+                   [class.invisible]="!userMenuVisible"
+                   [class.-translate-y-2.5]="!userMenuVisible"
+                   [class.opacity-100]="userMenuVisible"
+                   [class.visible]="userMenuVisible"
+                   [class.translate-y-0]="userMenuVisible">
+                <a routerLink="/profile" class="dropdown-item flex items-center gap-3 px-4 py-3 text-gray-700 no-underline transition-colors duration-200 bg-none border-0 w-full text-left cursor-pointer rounded-t-lg hover:bg-gray-100">
+                  <i class="pi pi-user"></i>
+                  Profile
+                </a>
+                <a routerLink="/settings" class="dropdown-item flex items-center gap-3 px-4 py-3 text-gray-700 no-underline transition-colors duration-200 bg-none border-0 w-full text-left cursor-pointer hover:bg-gray-100">
+                  <i class="pi pi-cog"></i>
+                  Settings
+                </a>
+                <hr class="my-0 border-0 border-t border-gray-200">
+                <button class="dropdown-item logout-btn flex items-center gap-3 px-4 py-3 text-red-600 transition-colors duration-200 bg-none border-0 w-full text-left cursor-pointer rounded-b-lg border-t border-gray-200 hover:bg-gray-100" (click)="logout()" type="button">
+                  <i class="pi pi-sign-out"></i>
+                  Logout
+                </button>
+              </div>
+            </div>
+          } @else {
+            <button class="flex items-center gap-2 bg-white/10 border border-white/20 text-white px-4 py-2 rounded-md cursor-pointer transition-all duration-200 font-medium hover:bg-white/20 hover:-translate-y-px" (click)="login()" type="button">
+              <i class="pi pi-sign-in"></i>
+              <span>Login</span>
+            </button>
+          }
+
+        </div>
+      </div>
+
+      <!-- Breadcrumbs -->
+      @if (breadcrumbs$ | async; as breadcrumbs) {
+        <div class="border-t border-white/10 py-2 px-4 max-w-[1200px] mx-auto w-full">
+          @if (breadcrumbs.length > 1) {
+            <nav class="flex items-center gap-2 text-sm">
+              @for (crumb of breadcrumbs; track crumb; let last = $last) {
+                @if (crumb.route && !last) {
+                  <a
+                    [routerLink]="crumb.route"
+                    class="text-white/80 no-underline transition-colors duration-200 hover:text-white">
+                    {{ crumb.label }}
+                  </a>
+                } @else {
+                  <span class="text-white/60" [class.!text-white]="last" [class.font-medium]="last">{{ crumb.label }}</span>
+                }
+                @if (!last) {
+                  <i class="pi pi-chevron-right text-white/40 text-xs"></i>
+                }
+              }
+            </nav>
+          }
+        </div>
+      }
+    </header>
+
+    <!-- Mobile Sidebar -->
+    <aside class="fixed top-0 w-[300px] h-screen bg-white shadow-lg transition-[left] duration-300 z-[2000] overflow-y-auto"
+           [class.-left-[300px]]="!sidebarVisible"
+           [class.left-0]="sidebarVisible">
+      <div class="flex items-center justify-between p-4 border-b border-gray-200">
+        <h3 class="m-0 text-gray-800 text-xl">Navigation</h3>
+        <button class="bg-transparent border-0 text-gray-500 text-xl p-2 rounded cursor-pointer transition-all duration-200 hover:bg-gray-100 hover:text-gray-700" (click)="toggleSidebar()" type="button">
+          <i class="pi pi-times"></i>
+        </button>
+      </div>
+
+      @if (visibleNavigation$ | async; as navigation) {
+        <nav class="py-4">
+          @for (item of navigation; track item) {
+            <div class="mb-2">
+              <a
+                [routerLink]="item.route"
+                [routerLinkActive]="'active'"
+                [routerLinkActiveOptions]="{ exact: item.exact || false }"
+                class="nav-link flex items-center gap-3 px-4 py-3 text-gray-700 no-underline transition-all duration-200 hover:bg-gray-100 hover:text-blue-900"
+                (click)="closeSidebar()">
+                <i [class]="item.icon"></i>
+                <span>{{ item.label }}</span>
+                @if (item.badge) {
+                  <span class="badge bg-red-500 text-white px-1.5 py-0.5 rounded-xl text-xs font-semibold min-w-5 text-center">{{ item.badge }}</span>
+                }
+              </a>
+              @if (item.children && item.children.length > 0) {
+                <div class="border-l-2 border-gray-200 ml-4">
+                  @for (child of item.children; track child) {
+                    <a
+                      [routerLink]="child.route"
+                      [routerLinkActive]="'active'"
+                      class="nav-link child flex items-center gap-3 pl-10 py-3 text-gray-700 no-underline text-sm transition-all duration-200 hover:bg-gray-100 hover:text-blue-900"
+                      (click)="closeSidebar()">
+                      <i [class]="child.icon"></i>
+                      <span>{{ child.label }}</span>
+                    </a>
+                  }
+                </div>
+              }
+            </div>
+          }
+        </nav>
+      }
+    </aside>
+
+    <!-- Overlay for mobile sidebar -->
+    <div
+      class="fixed top-0 left-0 w-screen h-screen bg-black/50 transition-all duration-300 z-[1500]"
+      [class.opacity-0]="!sidebarVisible"
+      [class.invisible]="!sidebarVisible"
+      [class.opacity-100]="sidebarVisible"
+      [class.visible]="sidebarVisible"
+      (click)="closeSidebar()">
     </div>
-  </header>
 
-  <main class="main-content">
-    <router-outlet />
-  </main>
+    <main class="flex-1 min-h-[calc(100vh-120px)] bg-gray-50 p-6 max-w-[1200px] mx-auto w-full md:p-6 sm:p-2">
+      <router-outlet />
+    </main>
 
-  <footer class="footer">
-    <p>© 2025 Cafe App. All rights reserved.</p>
-  </footer>
-</div>
+    <footer class="footer bg-gray-800 text-white py-8 px-4 pb-4 border-t border-gray-700">
+      <div class="max-w-[1200px] mx-auto text-center">
+        <div class="flex justify-center gap-8 mb-4 flex-wrap">
+          <a routerLink="/about" class="text-gray-300 no-underline text-sm transition-colors duration-200 hover:text-white">About</a>
+          <a routerLink="/contact" class="text-gray-300 no-underline text-sm transition-colors duration-200 hover:text-white">Contact</a>
+          <a routerLink="/privacy" class="text-gray-300 no-underline text-sm transition-colors duration-200 hover:text-white">Privacy</a>
+          <a routerLink="/terms" class="text-gray-300 no-underline text-sm transition-colors duration-200 hover:text-white">Terms</a>
+        </div>
+        <p class="m-0 text-gray-400 text-sm">&copy; 2025 TableTap. All rights reserved.</p>
+      </div>
+    </footer>
+  </div>

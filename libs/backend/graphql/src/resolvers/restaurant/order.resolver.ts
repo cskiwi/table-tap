@@ -1,5 +1,5 @@
 import { Resolver, Query, Mutation, Args, Subscription, ResolveField, Parent, Context } from '@nestjs/graphql';
-import { UseGuards, Injectable } from '@nestjs/common';
+import { UseGuards, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { PubSub } from 'graphql-subscriptions';
@@ -11,39 +11,33 @@ import {
   Payment,
   Cafe,
   Counter,
-  CreateOrderInput,
-  UpdateOrderInput,
-  UpdateOrderStatusInput,
-  OrderFilters,
-  PaginationInput,
-  SortInput,
-  PaginatedOrderResponse
-} from '@app/models/restaurant';
-import { OrderService } from '../services/order.service';
-import { DataLoader } from '../../dataloaders';
+} from '@app/models';
+import { OrderService } from '@app/backend-services';
+import { DataLoaderService } from '../../dataloaders';
 
 @Injectable()
 @Resolver(() => Order)
 export class OrderResolver {
-  private pubSub = new PubSub();
+  private readonly logger = new Logger(OrderResolver.name);
+  private pubSub: any = new PubSub();
 
   constructor(
     @InjectRepository(Order)
     private readonly orderRepository: Repository<Order>,
     private readonly orderService: OrderService,
-    private readonly dataLoader: DataLoader,
+    private readonly dataLoader: DataLoaderService,
   ) {}
 
   // Queries
-  @Query(() => PaginatedOrderResponse)
   @UseGuards(PermGuard)
   async orders(
-    @Args('filters', { nullable: true }) filters?: OrderFilters,
-    @Args('pagination', { nullable: true }) pagination?: PaginationInput,
-    @Args('sort', { nullable: true }) sort?: SortInput,
     @ReqUser() user?: User,
-  ): Promise<PaginatedOrderResponse> {
-    return this.orderService.findAll({ filters, pagination, sort, user });
+    try {
+      return await this.orderService.findAll({ filters, pagination, sort, user });
+    } catch (error) {
+      this.logger.error(`Failed to fetch orders: ${error.message}`, error.stack);
+      throw error;
+    }
   }
 
   @Query(() => Order, { nullable: true })
@@ -52,7 +46,12 @@ export class OrderResolver {
     @Args('id') id: string,
     @ReqUser() user: User,
   ): Promise<Order | null> {
-    return this.orderService.findById(id, user);
+    try {
+      return await this.orderService.findById(id, user);
+    } catch (error) {
+      this.logger.error(`Failed to fetch order ${id}: ${error.message}`, error.stack);
+      throw error;
+    }
   }
 
   @Query(() => Order, { nullable: true })
@@ -67,10 +66,9 @@ export class OrderResolver {
   @UseGuards(PermGuard)
   async cafeOrders(
     @Args('cafeId') cafeId: string,
-    @Args('filters', { nullable: true }) filters?: OrderFilters,
     @ReqUser() user?: User,
   ): Promise<Order[]> {
-    return this.orderService.findByCafe(cafeId, { filters, user });
+    return this.orderService.findByCafe(cafeId, { user });
   }
 
   @Query(() => [Order])
@@ -93,53 +91,70 @@ export class OrderResolver {
   @Mutation(() => Order)
   @UseGuards(PermGuard)
   async createOrder(
-    @Args('input') input: CreateOrderInput,
     @ReqUser() user: User,
   ): Promise<Order> {
-    const order = await this.orderService.create(input, user);
+    try {
+      const order = await this.orderService.create(input, user);
 
-    // Publish new order event
-    await this.pubSub.publish('orderCreated', {
-      orderCreated: order,
-      cafeId: order.cafeId,
-    });
+      // Clear related caches
+      this.dataLoader.clearCacheByPattern(`cafeOrders:${order.cafeId}`);
+      this.dataLoader.clearCacheByPattern(`customerOrders:${user.id}`);
 
-    if (order.counterId) {
-      await this.pubSub.publish('counterNotification', {
-        counterNotification: {
-          type: 'NEW_ORDER',
-          counterId: order.counterId,
-          order,
-        },
+      // Publish new order event
+      await this.pubSub.publish('orderCreated', {
+        orderCreated: order,
+        cafeId: order.cafeId,
       });
-    }
 
-    return order;
+      if (order.counterId) {
+        await this.pubSub.publish('counterNotification', {
+          counterNotification: {
+            type: 'NEW_ORDER',
+            counterId: order.counterId,
+            order,
+          },
+        });
+      }
+
+      return order;
+    } catch (error) {
+      this.logger.error(`Failed to create order: ${error.message}`, error.stack);
+      throw error;
+    }
   }
 
   @Mutation(() => Order)
   @UseGuards(PermGuard)
   async updateOrderStatus(
     @Args('id') id: string,
-    @Args('input') input: UpdateOrderStatusInput,
     @ReqUser() user: User,
   ): Promise<Order> {
-    const order = await this.orderService.updateStatus(id, input, user);
+    try {
+      const order = await this.orderService.updateStatus(id, input, user);
 
-    // Publish order status update
-    await this.pubSub.publish('orderStatusUpdated', {
-      orderStatusUpdated: order,
-      cafeId: order.cafeId,
-    });
+      // Clear related caches
+      this.dataLoader.clearCacheByPattern(`cafeOrders:${order.cafeId}`);
+      if (order.customerId) {
+        this.dataLoader.clearCacheByPattern(`customerOrders:${order.customerId}`);
+      }
 
-    return order;
+      // Publish order status update
+      await this.pubSub.publish('orderStatusUpdated', {
+        orderStatusUpdated: order,
+        cafeId: order.cafeId,
+      });
+
+      return order;
+    } catch (error) {
+      this.logger.error(`Failed to update order status: ${error.message}`, error.stack);
+      throw error;
+    }
   }
 
   @Mutation(() => Order)
   @UseGuards(PermGuard)
   async updateOrder(
     @Args('id') id: string,
-    @Args('input') input: UpdateOrderInput,
     @ReqUser() user: User,
   ): Promise<Order> {
     const order = await this.orderService.update(id, input, user);

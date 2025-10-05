@@ -69,3 +69,5 @@ claude-flow
 claude-flow.bat
 claude-flow.ps1
 hive-mind-prompt-*.txt
+.cursor/rules/nx-rules.mdc
+.github/instructions/nx.instructions.md

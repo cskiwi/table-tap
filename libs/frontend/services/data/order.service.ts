@@ -150,7 +150,7 @@ const CANCEL_ORDER = gql`
 export interface CreateOrderInput {
   customerId?: string;
   tableId?: string;
-  items: CreateOrderItemInput[];
+  items: CreateOrderItemInput[]
   orderType: OrderType;
   notes?: string;
   cafeId: string;
@@ -162,7 +162,7 @@ export interface CreateOrderItemInput {
   customizations?: {
     id: string;
     value: string;
-  }[];
+  }[]
   notes?: string;
 }
 
@@ -190,10 +190,10 @@ export class OrderService extends BaseService {
   private cartTotalSubject = new BehaviorSubject<number>(0);
 
   // Observables
-  public readonly orders$ = this.ordersSubject.asObservable();
-  public readonly currentOrder$ = this.currentOrderSubject.asObservable();
-  public readonly cartItems$ = this.cartItemsSubject.asObservable();
-  public readonly cartTotal$ = this.cartTotalSubject.asObservable();
+  public readonly orders$ = this.ordersSubject.asObservable()
+  public readonly currentOrder$ = this.currentOrderSubject.asObservable()
+  public readonly cartItems$ = this.cartItemsSubject.asObservable()
+  public readonly cartTotal$ = this.cartTotalSubject.asObservable()
   public readonly cartItemCount$ = this.cartItems$.pipe(
     map(items => items.reduce((count, item) => count + item.quantity, 0))
   );
@@ -204,7 +204,7 @@ export class OrderService extends BaseService {
   public readonly isUpdatingOrder$ = this.getLoading('updateOrder');
 
   constructor() {
-    super();
+    super()
 
     // Calculate cart total when items change
     this.cartItems$.subscribe(items => {
@@ -228,7 +228,7 @@ export class OrderService extends BaseService {
       limit: options?.limit,
       status: options?.status,
       filters: options?.filters
-    };
+    }
 
     return this.query<{ orders: ApiResponse<Order[]> }>(GET_ORDERS, variables, {
       useCache: true,
@@ -309,7 +309,7 @@ export class OrderService extends BaseService {
         this.currentOrderSubject.next(order);
 
         // Clear cart if this was a cart order
-        this.clearCart();
+        this.clearCart()
 
         this.setLoading('createOrder', false);
 
@@ -379,7 +379,7 @@ export class OrderService extends BaseService {
       totalPrice: product.price * quantity,
       customizations: customizations || [],
       notes
-    };
+    }
 
     // Check if item with same customizations already exists
     const existingItemIndex = currentItems.findIndex(item =>
@@ -394,7 +394,7 @@ export class OrderService extends BaseService {
         ...updatedItems[existingItemIndex],
         quantity: updatedItems[existingItemIndex].quantity + quantity,
         totalPrice: (updatedItems[existingItemIndex].quantity + quantity) * product.price
-      };
+      }
       this.cartItemsSubject.next(updatedItems);
     } else {
       // Add new item
@@ -419,7 +419,7 @@ export class OrderService extends BaseService {
           ...item,
           quantity,
           totalPrice: quantity * item.unitPrice
-        };
+        }
       }
       return item;
     });
@@ -474,7 +474,7 @@ export class OrderService extends BaseService {
         })),
         notes: item.notes
       }))
-    };
+    }
 
     return this.createOrder(orderInput);
   }
@@ -508,7 +508,7 @@ export class OrderService extends BaseService {
             takeaway: orders.filter(o => o.orderType === OrderType.TAKEAWAY).length,
             delivery: orders.filter(o => o.orderType === OrderType.DELIVERY).length
           }
-        };
+        }
       })
     );
   }
@@ -573,7 +573,7 @@ export class OrderService extends BaseService {
           status: orderUpdate.status,
           estimatedTime: orderUpdate.estimatedTime || order.estimatedTime,
           updatedAt: new Date()
-        };
+        }
       }
       return order;
     });

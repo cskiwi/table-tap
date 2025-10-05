@@ -1,0 +1,284 @@
+@if (loyaltyAccount()) {
+  <div class="flex flex-col gap-6 p-6">
+    <!-- Header with points and tier -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div class="surface-card p-6 rounded-lg shadow-sm border border-surface">
+        <div class="flex flex-col gap-4">
+          <span class="text-5xl font-bold text-primary">{{ loyaltyAccount()!.currentPoints | number:'1.0-0' }}</span>
+          <span class="text-surface-600">Points Available</span>
+        </div>
+        <div class="mt-4 pt-4 border-t border-surface">
+          <span class="text-2xl font-semibold text-surface-700">{{ loyaltyAccount()!.lifetimePoints | number:'1.0-0' }}</span>
+          <span class="text-surface-500 ml-2">Total Earned</span>
+        </div>
+      </div>
+
+      @if (loyaltyAccount()!.currentTier) {
+        <div class="surface-card p-6 rounded-lg shadow-sm border border-surface">
+          <div class="flex items-start gap-4">
+            <div class="w-16 h-16 rounded-full flex items-center justify-center" [style.background-color]="loyaltyAccount()!.currentTier.color">
+              <i class="text-2xl text-white" [class]="loyaltyAccount()!.currentTier.icon || 'fas fa-star'"></i>
+            </div>
+            <div class="flex-1">
+              <h3 class="text-xl font-bold text-surface-900 mb-2">{{ loyaltyAccount()!.currentTier.name }}</h3>
+              <p class="text-surface-600">{{ loyaltyAccount()!.currentTier.description }}</p>
+            </div>
+          </div>
+
+          @if (!loyaltyAccount()!.currentTier.isTopTier) {
+            <div class="mt-4">
+              <div class="h-2 bg-surface-200 rounded-full overflow-hidden">
+                <div class="h-full bg-primary" [style.width.%]="loyaltyAccount()!.tierProgress"></div>
+              </div>
+              <p class="text-sm text-surface-600 mt-2">
+                {{ loyaltyAccount()!.pointsToNextTier }} points to next tier
+              </p>
+            </div>
+          }
+        </div>
+      }
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <button class="surface-card p-4 rounded-lg border border-surface hover:border-primary transition-colors flex flex-col items-center gap-2" (click)="showRewards()">
+        <i class="fas fa-gift text-2xl text-primary"></i>
+        <span class="text-surface-900 font-medium">Browse Rewards</span>
+      </button>
+
+      <button class="surface-card p-4 rounded-lg border border-surface hover:border-primary transition-colors flex flex-col items-center gap-2" (click)="showChallenges()">
+        <i class="fas fa-trophy text-2xl text-primary"></i>
+        <span class="text-surface-900 font-medium">Challenges</span>
+        @if (activeChallenges()) {
+          <span class="bg-primary text-primary-contrast rounded-full px-2 py-0.5 text-xs">{{ activeChallenges() }}</span>
+        }
+      </button>
+
+      <button class="surface-card p-4 rounded-lg border border-surface hover:border-primary transition-colors flex flex-col items-center gap-2" (click)="showReferral()">
+        <i class="fas fa-user-friends text-2xl text-primary"></i>
+        <span class="text-surface-900 font-medium">Refer Friends</span>
+      </button>
+
+      <button class="surface-card p-4 rounded-lg border border-surface hover:border-primary transition-colors flex flex-col items-center gap-2" (click)="showHistory()">
+        <i class="fas fa-history text-2xl text-primary"></i>
+        <span class="text-surface-900 font-medium">Points History</span>
+      </button>
+    </div>
+
+    <!-- Featured Rewards -->
+    @if (featuredRewards().length) {
+      <div>
+        <h3 class="text-xl font-bold text-surface-900 mb-4 flex items-center gap-2">
+          <i class="fas fa-star text-primary"></i>
+          Featured Rewards
+        </h3>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          @for (reward of featuredRewards(); track reward) {
+            <div class="surface-card rounded-lg overflow-hidden border border-surface cursor-pointer hover:shadow-md transition-shadow"
+              [class.border-primary]="reward.pointsCost <= loyaltyAccount()!.currentPoints"
+              (click)="selectReward(reward)">
+              <div class="relative aspect-video">
+                <img [src]="reward.image || '/assets/default-reward.png'" [alt]="reward.name" class="w-full h-full object-cover">
+                @if (reward.isLimitedTime) {
+                  <div class="absolute top-2 right-2 bg-orange-500 text-white px-2 py-1 rounded text-xs font-medium">Limited Time</div>
+                }
+              </div>
+
+              <div class="p-4">
+                <h4 class="font-bold text-surface-900 mb-2">{{ reward.name }}</h4>
+                <p class="text-sm text-surface-600 mb-3">{{ reward.description }}</p>
+
+                <div class="flex items-center justify-between">
+                  <span class="text-primary font-bold">{{ reward.pointsCost | number:'1.0-0' }} pts</span>
+                  @if (reward.displayValue) {
+                    <span class="text-surface-500 text-sm">{{ reward.displayValue }}</span>
+                  }
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- Active Challenges -->
+    @if (activeChallengesList().length) {
+      <div>
+        <h3 class="text-xl font-bold text-surface-900 mb-4 flex items-center gap-2">
+          <i class="fas fa-bullseye text-primary"></i>
+          Active Challenges
+        </h3>
+
+        <div class="flex flex-col gap-4">
+          @for (challenge of activeChallengesList(); track challenge) {
+            <div class="surface-card p-4 rounded-lg border border-surface">
+              <div class="flex items-start gap-4 mb-3">
+                <div class="w-12 h-12 rounded-full flex items-center justify-center" [style.background-color]="challenge.color">
+                  <i class="text-xl text-white" [class]="challenge.icon || 'fas fa-target'"></i>
+                </div>
+
+                <div class="flex-1">
+                  <h4 class="font-bold text-surface-900">{{ challenge.name }}</h4>
+                  <p class="text-sm text-surface-600">{{ challenge.shortDescription }}</p>
+                </div>
+
+                <div class="flex gap-1">
+                  @for (star of getDifficultyStars(challenge.difficultyStars); track star) {
+                    <i class="fas fa-star text-yellow-500 text-xs"></i>
+                  }
+                </div>
+              </div>
+
+              <div class="mb-2">
+                <div class="h-2 bg-surface-200 rounded-full overflow-hidden">
+                  <div class="h-full" [style.width.%]="getChallengeProgress(challenge)" [style.background-color]="challenge.color"></div>
+                </div>
+
+                <div class="flex items-center gap-2 mt-2 text-sm text-surface-600">
+                  <span>{{ getChallengeCurrentValue(challenge) }}</span>
+                  <span>/</span>
+                  <span>{{ challenge.goals.targetValue }}</span>
+                  <span>{{ getChallengeUnit(challenge) }}</span>
+                </div>
+              </div>
+
+              @if (challenge.rewards.completionPoints) {
+                <div class="flex items-center gap-2 text-sm text-primary">
+                  <i class="fas fa-trophy"></i>
+                  <span>{{ challenge.rewards.completionPoints }} points reward</span>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- Recent Activity -->
+    @if (recentTransactions().length) {
+      <div>
+        <h3 class="text-xl font-bold text-surface-900 mb-4 flex items-center gap-2">
+          <i class="fas fa-clock text-primary"></i>
+          Recent Activity
+        </h3>
+
+        <div class="flex flex-col gap-3">
+          @for (transaction of recentTransactions(); track transaction) {
+            <div class="flex items-center gap-4 surface-card p-3 rounded border border-surface">
+              <div class="w-10 h-10 rounded-full flex items-center justify-center"
+                [class.bg-green-100]="transaction.isEarned"
+                [class.bg-red-100]="transaction.isRedeemed">
+                <i class="fas"
+                  [class.fa-plus]="transaction.isEarned"
+                  [class.fa-minus]="transaction.isRedeemed"
+                  [class.text-green-600]="transaction.isEarned"
+                  [class.text-red-600]="transaction.isRedeemed"></i>
+              </div>
+
+              <div class="flex-1">
+                <h4 class="font-medium text-surface-900">{{ transaction.description }}</h4>
+                <p class="text-sm text-surface-500">{{ transaction.createdAt | date:'short' }}</p>
+              </div>
+
+              <div class="text-right">
+                <span class="font-bold"
+                  [class.text-green-600]="transaction.isEarned"
+                  [class.text-red-600]="transaction.isRedeemed">
+                  {{ transaction.isEarned ? '+' : '' }}{{ transaction.points | number:'1.0-0' }}
+                </span>
+                <span class="text-surface-500 text-sm ml-1">pts</span>
+              </div>
+            </div>
+          }
+        </div>
+
+        <button class="w-full mt-4 py-2 text-primary hover:bg-surface-100 rounded transition-colors" (click)="showHistory()">
+          View All Activity
+        </button>
+      </div>
+    }
+
+    <!-- Badges Section -->
+    @if (loyaltyAccount()!.badges?.length) {
+      <div>
+        <h3 class="text-xl font-bold text-surface-900 mb-4 flex items-center gap-2">
+          <i class="fas fa-medal text-primary"></i>
+          Your Badges
+        </h3>
+
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          @for (badge of loyaltyAccount()!.badges; track badge) {
+            <div class="surface-card p-4 rounded-lg border border-surface text-center">
+              <div class="text-4xl mb-2">
+                <i [class]="badge.icon"></i>
+              </div>
+              <h4 class="font-bold text-surface-900 mb-1">{{ badge.name }}</h4>
+              <p class="text-xs text-surface-600 mb-2">{{ badge.description }}</p>
+              <span class="text-xs text-surface-500">{{ badge.earnedAt | date:'mediumDate' }}</span>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- Birthday/Anniversary Special -->
+    @if (showBirthdayOffer() || showAnniversaryOffer()) {
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        @if (showBirthdayOffer()) {
+          <div class="bg-gradient-to-r from-pink-500 to-purple-500 rounded-lg p-6 text-white">
+            <div class="flex items-center gap-4">
+              <i class="fas fa-birthday-cake text-4xl"></i>
+              <div class="flex-1">
+                <h3 class="text-xl font-bold mb-2">Happy Birthday!</h3>
+                <p class="mb-4">Enjoy your special birthday rewards this month</p>
+                <button class="bg-white text-purple-600 px-4 py-2 rounded font-medium hover:bg-purple-50 transition-colors" (click)="claimBirthdayReward()">
+                  Claim Reward
+                </button>
+              </div>
+            </div>
+          </div>
+        }
+
+        @if (showAnniversaryOffer()) {
+          <div class="bg-gradient-to-r from-blue-500 to-indigo-500 rounded-lg p-6 text-white">
+            <div class="flex items-center gap-4">
+              <i class="fas fa-calendar-heart text-4xl"></i>
+              <div class="flex-1">
+                <h3 class="text-xl font-bold mb-2">Anniversary Celebration!</h3>
+                <p class="mb-4">Thanks for being with us! Enjoy your anniversary bonus</p>
+                <button class="bg-white text-indigo-600 px-4 py-2 rounded font-medium hover:bg-indigo-50 transition-colors" (click)="claimAnniversaryReward()">
+                  Claim Reward
+                </button>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    }
+  </div>
+}
+
+<!-- Loading State -->
+@if (!loyaltyAccount() && isLoading()) {
+  <div class="flex flex-col items-center justify-center p-12">
+    <div class="text-primary text-4xl mb-4">
+      <i class="fas fa-spinner fa-spin"></i>
+    </div>
+    <p class="text-surface-600">Loading your loyalty account...</p>
+  </div>
+}
+
+<!-- Error State -->
+@if (!loyaltyAccount() && !isLoading() && error()) {
+  <div class="flex flex-col items-center justify-center p-12">
+    <div class="text-red-500 text-4xl mb-4">
+      <i class="fas fa-exclamation-triangle"></i>
+    </div>
+    <h3 class="text-xl font-bold text-surface-900 mb-2">Unable to Load Loyalty Account</h3>
+    <p class="text-surface-600 mb-4">{{ error() }}</p>
+    <button class="bg-primary text-primary-contrast px-4 py-2 rounded hover:bg-primary-emphasis transition-colors" (click)="loadLoyaltyData()">
+      Try Again
+    </button>
+  </div>
+}

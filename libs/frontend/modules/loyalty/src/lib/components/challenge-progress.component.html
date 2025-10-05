@@ -1,0 +1,309 @@
+,
+    <div class="challenge-progress">
+      <!-- Header -->
+      <div class="progress-header">
+        <h3 class="section-title">
+          <i class="fas fa-chart-line"></i>
+          Your Active Challenges
+        </h3>
+        <div class="progress-summary">
+          <div class="summary-stat">
+            <span class="stat-number">{{ activeChallenges().length }}</span>
+            <span class="stat-label">Active</span>
+          </div>
+          <div class="summary-stat">
+            <span class="stat-number">{{ totalProgress | number: '1.0-0' }}%</span>
+            <span class="stat-label">Average Progress</span>
+          </div>
+          <div class="summary-stat">
+            <span class="stat-number">{{ nearCompletionCount }}</span>
+            <span class="stat-label">Nearly Complete</span>
+          </div>
+        </div>
+      </div>
+    
+      <!-- Progress Cards -->
+      @if (activeChallenges().length > 0) {
+        <div class="progress-cards">
+          @for (challenge of activeChallenges(); track trackByChallenge($index, challenge)) {
+            <div
+              class="progress-card"
+              [class.nearly-complete]="isNearlyComplete(challenge)"
+              [class.completed]="isCompleted(challenge)"
+              (click)="selectChallenge(challenge)"
+              >
+              <!-- Challenge Header -->
+              <div class="card-header">
+                <div class="challenge-icon" [style.background-color]="challenge.color">
+                  <i [class]="challenge.icon || getChallengeIcon(challenge.type)"></i>
+                </div>
+                <div class="challenge-info">
+                  <h4 class="challenge-name">{{ challenge.name }}</h4>
+                  <p class="challenge-type">{{ challenge.displayType }}</p>
+                </div>
+                <div class="progress-percentage" [style.color]="challenge.color">{{ getProgressPercentage(challenge) | number: '1.0-0' }}%</div>
+              </div>
+              <!-- Main Progress Bar -->
+              <div class="progress-section">
+                <div class="progress-bar-container">
+                  <div class="progress-bar">
+                    <div class="progress-fill" [style.width.%]="getProgressPercentage(challenge)" [style.background-color]="challenge.color">
+                      <div class="progress-shine"></div>
+                      @if (hasRecentActivity(challenge)) {
+                        <div class="progress-pulse" [style.animation-delay]="getRandomDelay()"></div>
+                      }
+                    </div>
+                  </div>
+                  <!-- Progress milestones -->
+                  @if (challenge.milestones?.length) {
+                    <div class="progress-milestones">
+                      @for (milestone of challenge.milestones; track milestone) {
+                        <div
+                          class="milestone"
+                          [style.left.%]="milestone.percentage"
+                          [class.completed]="getProgressPercentage(challenge) >= milestone.percentage"
+                          [class.active]="isActiveMilestone(challenge, milestone)"
+                          [title]="milestone.title"
+                          >
+                          <div class="milestone-marker">
+                            @if (getProgressPercentage(challenge) >= milestone.percentage) {
+                              <i class="fas fa-flag-checkered"></i>
+                            }
+                            @if (getProgressPercentage(challenge) < milestone.percentage) {
+                              <i class="fas fa-flag"></i>
+                            }
+                          </div>
+                        </div>
+                      }
+                    </div>
+                  }
+                </div>
+                <!-- Progress Details -->
+                <div class="progress-details">
+                  <div class="current-progress">
+                    <span class="current-value">{{ getCurrentValue(challenge) | number: '1.0-0' }}</span>
+                    <span class="separator"> / </span>
+                    <span class="target-value">{{ getTargetValue(challenge) | number: '1.0-0' }}</span>
+                    <span class="unit">{{ getChallengeUnit(challenge.type) }}</span>
+                  </div>
+                  <div class="remaining-info">
+                    <span class="remaining-count">{{ getRemainingCount(challenge) | number: '1.0-0' }}</span>
+                    <span class="remaining-label">remaining</span>
+                  </div>
+                </div>
+              </div>
+              <!-- Time Information -->
+              @if (getTimeRemaining(challenge); as timeInfo) {
+                <div class="time-section">
+                  <div class="time-info" [class.ending-soon]="timeInfo.isEndingSoon">
+                    <i class="fas fa-clock"></i>
+                    <span class="time-text">{{ timeInfo.text }}</span>
+                  </div>
+                  <!-- Urgency indicator -->
+                  @if (timeInfo.isEndingSoon) {
+                    <div class="urgency-indicator">
+                      <i class="fas fa-exclamation-triangle"></i>
+                      <span>Ending soon!</span>
+                    </div>
+                  }
+                </div>
+              }
+              <!-- Next Milestone -->
+              @if (getNextMilestone(challenge); as milestone) {
+                <div class="next-milestone">
+                  <div class="milestone-info">
+                    <i class="fas fa-flag"></i>
+                    <span class="milestone-text"> Next: {{ milestone.title }} at {{ milestone.percentage }}%; </span>
+                  </div>
+                  @if (milestone.reward) {
+                    <div class="milestone-reward">
+                      <i class="fas fa-gift"></i>
+                      <span>{{ getMilestoneRewardText(milestone.reward) }}</span>
+                    </div>
+                  }
+                </div>
+              }
+              <!-- Recent Activity Indicator -->
+              @if (hasRecentActivity(challenge)) {
+                <div class="activity-indicator">
+                  <div class="activity-pulse">
+                    <i class="fas fa-plus-circle"></i>
+                  </div>
+                  <span class="activity-text">{{ getLastActivityText(challenge) }}</span>
+                </div>
+              }
+              <!-- Quick Actions -->
+              <div class="quick-actions">
+                <button class="action-btn view-details" (click)="viewDetails(challenge, $event)">
+                  <i class="fas fa-eye"></i>
+                  View Details
+                </button>
+                <button class="action-btn share" (click)="shareProgress(challenge, $event)">
+                  <i class="fas fa-share-alt"></i>
+                  Share
+                </button>
+                <button class="action-btn tips" (click)="showTips(challenge, $event)">
+                  <i class="fas fa-lightbulb"></i>
+                  Tips
+                </button>
+              </div>
+            </div>
+          }
+        </div>
+      }
+    
+      <!-- Empty State -->
+      @if (activeChallenges().length === 0) {
+        <div class="empty-state">
+          <div class="empty-icon">
+            <i class="fas fa-trophy"></i>
+          </div>
+          <h3>No Active Challenges</h3>
+          <p>Join a challenge to start tracking your progress!</p>
+          <button class="browse-challenges-btn" (click)="browseChallenges()">
+            <i class="fas fa-search"></i>
+            Browse Challenges
+          </button>
+        </div>
+      }
+    
+      <!-- Completion Celebration -->
+      @if (recentlyCompleted.length > 0) {
+        <div class="completion-celebration" [@slideIn]>
+          <div class="celebration-header">
+            <h4>🎉 Recently Completed!</h4>
+          </div>
+          <div class="completed-challenges">
+            @for (challenge of recentlyCompleted; track challenge) {
+              <div class="completed-item" (click)="viewCompletedChallenge(challenge)">
+                <div class="challenge-icon completed" [style.background-color]="challenge.color">
+                  <i class="fas fa-check"></i>
+                </div>
+                <div class="challenge-info">
+                  <h5 class="challenge-name">{{ challenge.name }}</h5>
+                  <p class="completion-time">Completed {{ getCompletionTimeAgo(challenge) }}</p>
+                </div>
+                <div class="earned-rewards">
+                  @if (challenge.rewards.completionPoints) {
+                    <div class="reward-item">
+                      <i class="fas fa-coins"></i>
+                      <span>{{ challenge.rewards.completionPoints }}</span>
+                    </div>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      }
+    
+      <!-- Progress Insights -->
+      @if (activeChallenges().length > 0) {
+        <div class="progress-insights">
+          <div class="insights-header">
+            <h4>
+              <i class="fas fa-chart-bar"></i>
+              Progress Insights
+            </h4>
+          </div>
+          <div class="insights-grid">
+            <!-- Best performing challenge -->
+            @if (bestProgressChallenge) {
+              <div class="insight-card best-progress">
+                <div class="insight-icon">
+                  <i class="fas fa-trending-up"></i>
+                </div>
+                <div class="insight-content">
+                  <h5>Top Progress</h5>
+                  <p>{{ bestProgressChallenge.name }}</p>
+                  <span class="insight-value">{{ getProgressPercentage(bestProgressChallenge) | number: '1.0-0' }}% complete</span>
+                </div>
+              </div>
+            }
+            <!-- Most urgent challenge -->
+            @if (mostUrgentChallenge) {
+              <div class="insight-card most-urgent">
+                <div class="insight-icon">
+                  <i class="fas fa-clock"></i>
+                </div>
+                <div class="insight-content">
+                  <h5>Most Urgent</h5>
+                  <p>{{ mostUrgentChallenge.name }}</p>
+                  <span class="insight-value">{{ getTimeRemaining(mostUrgentChallenge)?.text }}</span>
+                </div>
+              </div>
+            }
+            <!-- Streak information -->
+            @if (longestStreak > 0) {
+              <div class="insight-card streak-info">
+                <div class="insight-icon">
+                  <i class="fas fa-fire"></i>
+                </div>
+                <div class="insight-content">
+                  <h5>Current Streak</h5>
+                  <p>Daily challenges</p>
+                  <span class="insight-value">{{ longestStreak }} days</span>
+                </div>
+              </div>
+            }
+            <!-- Weekly progress -->
+            <div class="insight-card weekly-progress">
+              <div class="insight-icon">
+                <i class="fas fa-calendar-week"></i>
+              </div>
+              <div class="insight-content">
+                <h5>This Week</h5>
+                <p>Challenge activity</p>
+                <span class="insight-value">{{ weeklyActivity }} actions</span>
+              </div>
+            </div>
+          </div>
+          <!-- Motivational Messages -->
+          @if (getMotivationalMessage(); as message) {
+            <div class="motivation-section">
+              <div class="motivation-card">
+                <div class="motivation-icon">
+                  <i class="fas fa-star"></i>
+                </div>
+                <div class="motivation-content">
+                  <h5>{{ message.title }}</h5>
+                  <p>{{ message.text }}</p>
+                </div>
+                <button class="motivation-action" (click)="message.action()">
+                  {{ message.actionText }}
+                </button>
+              </div>
+            </div>
+          }
+        </div>
+      }
+    
+      <!-- Progress Tips Modal -->
+      @if (showTipsModal) {
+        <div class="tips-modal" (click)="closeTipsModal()">
+          <div class="modal-content" (click)="$event.stopPropagation()">
+            <div class="modal-header">
+              <h4>💡 Tips for {{ selectedChallengeForTips?.name }}</h4>
+              <button class="close-btn" (click)="closeTipsModal()">
+                <i class="fas fa-times"></i>
+              </button>
+            </div>
+            <div class="modal-body">
+              <div class="tips-list">
+                @for (tip of getProgressTips(); track tip) {
+                  <div class="tip-item">
+                    <div class="tip-icon">
+                      <i class="fas fa-lightbulb"></i>
+                    </div>
+                    <div class="tip-content">
+                      <h5>{{ tip.title }}</h5>
+                      <p>{{ tip.description }}</p>
+                    </div>
+                  </div>
+                }
+              </div>
+            </div>
+          </div>
+        </div>
+      }
+    </div>

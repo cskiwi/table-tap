@@ -1,0 +1,145 @@
+<div class="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-primary to-primary-emphasis">
+  <div class="w-full max-w-lg">
+    <p-card>
+      <ng-template pTemplate="header">
+        <div class="text-center pt-8 pb-4">
+          <h2 class="m-0 mb-2 text-color">Create Account</h2>
+          <p class="m-0 text-color-secondary">Join TableTap to manage your restaurant</p>
+        </div>
+      </ng-template>
+
+      <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
+        <div class="mb-6">
+          <label for="firstName" class="block mb-2 text-color font-medium">First Name</label>
+          <input
+            pInputText
+            id="firstName"
+            type="text"
+            formControlName="firstName"
+            placeholder="Enter your first name"
+            class="w-full"
+            [class.ng-invalid]="registerForm.get('firstName')?.invalid && registerForm.get('firstName')?.touched"
+          />
+          @if (registerForm.get('firstName')?.invalid && registerForm.get('firstName')?.touched) {
+            <small class="p-error">First name is required</small>
+          }
+        </div>
+
+        <div class="mb-6">
+          <label for="lastName" class="block mb-2 text-color font-medium">Last Name</label>
+          <input
+            pInputText
+            id="lastName"
+            type="text"
+            formControlName="lastName"
+            placeholder="Enter your last name"
+            class="w-full"
+            [class.ng-invalid]="registerForm.get('lastName')?.invalid && registerForm.get('lastName')?.touched"
+          />
+          @if (registerForm.get('lastName')?.invalid && registerForm.get('lastName')?.touched) {
+            <small class="p-error">Last name is required</small>
+          }
+        </div>
+
+        <div class="mb-6">
+          <label for="email" class="block mb-2 text-color font-medium">Email</label>
+          <input
+            pInputText
+            id="email"
+            type="email"
+            formControlName="email"
+            placeholder="Enter your email"
+            class="w-full"
+            [class.ng-invalid]="registerForm.get('email')?.invalid && registerForm.get('email')?.touched"
+          />
+          @if (registerForm.get('email')?.invalid && registerForm.get('email')?.touched) {
+            <small class="p-error">Email is required and must be valid</small>
+          }
+        </div>
+
+        <div class="mb-6">
+          <label for="password" class="block mb-2 text-color font-medium">Password</label>
+          <p-password
+            id="password"
+            formControlName="password"
+            placeholder="Create a strong password"
+            [toggleMask]="true"
+            [feedback]="true"
+            styleClass="w-full"
+            [class.ng-invalid]="registerForm.get('password')?.invalid && registerForm.get('password')?.touched"
+          />
+          @if (registerForm.get('password')?.invalid && registerForm.get('password')?.touched) {
+            <small class="p-error">Password must be at least 8 characters</small>
+          }
+        </div>
+
+        <div class="mb-6">
+          <label for="confirmPassword" class="block mb-2 text-color font-medium">Confirm Password</label>
+          <p-password
+            id="confirmPassword"
+            formControlName="confirmPassword"
+            placeholder="Confirm your password"
+            [toggleMask]="true"
+            [feedback]="false"
+            styleClass="w-full"
+            [class.ng-invalid]="registerForm.get('confirmPassword')?.invalid && registerForm.get('confirmPassword')?.touched"
+          />
+          @if (registerForm.get('confirmPassword')?.invalid && registerForm.get('confirmPassword')?.touched) {
+            <small class="p-error">Passwords do not match</small>
+          }
+        </div>
+
+        <div class="flex items-start gap-2 mb-6">
+          <p-checkbox
+            id="acceptTerms"
+            formControlName="acceptTerms"
+            [binary]="true"
+          />
+          <label for="acceptTerms" class="text-color-secondary text-sm leading-normal">
+            I agree to the <a href="/terms" class="text-primary no-underline font-medium hover:underline">Terms of Service</a>
+            and <a href="/privacy" class="text-primary no-underline font-medium hover:underline">Privacy Policy</a>
+          </label>
+        </div>
+
+        @if (errorMessage()) {
+          <p-message severity="error" [text]="errorMessage()"></p-message>
+        }
+
+        <div class="my-6">
+          <button
+            pButton
+            type="submit"
+            label="Create Account"
+            [loading]="isLoading()"
+            [disabled]="registerForm.invalid"
+            class="w-full"
+          ></button>
+        </div>
+      </form>
+
+      <p-divider align="center">
+        <span class="text-sm text-muted-color">or</span>
+      </p-divider>
+
+      <div class="my-4">
+        <button
+          pButton
+          label="Sign up with Auth0"
+          icon="pi pi-user-plus"
+          class="p-button-outlined w-full"
+          (click)="registerWithAuth0()"
+          [loading]="isLoading()"
+        ></button>
+      </div>
+
+      <ng-template pTemplate="footer">
+        <div class="text-center pt-4">
+          <p class="my-2 text-color-secondary">
+            Already have an account?
+            <a routerLink="/auth/login" class="text-primary no-underline font-medium hover:underline">Sign in</a>
+          </p>
+        </div>
+      </ng-template>
+    </p-card>
+  </div>
+</div>

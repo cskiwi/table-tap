@@ -1,0 +1,39 @@
+{
+  "name": "@tabletap/frontend-order",
+  "version": "1.0.0",
+  "description": "Order placement workflow module for TableTap frontend",
+  "main": "src/index.ts",
+  "type": "module",
+  "scripts": {
+    "build": "ng build",
+    "test": "ng test",
+    "lint": "ng lint",
+    "typecheck": "tsc --noEmit"
+  },
+  "peerDependencies": {
+    "@angular/common": "^17.0.0",
+    "@angular/core": "^17.0.0",
+    "@angular/forms": "^17.0.0",
+    "@angular/router": "^17.0.0",
+    "apollo-angular": "^5.0.0",
+    "graphql": "^16.0.0",
+    "rxjs": "^7.8.0"
+  },
+  "devDependencies": {
+    "@angular/testing": "^17.0.0",
+    "@types/jasmine": "^5.1.0",
+    "jasmine": "^5.1.0",
+    "karma": "^6.4.0",
+    "typescript": "^5.2.0"
+  },
+  "keywords": [
+    "angular",
+    "order",
+    "payment",
+    "checkout",
+    "tabletap",
+    "frontend"
+  ],
+  "author": "TableTap Team",
+  "license": "MIT"
+}

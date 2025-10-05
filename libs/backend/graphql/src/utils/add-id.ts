@@ -13,9 +13,9 @@ export const addId = <T>(
     where.push({ [key]: a.id } as FindOptionsWhere<T>);
   } else {
     where = where?.map((arg) => {
-      return { ...arg, [key]: a.id };
+      return { ...arg, [key]: a.id }
     });
   }
 
   return where;
-};
+}

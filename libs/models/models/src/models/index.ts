@@ -1,23 +1,11 @@
-// Core entities
-export * from './cafe.model';
-export * from './user.model';
+export * from './core';
+export * from './employee';
+export * from './glass';
+export * from './inventory';
+export * from './loyalty';
+export * from './order';
 
-// Order management
-export * from './product.model';
-export * from './order.model';
-export * from './order-item.model';
-export * from './payment.model';
-
-// Operations
-export * from './counter.model';
-export * from './employee.model';
-export * from './time-sheet.model';
-
-// Inventory
-export * from './stock.model';
-export * from './purchase.model';
-
-// Additional features
-export * from './glass.model';
-export * from './credit.model';
-export * from './configuration.model';
+// Re-export commonly used enums from @app/models/enums
+export { EmployeeStatus } from '@app/models/enums';
+export { OrderStatus } from '@app/models/enums';
+export { UserRole } from '@app/models/enums';

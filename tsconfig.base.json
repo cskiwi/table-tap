@@ -20,7 +20,7 @@
       "@app/backend-graphql": ["libs/backend/graphql/src/index.ts"],
       "@app/backend-health": ["libs/backend/health/src/index.ts"],
       "@app/backend-seo": ["libs/backend/seo/src/index.ts"],
-      "@app/backend-serach": ["libs/backend/search/src/index.ts"],
+      "@app/backend-search": ["libs/backend/search/src/index.ts"],
       "@app/backend-shared": ["libs/backend/_shared/src/index.ts"],
       "@app/backend-translate": ["libs/backend/translate/src/index.ts"],
       "@app/frontend-components": ["libs/frontend/components/index.ts"],
@@ -47,8 +47,21 @@
       "@app/frontend-utils": ["libs/frontend/utils/src/index.ts"],
       "@app/models": ["libs/models/models/src/index.ts"],
       "@app/models/enums": ["libs/models/enum/src/index.ts"],
+      "@app/models/restaurant": ["libs/models/restaurant/src/index.ts"],
+      "@app/enum": ["libs/models/enum/src/index.ts"],
+      "@app/frontend-modules-menu": ["libs/frontend/modules/menu/src/index.ts"],
+      "@app/frontend-modules-cart": ["libs/frontend/modules/cart/src/index.ts"],
+      "@app/frontend-modules-order": ["libs/frontend/modules/order/src/index.ts"],
+      "@app/frontend-modules-admin": ["libs/frontend/modules/admin/src/index.ts"],
+      "@app/frontend-modules-kitchen": ["libs/frontend/modules/kitchen/src/index.ts"],
+      "@app/frontend-modules-kitchen-mobile": ["libs/frontend/modules/kitchen-mobile/src/index.ts"],
+      "@app/frontend-modules-loyalty": ["libs/frontend/modules/loyalty/src/index.ts"],
+      "@app/backend-services": ["libs/backend/services/src/index.ts"],
+      "@app/backend-redis": ["libs/backend/redis/src/index.ts"],
       "@app/set-env": ["libs/set-env/src/index.ts"],
-      "@app/utils": ["libs/utils/src/index.ts"]
+      "@app/utils": ["libs/utils/src/index.ts"],
+      "@app/shared-services": ["libs/shared/services/src/index.ts"],
+      "@tabletap/shared/ui": ["libs/shared/ui/src/index.ts"]
     }
   },
   "exclude": ["node_modules", "tmp"]

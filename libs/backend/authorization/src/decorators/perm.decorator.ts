@@ -55,13 +55,13 @@ export class PermGuard implements CanActivate {
       request['user'] = await this.validateUser(payload);
     } catch (e) {
       this._logger.error('Invalid token', e);
-      throw new UnauthorizedException();
+      throw new UnauthorizedException()
     }
     return true;
   }
 
   private extractTokenFromHeader(request: Request): string | undefined {
-    const [type, token] = request?.headers?.['authorization']?.split(' ') ?? [];
+    const [type, token] = request?.headers?.['authorization']?.split(' ') ?? []
     return type === 'Bearer' ? token : undefined;
   }
 
@@ -85,7 +85,7 @@ export class PermGuard implements CanActivate {
     try {
       const decoded = this.jwtService.decode(token, { complete: true });
       if (!decoded || !decoded.header || !decoded.header.kid) {
-        throw new UnauthorizedException();
+        throw new UnauthorizedException()
       }
 
       const signingKey = await this.jwksClient.getSigningKey(

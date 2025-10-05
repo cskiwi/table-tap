@@ -1,0 +1,269 @@
+<p-card styleClass="h-full">
+  <ng-template pTemplate="header">
+    <div class="flex items-center justify-between p-4 border-b">
+      <div class="flex items-center gap-2">
+        <i class="pi pi-chart-line"></i>
+        <span class="text-lg font-semibold">Kitchen Metrics</span>
+      </div>
+      <p-button
+        icon="pi pi-times"
+        [rounded]="true"
+        [text]="true"
+        severity="secondary"
+        (onClick)="close.emit()">
+      </p-button>
+    </div>
+  </ng-template>
+
+  @if (metrics()) {
+    <p-tabView>
+      <!-- Overview Tab -->
+      <p-tabPanel header="Overview">
+        <ng-template pTemplate="header">
+          <div class="flex items-center gap-2">
+            <i class="pi pi-th-large"></i>
+            <span>Overview</span>
+          </div>
+        </ng-template>
+
+        <!-- Key Performance Indicators -->
+        <div class="grid grid-cols-2 gap-4 mb-4">
+          <div class="p-4 surface-100 rounded-md border">
+            <div class="text-3xl font-bold text-primary-500">{{ metrics()!.ordersCompleted }}</div>
+            <div class="text-sm text-500 mt-1">Orders Completed</div>
+            <div class="flex items-center gap-1 text-xs text-green-600 mt-2">
+              <i class="pi pi-arrow-up"></i>
+              +12% vs yesterday
+            </div>
+          </div>
+          <div class="p-4 surface-100 rounded-md border">
+            <div class="text-3xl font-bold text-primary-500">{{ metrics()!.ordersInProgress }}</div>
+            <div class="text-sm text-500 mt-1">In Progress</div>
+            <div class="flex items-center gap-1 text-xs text-primary-500 mt-2">
+              <i class="pi pi-clock"></i>
+              Active now
+            </div>
+          </div>
+          <div class="p-4 surface-100 rounded-md border">
+            <div class="text-3xl font-bold text-primary-500">{{ formatTime(metrics()!.averageOrderPrepTime) }}</div>
+            <div class="text-sm text-500 mt-1">Avg Prep Time</div>
+            <div [class]="'flex items-center gap-1 text-xs mt-2 ' + getPrepTimeTrend()">
+              <i [class]="'pi pi-' + getPrepTimeTrendIcon()"></i>
+              {{ getPrepTimeTrendText() }}
+            </div>
+          </div>
+          <div class="p-4 surface-100 rounded-md border">
+            <div class="text-3xl font-bold text-primary-500">{{ metrics()!.efficiency }}%</div>
+            <div class="text-sm text-500 mt-1">Efficiency</div>
+            <p-progressBar
+              [value]="metrics()!.efficiency"
+              [showValue]="false"
+              styleClass="mt-2 h-2">
+            </p-progressBar>
+          </div>
+        </div>
+
+        <!-- Quality Score -->
+        <div class="p-4 surface-100 rounded-md border mb-4">
+          <h3 class="flex items-center gap-2 text-lg font-semibold mb-3">
+            <i class="pi pi-check-circle"></i>
+            Quality Score
+          </h3>
+          <div class="flex items-center justify-between">
+            <div [class]="'text-4xl font-bold ' + getQualityClass()">
+              {{ metrics()!.qualityScore.toFixed(1) }}
+            </div>
+            <div class="flex gap-1">
+              @for (star of getQualityStars(); track star) {
+                <i
+                  [class]="star ? 'pi pi-star-fill text-yellow-400' : 'pi pi-star text-300'">
+                </i>
+              }
+            </div>
+          </div>
+        </div>
+
+        <!-- Today's Performance -->
+        @if (metrics()!.todayStats) {
+          <div class="p-4 surface-100 rounded-md border">
+            <h3 class="flex items-center gap-2 text-lg font-semibold mb-3">
+              <i class="pi pi-calendar"></i>
+              Today's Performance
+            </h3>
+            <div class="grid grid-cols-4 gap-4">
+              <div class="text-center">
+                <div class="text-2xl font-bold text-primary-500">{{ metrics()!.todayStats.totalOrders }}</div>
+                <div class="text-sm text-500 mt-1">Total Orders</div>
+              </div>
+              <div class="text-center">
+                <div class="text-2xl font-bold text-primary-500">{{ metrics()!.todayStats.completedOrders }}</div>
+                <div class="text-sm text-500 mt-1">Completed</div>
+              </div>
+              <div class="text-center">
+                <div class="text-2xl font-bold text-primary-500">{{ metrics()!.todayStats.cancelledOrders }}</div>
+                <div class="text-sm text-500 mt-1">Cancelled</div>
+              </div>
+              <div class="text-center">
+                <div class="text-2xl font-bold text-primary-500">\${{ metrics()!.todayStats.revenue.toFixed(0) }}</div>
+                <div class="text-sm text-500 mt-1">Revenue</div>
+              </div>
+            </div>
+          </div>
+        }
+      </p-tabPanel>
+
+      <!-- Staff Performance Tab -->
+      <p-tabPanel header="Staff">
+        <ng-template pTemplate="header">
+          <div class="flex items-center gap-2">
+            <i class="pi pi-users"></i>
+            <span>Staff</span>
+          </div>
+        </ng-template>
+
+        <div class="flex items-center gap-4 mb-4 p-3 surface-100 rounded-md">
+          <div class="flex items-center gap-2">
+            <i class="pi pi-user"></i>
+            {{ getActiveStaffCount() }} Active Staff
+          </div>
+          <div class="flex items-center gap-2">
+            <i class="pi pi-clock"></i>
+            {{ getTotalHoursWorked() }}h Total Hours
+          </div>
+        </div>
+
+        <p-divider></p-divider>
+
+        <div class="flex flex-col gap-3">
+          @for (staff of metrics()!.staffPerformance; track trackByStaffId($index, staff)) {
+            <div class="p-4 border rounded-md">
+              <div class="flex items-center justify-between mb-3">
+                <div>
+                  <div class="font-semibold">{{ staff.employee.firstName }} {{ staff.employee.lastName }}</div>
+                  <div class="text-sm text-500">{{ staff.employee.position | titlecase }}</div>
+                </div>
+                <p-chip
+                  [label]="staff.status | titlecase"
+                  [styleClass]="'status-' + staff.status">
+                  <i [class]="'pi pi-' + getStaffStatusIcon(staff.status)"></i>
+                </p-chip>
+              </div>
+              <div class="grid grid-cols-3 gap-3 mb-2">
+                <div class="text-center">
+                  <div class="text-lg font-bold">{{ staff.ordersCompleted }}</div>
+                  <div class="text-xs text-500">Orders</div>
+                </div>
+                <div class="text-center">
+                  <div class="text-lg font-bold">{{ formatTime(staff.averagePrepTime) }}</div>
+                  <div class="text-xs text-500">Avg Time</div>
+                </div>
+                <div class="text-center">
+                  <div class="text-lg font-bold">{{ staff.efficiency }}%</div>
+                  <div class="text-xs text-500">Efficiency</div>
+                </div>
+              </div>
+              <p-progressBar
+                [value]="staff.efficiency"
+                [showValue]="false"
+                styleClass="h-2">
+              </p-progressBar>
+              @if (staff.currentTask) {
+                <div class="flex items-center gap-2 mt-2 text-sm text-500">
+                  <i class="pi pi-wrench"></i>
+                  <span>Currently: {{ staff.currentTask }}</span>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      </p-tabPanel>
+
+      <!-- Stations Tab -->
+      <p-tabPanel header="Stations">
+        <ng-template pTemplate="header">
+          <div class="flex items-center gap-2">
+            <i class="pi pi-building"></i>
+            <span>Stations</span>
+          </div>
+        </ng-template>
+
+        <div class="grid grid-cols-2 gap-4">
+          @for (counter of metrics()!.countersUtilization; track trackByCounterId($index, counter)) {
+            <div class="p-4 border rounded-md">
+              <div class="flex items-center justify-between mb-3">
+                <div class="font-semibold">{{ counter.counter.name }}</div>
+                <p-chip
+                  [label]="counter.status | titlecase"
+                  [styleClass]="'status-' + counter.status">
+                </p-chip>
+              </div>
+              <div class="mb-3">
+                <div class="text-2xl font-bold text-primary-500 mb-1">{{ counter.utilizationRate }}%</div>
+                <p-progressBar
+                  [value]="counter.utilizationRate"
+                  [showValue]="false"
+                  styleClass="h-2">
+                </p-progressBar>
+              </div>
+              <div class="flex flex-col gap-2">
+                <div class="flex items-center gap-2 text-sm">
+                  <i class="pi pi-receipt"></i>
+                  <div class="flex-1">
+                    <div class="font-semibold">{{ counter.ordersProcessed }}</div>
+                    <div class="text-xs text-500">Orders Processed</div>
+                  </div>
+                </div>
+                <div class="flex items-center gap-2 text-sm">
+                  <i class="pi pi-clock"></i>
+                  <div class="flex-1">
+                    <div class="font-semibold">{{ formatTime(counter.averageOrderTime) }}</div>
+                    <div class="text-xs text-500">Avg Order Time</div>
+                  </div>
+                </div>
+                <div class="flex items-center gap-2 text-sm">
+                  <i class="pi pi-box"></i>
+                  <div class="flex-1">
+                    <div class="font-semibold">{{ counter.currentOrders }}/{{ counter.maxCapacity }}</div>
+                    <div class="text-xs text-500">Current Load</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      </p-tabPanel>
+    </p-tabView>
+  } @else {
+    <div class="flex flex-col items-center justify-center py-12 text-center">
+      <i class="pi pi-chart-line text-4xl text-500 mb-3"></i>
+      <h3 class="text-lg font-semibold mb-1">No Metrics Available</h3>
+      <p class="text-500 mb-4">Metrics will appear once kitchen operations begin</p>
+      <p-button
+        label="Refresh Data"
+        icon="pi pi-refresh"
+        (onClick)="refreshMetrics()">
+      </p-button>
+    </div>
+  }
+
+  <ng-template pTemplate="footer">
+    @if (metrics()) {
+      <div class="flex gap-2">
+        <p-button
+          label="Refresh"
+          icon="pi pi-refresh"
+          [outlined]="true"
+          severity="secondary"
+          (onClick)="refreshMetrics()">
+        </p-button>
+        <p-button
+          label="Export Report"
+          icon="pi pi-download"
+          [outlined]="true"
+          severity="secondary"
+          (onClick)="exportReport()">
+        </p-button>
+      </div>
+    }
+  </ng-template>
+</p-card>

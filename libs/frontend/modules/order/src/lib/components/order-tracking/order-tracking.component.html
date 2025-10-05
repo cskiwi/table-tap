@@ -1,0 +1,280 @@
+<div class="min-h-screen bg-surface py-8">
+  <div class="max-w-4xl mx-auto px-4">
+    <!-- Header -->
+    <div class="text-center mb-8">
+      @if (currentOrder(); as order) {
+        <div class="order-info mb-6">
+          <h1 class="text-4xl font-bold text-color mb-4">Order #{{ order.trackingNumber }}</h1>
+          <div class="flex justify-center gap-8 flex-wrap text-muted-color">
+            <span class="text-lg">{{ formatDate(order.timestamps.created) }}</span>
+            <span class="text-lg font-semibold">${{ order.summary.total.toFixed(2) }}</span>
+          </div>
+        </div>
+
+        <div class="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-primary-reverse text-primary font-semibold text-lg" [class.bg-success]="order.status === 'DELIVERED'" [class.text-success]="order.status === 'DELIVERED'" [class.bg-error]="order.status === 'FAILED' || order.status === 'CANCELLED'" [class.text-error]="order.status === 'FAILED' || order.status === 'CANCELLED'">
+          <i [class]="getStatusIcon(order.status)"></i>
+          <span>{{ getStatusLabel(order.status) }}</span>
+        </div>
+      } @else if (isLoading()) {
+        <div class="space-y-4">
+          <div class="h-12 bg-surface-border rounded animate-pulse"></div>
+          <div class="h-6 bg-surface-border rounded animate-pulse w-1/2 mx-auto"></div>
+        </div>
+      } @else {
+        <div class="text-center">
+          <h1 class="text-3xl font-bold text-color mb-2">Order Not Found</h1>
+          <p class="text-muted-color">We couldn't find the order you're looking for.</p>
+        </div>
+      }
+    </div>
+
+    @if (currentOrder(); as order) {
+      <!-- Progress Tracker -->
+      <div class="bg-surface-0 rounded-xl p-8 mb-8 shadow-sm border border-surface-border">
+        <div class="flex justify-between items-center mb-6">
+          <h2 class="text-2xl font-semibold text-color">Order Progress</h2>
+          @if (estimatedReadyTime()) {
+            <div class="flex items-center gap-2 text-primary">
+              <i class="icon-clock text-xl"></i>
+              <span class="font-medium">Ready by {{ formatTime(estimatedReadyTime()!) }}</span>
+            </div>
+          }
+        </div>
+
+        <div class="relative mb-8">
+          <div class="h-2 bg-surface-border rounded-full overflow-hidden">
+            <div class="h-full bg-gradient-to-r from-primary to-success rounded-full transition-all duration-500" [style.width.%]="progressPercentage()"></div>
+          </div>
+        </div>
+
+        <div class="space-y-6">
+          @for (step of statusSteps(); track step.status) {
+            <div class="flex gap-6 relative" [class.opacity-50]="!step.completed && !step.active">
+              <div class="flex-shrink-0">
+                <div class="w-12 h-12 rounded-full flex items-center justify-center border-2 transition-all" [class.bg-success]="step.completed" [class.border-success]="step.completed" [class.text-surface-0]="step.completed" [class.bg-primary]="step.active && order.status !== 'FAILED' && order.status !== 'CANCELLED'" [class.border-primary]="step.active" [class.bg-surface-border]="!step.completed && !step.active" [class.border-surface-border]="!step.completed && !step.active" [class.bg-error]="order.status === 'FAILED' || order.status === 'CANCELLED'" [class.border-error]="order.status === 'FAILED' || order.status === 'CANCELLED'">
+                  @if (step.completed) {
+                    <i class="icon-check text-xl"></i>
+                  } @else if (step.active && (order.status !== 'FAILED' && order.status !== 'CANCELLED')) {
+                    <i [class]="step.icon" class="text-xl"></i>
+                  } @else if (order.status === 'FAILED' || order.status === 'CANCELLED') {
+                    <i class="icon-x text-xl"></i>
+                  } @else {
+                    <i [class]="step.icon" class="text-xl text-muted-color"></i>
+                  }
+                </div>
+              </div>
+
+              <div class="flex-1">
+                <div class="font-semibold text-lg text-color mb-1">{{ step.label }}</div>
+                <div class="text-muted-color mb-2">{{ step.description }}</div>
+                @if (step.actualTime) {
+                  <div class="text-sm text-color-secondary font-medium">{{ formatTime(step.actualTime) }}</div>
+                } @else if (step.estimatedTime && step.active) {
+                  <div class="text-sm text-primary font-medium">~{{ step.estimatedTime }}min remaining</div>
+                }
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- Live Updates -->
+      @if (liveUpdates().length > 0) {
+        <div class="bg-surface-0 rounded-xl p-8 mb-8 shadow-sm border border-surface-border">
+          <h2 class="text-2xl font-semibold text-color mb-6">Live Updates</h2>
+          <div class="space-y-4">
+            @for (update of liveUpdates(); track update.id) {
+              <div class="flex gap-4 p-4 rounded-lg bg-surface-50 border border-surface-border">
+                <div class="flex-shrink-0">
+                  <i [class]="getNotificationIcon(update.type)" class="text-2xl text-primary"></i>
+                </div>
+                <div class="flex-1">
+                  <div class="font-semibold text-color mb-1">{{ update.title }}</div>
+                  <div class="text-muted-color mb-2">{{ update.message }}</div>
+                  <div class="text-sm text-color-secondary">{{ formatRelativeTime(update.timestamp) }}</div>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- Order Details -->
+      <div class="bg-surface-0 rounded-xl p-8 mb-8 shadow-sm border border-surface-border">
+        <h2 class="text-2xl font-semibold text-color mb-6">Order Details</h2>
+
+        <div class="grid md:grid-cols-2 gap-6">
+          <!-- Items -->
+          <div class="md:col-span-2">
+            <h3 class="text-lg font-semibold text-color mb-4 pb-2 border-b border-surface-border">Items ({{ getTotalItemCount() }})</h3>
+            <div class="space-y-3">
+              @for (item of order.items; track item.id) {
+                <div class="flex justify-between items-center p-3 rounded-lg bg-surface-50 border border-surface-border">
+                  <div class="flex items-center gap-3">
+                    <span class="font-medium text-color">{{ item.name }}</span>
+                    <span class="text-muted-color">× {{ item.quantity }}</span>
+                  </div>
+                  <div class="font-semibold text-color">${{ (item.price * item.quantity).toFixed(2) }}</div>
+                </div>
+              }
+            </div>
+          </div>
+
+          <!-- Customer Info -->
+          <div>
+            <h3 class="text-lg font-semibold text-color mb-4 pb-2 border-b border-surface-border">Customer Information</h3>
+            <div class="space-y-2">
+              <div class="flex justify-between">
+                <span class="text-muted-color font-medium">Name:</span>
+                <span class="text-color">{{ order.customerInfo.firstName }} {{ order.customerInfo.lastName }}</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-muted-color font-medium">Phone:</span>
+                <span class="text-color">{{ order.customerInfo.phone }}</span>
+              </div>
+              @if (order.customerInfo.tableNumber) {
+                <div class="flex justify-between">
+                  <span class="text-muted-color font-medium">Table:</span>
+                  <span class="text-color">{{ order.customerInfo.tableNumber }}</span>
+                </div>
+              }
+            </div>
+          </div>
+
+          <!-- Payment -->
+          <div>
+            <h3 class="text-lg font-semibold text-color mb-4 pb-2 border-b border-surface-border">Payment</h3>
+            <div class="space-y-3">
+              <div class="flex items-center gap-2">
+                <i [class]="getPaymentIcon(order.paymentMethod.type)" class="text-xl text-color-secondary"></i>
+                <span class="text-color font-medium">{{ order.paymentMethod.name }}</span>
+                @if (order.paymentMethod.last4) {
+                  <span class="text-muted-color">•••• {{ order.paymentMethod.last4 }}</span>
+                }
+              </div>
+              <div class="flex justify-between pt-3 border-t border-surface-border">
+                <span class="text-muted-color font-medium">Total Paid:</span>
+                <span class="text-color font-bold text-lg">${{ order.summary.total.toFixed(2) }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="flex gap-4 flex-wrap justify-center">
+        @if (canCancelOrder()) {
+          <button
+            type="button"
+            class="btn-outlined-error px-6 py-3 rounded-lg font-semibold"
+            (click)="showCancelDialog()"
+            [disabled]="isProcessingAction()"
+          >
+            Cancel Order
+          </button>
+        }
+
+        @if (canModifyOrder()) {
+          <button
+            type="button"
+            class="btn-outlined px-6 py-3 rounded-lg font-semibold"
+            (click)="modifyOrder()"
+            [disabled]="isProcessingAction()"
+          >
+            Modify Order
+          </button>
+        }
+
+        @if (order.status === 'DELIVERED' || order.status === 'READY') {
+          <button
+            type="button"
+            class="btn px-6 py-3 rounded-lg font-semibold"
+            (click)="viewReceipt()"
+          >
+            View Receipt
+          </button>
+        }
+
+        <button
+          type="button"
+          class="btn-outlined px-6 py-3 rounded-lg font-semibold"
+          (click)="shareOrder()"
+        >
+          <i class="icon-share"></i>
+          Share Order
+        </button>
+      </div>
+    }
+
+    <!-- Error State -->
+    @if (error() && !currentOrder()) {
+      <div class="bg-surface-0 rounded-xl p-12 text-center shadow-sm border border-surface-border">
+        <i class="icon-alert-circle text-6xl text-error mb-6"></i>
+        <h2 class="text-2xl font-bold text-color mb-2">Unable to Load Order</h2>
+        <p class="text-muted-color mb-8">{{ error()?.message || 'There was a problem loading your order information.' }}</p>
+        <div class="flex gap-4 justify-center">
+          <button type="button" class="btn px-6 py-3 rounded-lg font-semibold" (click)="retryLoadOrder()">
+            Try Again
+          </button>
+          <button type="button" class="btn-outlined px-6 py-3 rounded-lg font-semibold" (click)="goToOrders()">
+            View All Orders
+          </button>
+        </div>
+      </div>
+    }
+
+    <!-- Cancel Order Dialog -->
+    @if (showCancelConfirmation()) {
+      <div class="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4" (click)="hideCancelDialog()">
+        <div class="bg-surface-0 rounded-xl p-8 max-w-md w-full" (click)="$event.stopPropagation()">
+          <div class="flex justify-between items-center mb-6">
+            <h3 class="text-2xl font-bold text-color">Cancel Order</h3>
+            <button type="button" class="text-color-secondary hover:text-color" (click)="hideCancelDialog()">
+              <i class="icon-x text-2xl"></i>
+            </button>
+          </div>
+
+          <div class="mb-6">
+            <p class="text-color mb-4">Are you sure you want to cancel this order?</p>
+            @if (currentOrder()?.status === 'PREPARING') {
+              <div class="flex gap-3 p-4 rounded-lg bg-warning-subtle border border-warning">
+                <i class="icon-warning text-xl text-warning flex-shrink-0"></i>
+                <span class="text-warning">Your order is already being prepared. Cancellation may not be possible.</span>
+              </div>
+            }
+
+            <div class="mt-4">
+              <label for="cancelReason" class="block text-color font-medium mb-2">Reason for cancellation (optional):</label>
+              <textarea
+                id="cancelReason"
+                [(ngModel)]="cancelReason"
+                class="w-full px-4 py-3 rounded-lg border border-surface-border bg-surface text-color focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none"
+                rows="3"
+                placeholder="Let us know why you're cancelling..."
+              ></textarea>
+            </div>
+          </div>
+
+          <div class="flex gap-4">
+            <button type="button" class="btn-outlined flex-1 py-3 rounded-lg font-semibold" (click)="hideCancelDialog()">
+              Keep Order
+            </button>
+            <button
+              type="button"
+              class="btn-error flex-1 py-3 rounded-lg font-semibold"
+              (click)="confirmCancelOrder()"
+              [disabled]="isProcessingAction()"
+            >
+              @if (isProcessingAction()) {
+                <span class="inline-block w-4 h-4 border-2 border-transparent border-t-current rounded-full animate-spin"></span>
+                Cancelling...
+              } @else {
+                Cancel Order
+              }
+            </button>
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+</div>

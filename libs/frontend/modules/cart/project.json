@@ -1,0 +1,41 @@
+{
+  "name": "frontend-modules-cart",
+  "$schema": "../../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/frontend/modules/cart/src",
+  "prefix": "tabletap",
+  "projectType": "library",
+  "targets": {
+    "build": {
+      "executor": "@nx/angular:ng-packagr-lite",
+      "outputs": ["{workspaceRoot}/dist/libs/frontend/modules/cart"],
+      "options": {
+        "project": "libs/frontend/modules/cart/ng-package.json"
+      }
+    },
+    "test": {
+      "executor": "@nx/jest:jest",
+      "outputs": ["{workspaceRoot}/coverage/libs/frontend/modules/cart"],
+      "options": {
+        "jestConfig": "libs/frontend/modules/cart/jest.config.ts",
+        "passWithNoTests": true
+      },
+      "configurations": {
+        "ci": {
+          "ci": true,
+          "coverageReporters": ["text"]
+        }
+      }
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint",
+      "outputs": ["{options.outputFile}"],
+      "options": {
+        "lintFilePatterns": [
+          "libs/frontend/modules/cart/**/*.ts",
+          "libs/frontend/modules/cart/**/*.html"
+        ]
+      }
+    }
+  },
+  "tags": ["scope:frontend", "type:feature", "platform:web"]
+}

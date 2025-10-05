@@ -1,0 +1,7 @@
+{
+  "$schema": "../../../ng-package.json",
+  "dest": "../../../dist/libs/frontend/modules/admin",
+  "lib": {
+    "entryFile": "src/index.ts"
+  }
+}

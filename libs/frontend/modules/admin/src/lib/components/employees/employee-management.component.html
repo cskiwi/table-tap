@@ -1,0 +1,339 @@
+<div class="flex flex-col gap-6 p-6">
+  <!-- Header -->
+  <div class="flex justify-between items-start">
+    <div class="flex flex-col gap-2">
+      <h1 class="text-4xl font-bold text-color">Employee Management</h1>
+      <p class="text-color-secondary">Manage staff, schedules, and performance</p>
+    </div>
+
+    <div class="flex gap-3">
+      <p-button
+        icon="pi pi-calendar"
+        label="Schedules"
+        [outlined]="true"
+        routerLink="/admin/employees/schedules">
+      </p-button>
+
+      <p-button
+        icon="pi pi-refresh"
+        [loading]="loading()"
+        (click)="refreshData()"
+        pTooltip="Refresh Data">
+      </p-button>
+
+      <p-button
+        icon="pi pi-plus"
+        label="Add Employee"
+        (click)="addEmployee()">
+      </p-button>
+    </div>
+  </div>
+
+  <!-- Employee Performance Cards -->
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+    <p-card class="bg-surface-card">
+      <div class="flex items-center gap-4">
+        <div class="flex items-center justify-center w-12 h-12 rounded-lg bg-primary-100">
+          <i class="pi pi-users text-2xl text-primary-500"></i>
+        </div>
+        <div class="flex flex-col gap-1">
+          <h3 class="text-3xl font-bold text-color">{{ employeeMetrics().totalEmployees }}</h3>
+          <p class="text-sm text-color-secondary">Total Employees</p>
+          <span class="text-xs text-color-secondary">{{ employeeMetrics().activeEmployees }} Active</span>
+        </div>
+      </div>
+    </p-card>
+
+    <p-card class="bg-surface-card">
+      <div class="flex items-center gap-4">
+        <div class="flex items-center justify-center w-12 h-12 rounded-lg bg-green-100">
+          <i class="pi pi-clock text-2xl text-green-500"></i>
+        </div>
+        <div class="flex flex-col gap-1">
+          <h3 class="text-3xl font-bold text-color">{{ employeeMetrics().clockedIn }}</h3>
+          <p class="text-sm text-color-secondary">Currently Working</p>
+          <span class="text-xs text-green-500">On Duty</span>
+        </div>
+      </div>
+    </p-card>
+
+    <p-card class="bg-surface-card">
+      <div class="flex items-center gap-4">
+        <div class="flex items-center justify-center w-12 h-12 rounded-lg bg-blue-100">
+          <i class="pi pi-chart-line text-2xl text-blue-500"></i>
+        </div>
+        <div class="flex flex-col gap-1">
+          <h3 class="text-3xl font-bold text-color">{{ employeeMetrics().avgPerformance }}%</h3>
+          <p class="text-sm text-color-secondary">Avg Performance</p>
+          <span class="text-xs text-blue-500">This Week</span>
+        </div>
+      </div>
+    </p-card>
+
+    <p-card class="bg-surface-card">
+      <div class="flex items-center gap-4">
+        <div class="flex items-center justify-center w-12 h-12 rounded-lg bg-orange-100">
+          <i class="pi pi-stopwatch text-2xl text-orange-500"></i>
+        </div>
+        <div class="flex flex-col gap-1">
+          <h3 class="text-3xl font-bold text-color">{{ employeeMetrics().totalHours }}</h3>
+          <p class="text-sm text-color-secondary">Hours This Week</p>
+          <span class="text-xs text-color-secondary">All Staff</span>
+        </div>
+      </div>
+    </p-card>
+  </div>
+
+  <!-- Filters -->
+  <p-card class="bg-surface-card">
+    <div class="flex flex-col lg:flex-row gap-4 items-start lg:items-center">
+      <div class="flex-1 w-full lg:w-auto">
+        <span class="p-input-icon-left w-full">
+          <i class="pi pi-search"></i>
+          <input
+            pInputText
+            type="text"
+            [(ngModel)]="searchTerm"
+            placeholder="Search employees..."
+            (input)="applyFilters()"
+            class="w-full">
+        </span>
+      </div>
+
+      <div class="flex flex-wrap gap-3 flex-1">
+        <p-select
+          [options]="positionOptions"
+          [(ngModel)]="selectedPosition"
+          placeholder="All Positions"
+          (onChange)="applyFilters()"
+          [showClear]="true"
+          class="w-full sm:w-auto">
+        </p-select>
+
+        <p-select
+          [options]="statusOptions"
+          [(ngModel)]="selectedStatus"
+          placeholder="All Status"
+          (onChange)="applyFilters()"
+          [showClear]="true"
+          class="w-full sm:w-auto">
+        </p-select>
+
+        <p-select
+          [options]="performanceOptions"
+          [(ngModel)]="selectedPerformance"
+          placeholder="Performance"
+          (onChange)="applyFilters()"
+          [showClear]="true"
+          class="w-full sm:w-auto">
+        </p-select>
+      </div>
+
+      <div class="flex gap-2">
+        <p-button
+          icon="pi pi-filter-slash"
+          label="Clear"
+          [text]="true"
+          (click)="clearFilters()">
+        </p-button>
+
+        <p-button
+          icon="pi pi-download"
+          label="Export"
+          [outlined]="true"
+          (click)="exportEmployees()">
+        </p-button>
+      </div>
+    </div>
+  </p-card>
+
+  <!-- Employees Table -->
+  <p-card class="bg-surface-card">
+    <p-table
+      [value]="filteredEmployees()"
+      [rows]="20"
+      [paginator]="true"
+      [loading]="loading()"
+      [rowsPerPageOptions]="[10, 20, 50]"
+      [sortField]="'employeeName'"
+      [sortOrder]="1"
+      styleClass="p-datatable-sm">
+
+      <ng-template pTemplate="header">
+        <tr>
+          <th pSortableColumn="employeeName" class="text-color">
+            Employee <p-sortIcon field="employeeName"></p-sortIcon>
+          </th>
+          <th pSortableColumn="position" class="text-color">
+            Position <p-sortIcon field="position"></p-sortIcon>
+          </th>
+          <th pSortableColumn="currentStatus" class="text-color">
+            Status <p-sortIcon field="currentStatus"></p-sortIcon>
+          </th>
+          <th class="text-color">Today's Performance</th>
+          <th pSortableColumn="hoursWorked" class="text-color">
+            Hours <p-sortIcon field="hoursWorked"></p-sortIcon>
+          </th>
+          <th pSortableColumn="ordersProcessed" class="text-color">
+            Orders <p-sortIcon field="ordersProcessed"></p-sortIcon>
+          </th>
+          <th pSortableColumn="customerRating" class="text-color">
+            Rating <p-sortIcon field="customerRating"></p-sortIcon>
+          </th>
+          <th class="text-color">Schedule</th>
+          <th class="text-color">Actions</th>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="body" let-employee>
+        <tr [class.bg-green-50]="employee.currentStatus === 'CLOCKED_IN'">
+          <td>
+            <div class="flex items-center gap-3">
+              <p-avatar
+                [label]="employee.employeeName.charAt(0)"
+                shape="circle"
+                size="normal"
+                class="bg-primary-100 text-primary-500">
+              </p-avatar>
+              <div class="flex flex-col">
+                <strong class="text-color">{{ employee.employeeName }}</strong>
+                <p class="text-sm text-color-secondary">ID: {{ employee.employeeId }}</p>
+              </div>
+            </div>
+          </td>
+
+          <td>
+            <p-tag
+              [value]="employee.position"
+              severity="info">
+            </p-tag>
+          </td>
+
+          <td>
+            <div class="flex flex-col gap-1">
+              <p-tag
+                [value]="employee.currentStatus"
+                [severity]="getStatusSeverity(employee.currentStatus)">
+              </p-tag>
+              @if (employee.currentStatus === 'CLOCKED_IN') {
+                <div class="text-xs text-color-secondary">
+                  {{ getShiftDuration(employee) }}
+                </div>
+              }
+            </div>
+          </td>
+
+          <td>
+            <div class="flex items-center gap-2">
+              <p-progressBar
+                [value]="employee.efficiency"
+                [showValue]="false"
+                class="flex-1">
+              </p-progressBar>
+              <span class="text-sm font-medium text-color">{{ employee.efficiency }}%</span>
+            </div>
+          </td>
+
+          <td>
+            <div class="flex flex-col">
+              <strong class="text-color">{{ employee.hoursWorked }}h</strong>
+              <span class="text-xs text-color-secondary">Today</span>
+            </div>
+          </td>
+
+          <td>
+            <div class="flex flex-col">
+              <strong class="text-color">{{ employee.ordersProcessed }}</strong>
+              <div class="text-xs text-color-secondary">
+                {{ employee.averageOrderTime }}m avg
+              </div>
+            </div>
+          </td>
+
+          <td>
+            <div class="flex flex-col gap-1">
+              <div class="flex items-center gap-1">
+                <i class="pi pi-star-fill text-yellow-500"></i>
+                <span class="text-color">{{ employee.customerRating }}</span>
+              </div>
+              <div class="text-xs text-color-secondary">
+                Based on customer feedback
+              </div>
+            </div>
+          </td>
+
+          <td>
+            <div class="flex flex-col gap-1">
+              <p-chip
+                label="9:00 AM - 5:00 PM">
+              </p-chip>
+              <div class="text-xs text-color-secondary">
+                Break: 12:00 - 1:00 PM
+              </div>
+            </div>
+          </td>
+
+          <td>
+            <div class="flex gap-1">
+              <p-button
+                icon="pi pi-eye"
+                size="small"
+                [text]="true"
+                (click)="viewEmployee(employee)"
+                pTooltip="View Details">
+              </p-button>
+
+              <p-button
+                icon="pi pi-calendar"
+                size="small"
+                [text]="true"
+                (click)="manageSchedule(employee)"
+                pTooltip="Manage Schedule">
+              </p-button>
+
+              @if (employee.currentStatus === 'CLOCKED_OUT') {
+                <p-button
+                  icon="pi pi-play"
+                  size="small"
+                  [text]="true"
+                  (click)="clockIn(employee)"
+                  pTooltip="Clock In">
+                </p-button>
+              }
+
+              @if (employee.currentStatus === 'CLOCKED_IN') {
+                <p-button
+                  icon="pi pi-pause"
+                  size="small"
+                  [text]="true"
+                  (click)="clockOut(employee)"
+                  pTooltip="Clock Out">
+                </p-button>
+              }
+
+              <p-button
+                icon="pi pi-cog"
+                size="small"
+                [text]="true"
+                (click)="editEmployee(employee)"
+                pTooltip="Edit Employee">
+              </p-button>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="9" class="text-center">
+            <div class="flex flex-col items-center gap-3 py-8">
+              <i class="pi pi-users text-6xl text-color-secondary"></i>
+              <h3 class="text-xl font-semibold text-color">No Employees Found</h3>
+              <p class="text-color-secondary">No employees match your current filters.</p>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </p-card>
+</div>

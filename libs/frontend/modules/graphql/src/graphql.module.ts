@@ -8,7 +8,7 @@ import {
   EnvironmentProviders,
   makeEnvironmentProviders,
   NgModule,
-  ModuleWithProviders,
+  ModuleWithProviders
 } from '@angular/core';
 import { ApolloLink, InMemoryCache, NormalizedCacheObject } from '@apollo/client/core';
 import { BASE_URL } from '@app/frontend-utils';
@@ -18,7 +18,7 @@ import { HttpLink } from 'apollo-angular/http';
 const STATE_KEY = makeStateKey<NormalizedCacheObject>('apollo.state');
 export const APOLLO_CACHE = new InjectionToken<InMemoryCache>('apollo-cache');
 export const GRAPHQL_CONFIG_TOKEN = new InjectionToken<GraphqlConfiguration>(
-  'graphql.config',
+  'graphql.config'
 );
 
 export type GraphqlConfiguration = Readonly<{
@@ -27,16 +27,16 @@ export type GraphqlConfiguration = Readonly<{
 }>;
 
 export function provideGraphQL(
-  config?: GraphqlConfiguration,
+  config?: GraphqlConfiguration
 ): EnvironmentProviders {
   return makeEnvironmentProviders([
     {
       provide: APOLLO_CACHE,
-      useValue: new InMemoryCache(),
+      useValue: new InMemoryCache()
     },
     {
       provide: GRAPHQL_CONFIG_TOKEN,
-      useValue: config,
+      useValue: config
     },
     provideApollo(() => {
       const httpLink = inject(HttpLink);
@@ -52,9 +52,9 @@ export function provideGraphQL(
         platformId as string,
         transferState,
         baseUrl,
-        graphqlConfig ?? undefined,
+        graphqlConfig ?? undefined
       );
-    }),
+    })
   ]);
 }
 
@@ -64,7 +64,7 @@ export function createApollo(
   platformId: string,
   transferState: TransferState,
   baseUrl: string,
-  config?: GraphqlConfiguration,
+  config?: GraphqlConfiguration
 ) {
   const isBrowser = isPlatformBrowser(platformId);
 
@@ -75,30 +75,30 @@ export function createApollo(
     }
   } else {
     transferState.onSerialize(STATE_KEY, () => {
-      return cache.extract();
+      return cache.extract()
     });
     // Reset cache after extraction to avoid sharing between requests
-    cache.reset();
+    cache.reset()
   }
 
   const link = ApolloLink.from([
-    // basic,
-    // auth,
+    // basic
+    // auth
     httpLink.create({
-      uri: `${baseUrl}/${config?.suffix ?? 'graphql'}`,
-    }),
+      uri: `${baseUrl}/${config?.suffix ?? 'graphql'}`
+    })
   ]);
 
   return {
     link,
     persistedQueries: {
-      ttl: 900, // 15 minutes
+      ttl: 900 // 15 minutes
     },
     cache,
     devtools: {
-      enabled: config?.devToolsEnabled ?? true,
-    },
-  };
+      enabled: config?.devToolsEnabled ?? true
+    }
+  }
 }
 
 // Legacy NgModule approach - deprecated, use provideGraphQL instead
@@ -107,7 +107,7 @@ export function createApollo(
 })
 export class GraphQLModule {
   static forRoot(
-    config?: GraphqlConfiguration,
+    config?: GraphqlConfiguration
   ): ModuleWithProviders<GraphQLModule> {
     console.warn(
       'GraphQLModule.forRoot() is deprecated. Use provideGraphQL() in app.config.ts instead.'
@@ -117,15 +117,15 @@ export class GraphQLModule {
       providers: [
         {
           provide: APOLLO_CACHE,
-          useValue: new InMemoryCache(),
+          useValue: new InMemoryCache()
         },
         {
           provide: GRAPHQL_CONFIG_TOKEN,
-          useValue: config,
-        },
+          useValue: config
+        }
         // Note: This won't work properly with the new apollo-angular
         // Users should migrate to provideGraphQL()
-      ],
-    };
+      ]
+    }
   }
 }

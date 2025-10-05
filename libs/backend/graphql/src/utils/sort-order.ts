@@ -12,8 +12,8 @@ registerEnumType(SortDirection, {
   name: 'SortDirection',
 });
 
-const orderCache = new Map<string, Type>();
-export const sortOrders = new Map<string, Type>();
+const orderCache = new Map<string, Type>()
+export const sortOrders = new Map<string, Type>()
 
 export function SortOrderType<T>(classRef: Type<T>, name: string) {
   const className = `${name}SortOrder`;

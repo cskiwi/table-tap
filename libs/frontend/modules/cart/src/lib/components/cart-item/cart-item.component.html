@@ -1,0 +1,298 @@
+<div class="flex gap-4 p-4 border border-surface-300 rounded-lg bg-surface-0 transition-all duration-300 hover:border-primary-500 hover:shadow-md" [class.opacity-70]="disabled()" [class.pointer-events-none]="disabled()">
+  <!-- Item Image -->
+  <div class="w-20 h-20 flex-shrink-0 rounded-md overflow-hidden bg-surface-100">
+    @if (item().imageUrl) {
+      <img
+        [src]="item().imageUrl"
+        [alt]="item().name"
+        class="w-full h-full object-cover">
+    } @else {
+      <div class="w-full h-full flex items-center justify-content-center bg-surface-200 text-surface-500">
+        <i class="pi pi-image text-4xl text-surface-500"></i>
+      </div>
+    }
+  </div>
+
+  <!-- Item Details -->
+  <div class="flex-1 min-w-0">
+    <!-- Header -->
+    <div class="flex justify-between items-start mb-3">
+      <div class="flex-1">
+        <h4 class="text-surface-900 text-lg font-semibold mb-1">{{ item().name }}</h4>
+        @if (item().description) {
+          <p class="text-surface-500 text-sm mb-2">
+            {{ item().description }}
+          </p>
+        }
+
+        <!-- Category and Allergens -->
+        <div class="flex items-center gap-2 mb-2 flex-wrap">
+          <p-tag [value]="item().category" severity="info" [rounded]="true"></p-tag>
+
+          @for (allergen of item().allergens?.slice(0, 3); track allergen) {
+            <p-chip
+              [label]="allergen"
+              [removable]="false"
+              styleClass="p-chip-sm">
+            </p-chip>
+          }
+
+          @if ((item().allergens?.length || 0) > 3) {
+            <span
+              class="text-xs text-surface-500 cursor-pointer"
+              (click)="toggleShowAllAllergens()">
+              +{{ (item().allergens?.length || 0) - 3 }} more
+            </span>
+          }
+        </div>
+
+        <!-- All Allergens (expandable) -->
+        @if (showAllAllergens() && (item().allergens?.length || 0) > 3) {
+          <div class="mb-2">
+            @for (allergen of item().allergens; track allergen) {
+              <p-chip
+                [label]="allergen"
+                [removable]="false"
+                styleClass="p-chip-sm mr-1 mb-1">
+              </p-chip>
+            }
+          </div>
+        }
+      </div>
+
+      <!-- Item Price -->
+      <div class="text-right">
+        <span class="text-primary-600 text-lg font-semibold block">
+          {{ item().totalPrice | currency }}
+        </span>
+        @if (hasCustomizations()) {
+          <span class="text-surface-500 text-sm block mt-1">
+            (Base: {{ item().basePrice | currency }})
+          </span>
+        }
+      </div>
+    </div>
+
+    <!-- Customizations Display -->
+    @if (hasCustomizations()) {
+      <div class="bg-surface-50 p-3 rounded-md border-l-4 border-primary-500 mb-3">
+        @for (customization of item().customizations; track customization) {
+          <div class="mb-2">
+            <div class="flex items-center gap-2 mb-2">
+              <span class="text-surface-900 font-medium text-sm">
+                {{ customization.name }}:
+              </span>
+              <p-button
+                icon="pi pi-pencil"
+                [text]="true"
+                size="small"
+                severity="secondary"
+                pTooltip="Edit customization"
+                (onClick)="editCustomization(customization)"
+                [disabled]="disabled()">
+              </p-button>
+            </div>
+            <div class="flex flex-wrap gap-1">
+              @for (option of getSelectedOptions(customization); track option) {
+                <p-chip
+                  [label]="formatOptionLabel(option)"
+                  [removable]="false"
+                  styleClass="p-chip-sm">
+                </p-chip>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- Notes Display -->
+    @if (item().notes && !editingNotes()) {
+      <div class="bg-surface-50 p-3 rounded-md border-l-4 border-orange-400 mb-3">
+        <div class="flex items-center gap-2 mb-2">
+          <span class="text-surface-900 font-medium text-sm">Special Instructions:</span>
+          <p-button
+            icon="pi pi-pencil"
+            [text]="true"
+            size="small"
+            severity="secondary"
+            pTooltip="Edit notes"
+            (onClick)="startEditingNotes()"
+            [disabled]="disabled()">
+          </p-button>
+        </div>
+        <p class="text-surface-600 text-sm mt-1 whitespace-pre-wrap">{{ item().notes }}</p>
+      </div>
+    }
+
+    <!-- Notes Editor -->
+    @if (editingNotes() || (!item().notes && showNotesEditor())) {
+      <div class="bg-surface-50 p-3 rounded-md border border-surface-300 mb-3">
+        <label for="item-notes" class="block text-sm font-medium mb-2">
+          Special Instructions
+        </label>
+        <textarea
+          id="item-notes"
+          pTextarea
+          [(ngModel)]="notesValue"
+          placeholder="Add any special instructions..."
+          [rows]="3"
+          [maxlength]="500"
+          [disabled]="disabled()"
+          class="w-full">
+        </textarea>
+        <div class="flex items-center justify-between mt-2">
+          <small class="text-xs text-surface-500">
+            {{ notesValue.length }}/500 characters
+          </small>
+          <div class="flex gap-2">
+            <p-button
+              label="Save"
+              icon="pi pi-check"
+              size="small"
+              (onClick)="saveNotes()"
+              [disabled]="disabled()">
+            </p-button>
+            <p-button
+              label="Cancel"
+              icon="pi pi-times"
+              size="small"
+              severity="secondary"
+              [outlined]="true"
+              (onClick)="cancelNotesEdit()"
+              [disabled]="disabled()">
+            </p-button>
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- Add Notes Button -->
+    @if (!item().notes && !editingNotes() && !showNotesEditor()) {
+      <div class="mb-3">
+        <p-button
+          label="Add Special Instructions"
+          icon="pi pi-plus"
+          [text]="true"
+          size="small"
+          severity="secondary"
+          (onClick)="showNotesEditor.set(true)"
+          [disabled]="disabled()">
+        </p-button>
+      </div>
+    }
+  </div>
+
+  <!-- Item Controls -->
+  <div class="flex flex-col items-end justify-between min-w-[120px]">
+    <!-- Quantity Control -->
+    <div class="flex flex-col items-end mb-3">
+      <label class="block text-sm font-medium mb-2">Quantity</label>
+      <p-inputNumber
+        [(ngModel)]="quantityValue"
+        [min]="1"
+        [max]="maxQuantity()"
+        [showButtons]="true"
+        buttonLayout="horizontal"
+        decrementButtonClass="p-button-secondary"
+        incrementButtonClass="p-button-secondary"
+        [disabled]="disabled()"
+        (onInput)="onQuantityChange()"
+        [style]="{ width: '120px' }">
+      </p-inputNumber>
+    </div>
+
+    <!-- Remove Button -->
+    <p-button
+      label="Remove"
+      icon="pi pi-trash"
+      severity="danger"
+      [outlined]="true"
+      size="small"
+      (onClick)="onRemove()"
+      [disabled]="disabled()"
+      class="w-full">
+    </p-button>
+  </div>
+</div>
+
+<!-- Customization Edit Overlay -->
+<p-popover #customizationOverlay [style]="{ width: '400px' }">
+  <ng-template pTemplate="content">
+    @if (editingCustomization()) {
+      <div class="max-h-[400px] overflow-y-auto">
+        <h5 class="mb-3">Edit {{ editingCustomization()?.name }}</h5>
+        <div>
+          <!-- Single Select -->
+          @if (editingCustomization()?.type === CustomizationType.SINGLE_SELECT) {
+            <div>
+              @for (option of editingCustomization()?.options; track option) {
+                <div class="p-2 rounded transition-colors hover:bg-surface-100 mb-2">
+                  <div class="flex items-center">
+                    <p-radioButton
+                      [inputId]="'option-' + option.id"
+                      name="singleSelect"
+                      [value]="option.id"
+                      [(ngModel)]="selectedSingleOption"
+                      [disabled]="!option.available">
+                    </p-radioButton>
+                    <label [for]="'option-' + option.id" class="ml-2 flex-1">
+                      <div class="flex items-center justify-between">
+                        <span>{{ option.name }}</span>
+                        @if (option.priceModifier !== 0) {
+                          <span class="text-primary-600 font-medium">
+                            {{ option.priceModifier > 0 ? '+' : '' }}{{ option.priceModifier | currency }}
+                          </span>
+                        }
+                      </div>
+                    </label>
+                  </div>
+                </div>
+              }
+            </div>
+          }
+          <!-- Multi Select -->
+          @if (editingCustomization()?.type === CustomizationType.MULTI_SELECT) {
+            <div>
+              @for (option of editingCustomization()?.options; track option) {
+                <div class="p-2 rounded transition-colors hover:bg-surface-100 mb-2">
+                  <div class="flex items-center">
+                    <p-checkbox
+                      [inputId]="'option-' + option.id"
+                      [value]="option.id"
+                      [(ngModel)]="selectedMultiOptions"
+                      [disabled]="!option.available">
+                    </p-checkbox>
+                    <label [for]="'option-' + option.id" class="ml-2 flex-1">
+                      <div class="flex items-center justify-between">
+                        <span>{{ option.name }}</span>
+                        @if (option.priceModifier !== 0) {
+                          <span class="text-primary-600 font-medium">
+                            {{ option.priceModifier > 0 ? '+' : '' }}{{ option.priceModifier | currency }}
+                          </span>
+                        }
+                      </div>
+                    </label>
+                  </div>
+                </div>
+              }
+            </div>
+          }
+        </div>
+        <p-divider></p-divider>
+        <div class="flex justify-end gap-2">
+          <p-button
+            label="Cancel"
+            severity="secondary"
+            [outlined]="true"
+            (onClick)="cancelCustomizationEdit()">
+          </p-button>
+          <p-button
+            label="Update"
+            (onClick)="saveCustomizationEdit()">
+          </p-button>
+        </div>
+      </div>
+    }
+  </ng-template>
+</p-popover>

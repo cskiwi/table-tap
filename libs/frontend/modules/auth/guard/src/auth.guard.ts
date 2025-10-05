@@ -25,7 +25,7 @@ export class AuthGuard {
               return false;
             }
             return true;
-          }),
+          })
         );
       }
       return of(false);
@@ -34,7 +34,7 @@ export class AuthGuard {
     // on the client we can just check the state
     if (!this.auth?.state.loggedIn()) {
       this.auth.state.login({
-        appState: { target: state.url },
+        appState: { target: state.url }
       });
 
       return false;

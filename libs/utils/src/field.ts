@@ -23,10 +23,10 @@ export function SortableField(
     }
 
     // Retrieve the existing tracked fields or initialize a new array
-    const existingFields = Reflect.getMetadata(FIELD_TRACKER_METADATA_KEY, target.constructor) || [];
+    const existingFields = Reflect.getMetadata(FIELD_TRACKER_METADATA_KEY, target.constructor) || []
     // Add the current field to the tracked fields list
     Reflect.defineMetadata(FIELD_TRACKER_METADATA_KEY, [...existingFields, propertyKey], target.constructor);
-  };
+  }
 }
 
 // Custom Field decorator that tracks fields
@@ -38,19 +38,19 @@ export function SortableObject(propertyName: string): PropertyDecorator & Method
     // Logger.debug(`propertyType: ${target.constructor.name}:${propertyType?.name}`);
 
     // Retrieve the existing tracked fields or initialize a new array
-    const existingFields = Reflect.getMetadata(OBJECT_TRACKER_METADATA_KEY, target.constructor) || [];
+    const existingFields = Reflect.getMetadata(OBJECT_TRACKER_METADATA_KEY, target.constructor) || []
 
     // Add the class name to the tracked fields list
     Reflect.defineMetadata(OBJECT_TRACKER_METADATA_KEY, [...existingFields, { propertyKey, propertyName }], target.constructor);
-  };
+  }
 }
 
 // Helper function to retrieve tracked fields
 export function getSortableFields(target: Type): string[] {
-  return Reflect.getMetadata(FIELD_TRACKER_METADATA_KEY, target) || [];
+  return Reflect.getMetadata(FIELD_TRACKER_METADATA_KEY, target) || []
 }
 
 // Helper function to retrieve tracked objects
 export function getSortableObjects(target: Type): { propertyKey: string; propertyName: string }[] {
-  return Reflect.getMetadata(OBJECT_TRACKER_METADATA_KEY, target) || [];
+  return Reflect.getMetadata(OBJECT_TRACKER_METADATA_KEY, target) || []
 }

@@ -10,7 +10,7 @@ export const getServer = async (adapter?: AbstractHttpAdapter) => {
   
   const globalPrefix = 'api';
   nestjsApp.setGlobalPrefix(globalPrefix);
-  nestjsApp.enableShutdownHooks();
+  nestjsApp.enableShutdownHooks()
   nestjsApp.enableVersioning({
     type: VersioningType.URI,
     defaultVersion: '1',
@@ -46,7 +46,7 @@ export const getServer = async (adapter?: AbstractHttpAdapter) => {
       },
       'Auth0',
     )
-    .build();
+    .build()
 
   const swaggerCustomOptions: SwaggerCustomOptions = {
     swaggerOptions: {
@@ -57,7 +57,7 @@ export const getServer = async (adapter?: AbstractHttpAdapter) => {
         scopes: ['openid', 'profile', 'email', 'offline_access'],
       },
     },
-  };
+  }
 
   const document = SwaggerModule.createDocument(nestjsApp, config);
 
@@ -65,4 +65,4 @@ export const getServer = async (adapter?: AbstractHttpAdapter) => {
   Logger.log(`Server swagger on /${globalPrefix}`, 'Swagger');
 
   return nestjsApp;
-};
+}

@@ -109,4 +109,4 @@ export const appConfig: ApplicationConfig = {
       return initializerFn();
     }),
   ],
-};
+}

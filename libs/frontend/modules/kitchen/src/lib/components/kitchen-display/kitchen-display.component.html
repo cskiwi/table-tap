@@ -1,0 +1,227 @@
+<div class="flex flex-col h-screen" [class]="themeClass()">
+  <!-- Header -->
+  <p-toolbar styleClass="border-b">
+    <ng-template pTemplate="left">
+      <span class="text-xl font-bold">Kitchen Display System</span>
+    </ng-template>
+
+    <ng-template pTemplate="center">
+      <div class="flex gap-2">
+        <p-chip [label]="'Pending: ' + pendingCount()" styleClass="surface-100">
+          <i class="pi pi-clock mr-2"></i>
+        </p-chip>
+        <p-chip [label]="'In Progress: ' + inProgressCount()" styleClass="surface-100">
+          <i class="pi pi-spinner mr-2"></i>
+        </p-chip>
+        <p-chip [label]="'Ready: ' + readyCount()" styleClass="surface-100">
+          <i class="pi pi-check-circle mr-2"></i>
+        </p-chip>
+      </div>
+    </ng-template>
+
+    <ng-template pTemplate="right">
+      <div class="flex gap-2">
+        <!-- Alerts Badge -->
+        <p-button
+          icon="pi pi-bell"
+          [rounded]="true"
+          [text]="true"
+          severity="secondary"
+          [badge]="criticalAlertsCount().toString()"
+          [badgeClass]="criticalAlertsCount() > 0 ? 'p-badge-danger' : ''"
+          (onClick)="toggleAlertsPanel()">
+        </p-button>
+
+        <!-- Timers Badge -->
+        <p-button
+          icon="pi pi-stopwatch"
+          [rounded]="true"
+          [text]="true"
+          severity="secondary"
+          [badge]="expiredTimersCount().toString()"
+          [badgeClass]="expiredTimersCount() > 0 ? 'p-badge-danger' : ''"
+          (onClick)="toggleTimerPanel()">
+        </p-button>
+
+        <!-- Metrics -->
+        <p-button
+          icon="pi pi-chart-line"
+          [rounded]="true"
+          [text]="true"
+          severity="secondary"
+          (onClick)="toggleMetricsPanel()">
+        </p-button>
+
+        <!-- Settings -->
+        <p-button
+          icon="pi pi-cog"
+          [rounded]="true"
+          [text]="true"
+          severity="secondary"
+          [text]="true">
+        </p-button>
+
+        <!-- Refresh -->
+        <p-button
+          icon="pi pi-refresh"
+          [rounded]="true"
+          [text]="true"
+          severity="secondary"
+          [disabled]="isLoading()"
+          (onClick)="refreshData()">
+        </p-button>
+      </div>
+    </ng-template>
+  </p-toolbar>
+
+  <!-- Main Content -->
+  <div class="flex flex-1 overflow-hidden" [class.compact]="displaySettings().compactMode">
+    <!-- Side Panels -->
+    @if (showAnyPanel()) {
+      <div class="w-96 border-r surface-section overflow-y-auto">
+        @if (showTimerPanel()) {
+          <app-timer-panel
+            (close)="toggleTimerPanel()">
+          </app-timer-panel>
+        }
+        @if (showMetricsPanel()) {
+          <app-metrics-dashboard
+            (close)="toggleMetricsPanel()">
+          </app-metrics-dashboard>
+        }
+        @if (showAlertsPanel()) {
+          <app-alerts-panel
+            (close)="toggleAlertsPanel()">
+          </app-alerts-panel>
+        }
+      </div>
+    }
+
+    <!-- Order Columns -->
+    <div class="flex flex-1 gap-4 p-4 overflow-x-auto">
+      <!-- Pending Orders -->
+      <div class="flex-1 min-w-96 flex flex-col">
+        <div class="flex items-center justify-between mb-4 p-3 surface-50 rounded-md border">
+          <h3 class="text-lg font-semibold flex items-center gap-2">
+            <i class="pi pi-clock"></i>
+            Pending Orders
+            <span class="text-500">({{ pendingOrders().length }})</span>
+          </h3>
+          <p-button
+            icon="pi pi-ellipsis-v"
+            [rounded]="true"
+            [text]="true"
+            severity="secondary">
+          </p-button>
+        </div>
+
+        <div
+          class="flex-1 flex flex-col gap-3 overflow-y-auto"
+          cdkDropList
+          [cdkDropListData]="pendingOrders()"
+          (cdkDropListDropped)="onOrderDrop($event, 'pending')">
+
+          @for (order of pendingOrders(); track trackByOrderId($index, order)) {
+            <app-order-card
+              [order]="order"
+              [showTimers]="displaySettings().showTimers"
+              [showNotes]="displaySettings().showNotes"
+              [showAllergies]="displaySettings().showAllergies"
+              [compactMode]="displaySettings().compactMode"
+              (statusChanged)="onOrderStatusChanged($event)"
+              (itemStatusChanged)="onItemStatusChanged($event)"
+              (timerCreated)="onTimerCreated($event)"
+              (staffAssigned)="onStaffAssigned($event)"
+              cdkDrag>
+            </app-order-card>
+          }
+        </div>
+      </div>
+
+      <!-- In Progress Orders -->
+      <div class="flex-1 min-w-96 flex flex-col">
+        <div class="flex items-center justify-between mb-4 p-3 surface-50 rounded-md border">
+          <h3 class="text-lg font-semibold flex items-center gap-2">
+            <i class="pi pi-spinner"></i>
+            In Progress
+            <span class="text-500">({{ inProgressOrders().length }})</span>
+          </h3>
+          <p-button
+            icon="pi pi-ellipsis-v"
+            [rounded]="true"
+            [text]="true"
+            severity="secondary">
+          </p-button>
+        </div>
+
+        <div
+          class="flex-1 flex flex-col gap-3 overflow-y-auto"
+          cdkDropList
+          [cdkDropListData]="inProgressOrders()"
+          (cdkDropListDropped)="onOrderDrop($event, 'in-progress')">
+
+          @for (order of inProgressOrders(); track trackByOrderId($index, order)) {
+            <app-order-card
+              [order]="order"
+              [showTimers]="displaySettings().showTimers"
+              [showNotes]="displaySettings().showNotes"
+              [showAllergies]="displaySettings().showAllergies"
+              [compactMode]="displaySettings().compactMode"
+              (statusChanged)="onOrderStatusChanged($event)"
+              (itemStatusChanged)="onItemStatusChanged($event)"
+              (timerCreated)="onTimerCreated($event)"
+              (staffAssigned)="onStaffAssigned($event)"
+              cdkDrag>
+            </app-order-card>
+          }
+        </div>
+      </div>
+
+      <!-- Ready Orders -->
+      <div class="flex-1 min-w-96 flex flex-col">
+        <div class="flex items-center justify-between mb-4 p-3 surface-50 rounded-md border">
+          <h3 class="text-lg font-semibold flex items-center gap-2">
+            <i class="pi pi-check-circle"></i>
+            Ready for Pickup
+            <span class="text-500">({{ readyOrders().length }})</span>
+          </h3>
+          <p-button
+            icon="pi pi-ellipsis-v"
+            [rounded]="true"
+            [text]="true"
+            severity="secondary">
+          </p-button>
+        </div>
+
+        <div
+          class="flex-1 flex flex-col gap-3 overflow-y-auto"
+          cdkDropList
+          [cdkDropListData]="readyOrders()"
+          (cdkDropListDropped)="onOrderDrop($event, 'ready')">
+
+          @for (order of readyOrders(); track trackByOrderId($index, order)) {
+            <app-order-card
+              [order]="order"
+              [showTimers]="displaySettings().showTimers"
+              [showNotes]="displaySettings().showNotes"
+              [showAllergies]="displaySettings().showAllergies"
+              [compactMode]="displaySettings().compactMode"
+              (statusChanged)="onOrderStatusChanged($event)"
+              (itemStatusChanged)="onItemStatusChanged($event)"
+              (qualityCheck)="onQualityCheck($event)"
+              cdkDrag>
+            </app-order-card>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading Indicator -->
+  @if (isLoading()) {
+    <p-progressBar
+      mode="indeterminate"
+      styleClass="h-1">
+    </p-progressBar>
+  }
+</div>

@@ -1,0 +1,31 @@
+{
+  "name": "shared-services",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/shared/services/src",
+  "prefix": "lib",
+  "tags": [],
+  "projectType": "library",
+  "targets": {
+    "build": {
+      "executor": "@nx/angular:ng-packagr-lite",
+      "outputs": ["{workspaceRoot}/dist/libs/shared/services"],
+      "options": {
+        "project": "libs/shared/services/ng-package.json"
+      }
+    },
+    "test": {
+      "executor": "@nx/jest:jest",
+      "outputs": ["{workspaceRoot}/coverage/libs/shared/services"],
+      "options": {
+        "jestConfig": "libs/shared/services/jest.config.ts"
+      }
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint",
+      "outputs": ["{options.outputFile}"],
+      "options": {
+        "lintFilePatterns": ["libs/shared/services/**/*.ts", "libs/shared/services/**/*.html"]
+      }
+    }
+  }
+}

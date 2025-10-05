@@ -30,7 +30,7 @@ export class AuthService {
     loaded: false,
     loggedIn: false,
     token: null,
-  };
+  }
 
   user = computed(() => this.state().user);
 
@@ -42,9 +42,9 @@ export class AuthService {
             return {
               loggedIn: true,
               // we can already fetch our user if we have a token
-              user,
-            };
-          }),
+              user
+            }
+          })
         );
       }
       return of({
@@ -54,11 +54,11 @@ export class AuthService {
       const authService = inject(Auth0Service);
       return authService.isAuthenticated$.pipe(
         map((loggedIn) => ({
-          loggedIn,
-        })),
+          loggedIn
+        }))
       );
     }
-  };
+  }
 
   sources$ = merge(this.loggedin$());
 
@@ -81,32 +81,32 @@ export class AuthService {
                     ({
                       fullName: p?.nickname,
                       firstName: p?.nickname?.split('.')[0],
-                      lastName: p?.nickname?.split('.')[1],
-                    }) as User,
-                ),
+                      lastName: p?.nickname?.split('.')[1]
+                    }) as User
+                )
               ) ?? of(null),
-              of(user),
-            ),
+              of(user)
+            )
           ),
           map((user) => ({
-            user,
-          })),
+            user
+          }))
         ),
       login: (_state, action$: Observable<RedirectLoginOptions<AppState> | void>) =>
         action$.pipe(
           switchMap((options) => {
-            return this.authService?.loginWithRedirect(options ?? undefined) ?? of();
+            return this.authService?.loginWithRedirect(options ?? undefined) ?? of()
           }),
-          map(() => _state()),
+          map(() => _state())
         ),
       logout: (_state, action$: Observable<void>) =>
         action$.pipe(
           switchMap(() => {
-            return this.authService?.logout() ?? of();
+            return this.authService?.logout() ?? of()
           }),
           map(() => {
             return this.initialState;
-          }),
+          })
         ),
       getToken: (_state, action$: Observable<void>) =>
         action$.pipe(
@@ -114,18 +114,18 @@ export class AuthService {
             const token =
               this.authService?.getAccessTokenSilently({
                 cacheMode: 'off',
-              }) ?? of();
+              }) ?? of()
 
             return token;
           }),
 
           map((token) => {
             return {
-              token,
-            };
-          }),
-        ),
-    },
+              token
+            }
+          })
+        )
+    }
   });
 
   constructor() {
@@ -135,22 +135,22 @@ export class AuthService {
 
     effect(async () => {
       if (this.state.loggedIn()) {
-        await this.state.getToken();
+        await this.state.getToken()
       }
     });
 
     effect(async () => {
-      const token = this.state.token();
+      const token = this.state.token()
       let user = null;
       // Technically we don't need to check this as apollo will fetch it from the local cache
       // Howevr I prefer to have it here to make sure we have the user
       untracked(() => {
-        user = this.state.user();
+        user = this.state.user()
       });
 
       if (token && !user) {
         this.cookie.set(AUTH_KEY, token);
-        await this.state.fetchUser();
+        await this.state.fetchUser()
       }
     });
   }
@@ -159,7 +159,7 @@ export class AuthService {
       .query<{
         me: User;
       }>({
-        query: gql`
+        query: gql`;
           query {
             me {
               id
@@ -169,11 +169,11 @@ export class AuthService {
               slug
             }
           }
-        `,
+        `
       })
       .pipe(
         filter((user) => !!user),
-        map((result) => result.data.me),
+        map((result) => result.data.me)
       );
   }
 }

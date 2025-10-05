@@ -43,6 +43,6 @@ export class HealthController {
 
     return {
       message: 'Hello World!',
-    };
+    }
   }
 }

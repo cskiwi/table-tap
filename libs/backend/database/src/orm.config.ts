@@ -1,30 +1,8 @@
 import {
-  User,
-  Cafe,
-  Product,
-  Order,
-  OrderItem,
-  Payment,
-  Counter,
-  Employee,
-  TimeSheet,
-  TimeEntry,
-  Stock,
-  StockMovement,
-  Purchase,
-  PurchaseItem,
-  Glass,
-  GlassMovement,
-  Credit,
-  Configuration
-} from '@app/models';
-import { ConfigService } from '@nestjs/config';
-import { DataSource, DataSourceOptions } from 'typeorm';
-
-const entities = [
   // Core entities
-  Cafe,
   User,
+  Cafe,
+  Configuration,
 
   // Order management
   Product,
@@ -38,24 +16,76 @@ const entities = [
   TimeSheet,
   TimeEntry,
 
-  // Inventory
+  // Stock
   Stock,
   StockMovement,
   Purchase,
   PurchaseItem,
 
-  // Additional features
+  // Glass management
   Glass,
   GlassMovement,
-  Credit,
-  Configuration
-];
 
+  // Customer management
+  Credit,
+
+  // Loyalty system
+  LoyaltyAccount,
+  LoyaltyTier,
+  LoyaltyTransaction,
+  LoyaltyReward,
+  LoyaltyRewardRedemption,
+  LoyaltyChallenge,
+  LoyaltyPromotion
+} from '@app/models';
+import { ConfigService } from '@nestjs/config';
+import { DataSource, DataSourceOptions } from 'typeorm';
+
+const entities = [
+  // Core entities (no dependencies)
+  Cafe,
+  User,
+  Configuration,
+
+  // Order management
+  Product,
+  Counter,
+  Order,
+  OrderItem,
+  Payment,
+
+  // Operations (depends on User, Cafe)
+  Employee,
+  TimeSheet,
+  TimeEntry,
+
+  // Stock (depends on Product, Cafe)
+  Stock,
+  StockMovement,
+  Purchase,
+  PurchaseItem,
+
+  // Glass management (depends on Cafe, User, Order)
+  Glass,
+  GlassMovement,
+
+  // Customer management (depends on User, Cafe)
+  Credit,
+
+  // Loyalty system (depends on User, Cafe)
+  LoyaltyTier,
+  LoyaltyAccount,
+  LoyaltyTransaction,
+  LoyaltyReward,
+  LoyaltyRewardRedemption,
+  LoyaltyChallenge,
+  LoyaltyPromotion
+];
 export function getDbConfig(configService?: ConfigService): DataSourceOptions {
   const getEnvVar = (key: string, defaultValue?: string) => (configService ? configService.get<string>(key) : process.env[key] || defaultValue);
 
   const addMigrations = getEnvVar('RUN_MIGRATIONS')?.trim() === 'true';
-  const dbType = getEnvVar('DB_TYPE')?.trim();
+  const dbType = getEnvVar('DB_TYPE')?.trim()
   let config: DataSourceOptions;
 
   console.log('DB_TYPE:', dbType);
@@ -77,7 +107,7 @@ export function getDbConfig(configService?: ConfigService): DataSourceOptions {
       database: getEnvVar('DB_DATABASE'),
       ssl: getEnvVar('DB_SSL') === 'true' ? { rejectUnauthorized: false } : false,
       migrationsTableName: 'typeorm_migrations',
-      applicationName: 'badman',
+      applicationName: 'Table Tap',
       options: { trustServerCertificate: true },
       migrations: addMigrations ? ['libs/backend/database/src/migrations/*.ts'] : undefined,
       synchronize: false,
@@ -103,7 +133,7 @@ export function initializeDataSource(configService?: ConfigService) {
     ...config,
     entities,
   });
-  datasource.initialize();
+  datasource.initialize()
 
   return {
     datasource,

@@ -11,11 +11,9 @@ import {
   CreateMenuItemInput,
   UpdateMenuItemInput,
   CreateMenuCategoryInput,
-  PaginationInput,
-  SortInput,
   PaginatedMenuResponse
-} from '@app/models/restaurant';
-import { MenuService } from '../services/menu.service';
+} from '@app/models';
+import { MenuService } from '@app/backend-services';
 import { DataLoader } from '../../dataloaders';
 
 @Injectable()
@@ -25,7 +23,7 @@ export class MenuResolver {
     @InjectRepository(Menu)
     private readonly menuRepository: Repository<Menu>,
     private readonly menuService: MenuService,
-    private readonly dataLoader: DataLoader,
+    private readonly dataLoader: DataLoaderService,
   ) {}
 
   // Queries
@@ -33,8 +31,6 @@ export class MenuResolver {
   async cafeMenu(
     @Args('cafeId') cafeId: string,
     @Args('categoryId', { nullable: true }) categoryId?: string,
-    @Args('pagination', { nullable: true }) pagination?: PaginationInput,
-    @Args('sort', { nullable: true }) sort?: SortInput,
   ): Promise<PaginatedMenuResponse> {
     return this.menuService.findByCafe(cafeId, { categoryId, pagination, sort });
   }
@@ -60,7 +56,6 @@ export class MenuResolver {
   async searchMenuItems(
     @Args('cafeId') cafeId: string,
     @Args('query') query: string,
-    @Args('pagination', { nullable: true }) pagination?: PaginationInput,
   ): Promise<Menu[]> {
     return this.menuService.search(cafeId, query, pagination);
   }
@@ -124,7 +119,7 @@ export class MenuCategoryResolver {
     @InjectRepository(MenuCategory)
     private readonly menuCategoryRepository: Repository<MenuCategory>,
     private readonly menuService: MenuService,
-    private readonly dataLoader: DataLoader,
+    private readonly dataLoader: DataLoaderService,
   ) {}
 
   @Query(() => [MenuCategory])

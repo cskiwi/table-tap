@@ -11,7 +11,7 @@ export class UserImageGenerator {
   private readonly amountGames = 25;
 
   async generateImage(id: string) {
-    const oneYearAgo = new Date();
+    const oneYearAgo = new Date()
     oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
 
     const userQry = User.createQueryBuilder('user')
@@ -20,13 +20,13 @@ export class UserImageGenerator {
       .setParameter('oneYearAgo', oneYearAgo)
       .orderBy('game.playedAt', 'DESC');
 
-    const user = await userQry.getOne();
+    const user = await userQry.getOne()
 
     if (!user) {
       return {
         status: 404,
         message: 'User not found',
-      };
+      }
     }
 
     const svgImage = `
@@ -38,7 +38,7 @@ export class UserImageGenerator {
       </svg>
     `;
 
-    const imageBuffer = await sharp(Buffer.from(svgImage)).png().toBuffer();
+    const imageBuffer = await sharp(Buffer.from(svgImage)).png().toBuffer()
 
     return imageBuffer;
   }

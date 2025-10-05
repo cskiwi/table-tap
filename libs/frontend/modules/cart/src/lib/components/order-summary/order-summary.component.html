@@ -1,0 +1,241 @@
+<p-card styleClass="shadow-lg border border-surface-300">
+  <ng-template pTemplate="header">
+    <div class="flex items-center justify-between p-3 bg-surface-50 border-b border-surface-300">
+      <h3 class="mb-0">Order Summary</h3>
+      <p-tag
+        [value]="itemCountText()"
+        severity="info"
+        [rounded]="true">
+      </p-tag>
+    </div>
+  </ng-template>
+
+  <div class="p-6">
+    <!-- Minimum Order Progress -->
+    @if (showMinimumOrderProgress()) {
+      <div class="bg-surface-50 p-4 rounded-lg border-l-4 border-orange-400 mb-4">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-sm font-medium">Minimum Order Progress</span>
+          <span class="text-sm text-surface-500">
+            {{ cart()?.subtotal | currency }} / {{ minimumOrderAmount | currency }}
+          </span>
+        </div>
+        <p-progressBar
+          [value]="minimumOrderProgress()"
+          [style]="{ height: '8px' }"
+          [styleClass]="minimumOrderProgress() >= 100 ? 'progress-complete' : 'progress-incomplete'">
+        </p-progressBar>
+        @if (minimumOrderProgress() < 100) {
+          <p-message
+            severity="warn"
+            styleClass="mt-2 w-full"
+            [text]="'Add ' + (minimumOrderAmount - (cart()?.subtotal || 0) | currency) + ' more to meet minimum order requirement'">
+          </p-message>
+        }
+      </div>
+    }
+
+    <!-- Pricing Breakdown -->
+    <div class="bg-surface-0">
+      <!-- Subtotal -->
+      <div class="flex items-center justify-between mb-2 py-1 transition-all hover:bg-surface-50 hover:border-b hover:border-surface-300 rounded hover:px-2">
+        <span class="text-base">Subtotal</span>
+        <span class="text-base font-medium">{{ cart()?.subtotal | currency }}</span>
+      </div>
+
+      <!-- Discount -->
+      @if (cart() && cart()?.discount && (cart()?.discount ?? 0) > 0) {
+        <div class="flex items-center justify-between mb-2 py-1 transition-all hover:bg-surface-50 hover:border-b hover:border-surface-300 rounded hover:px-2">
+          <span class="text-base text-green-600">
+            <i class="pi pi-tag mr-1"></i>
+            Discount
+          </span>
+          <span class="text-base font-medium text-green-600">
+            -{{ cart()?.discount | currency }}
+          </span>
+        </div>
+      }
+
+      <!-- Fees -->
+      @for (fee of cart()?.fees; track fee) {
+        <div class="flex items-center justify-between mb-2 py-1 transition-all hover:bg-surface-50 hover:border-b hover:border-surface-300 rounded hover:px-2">
+          <span class="text-sm text-surface-600">
+            {{ fee.name }}
+            @if (fee.description) {
+              <i
+                class="pi pi-info-circle ml-1 cursor-pointer"
+                [pTooltip]="fee.description"
+                tooltipPosition="top">
+              </i>
+            }
+          </span>
+          <span class="text-sm text-surface-600">{{ fee.amount | currency }}</span>
+        </div>
+      }
+
+      <!-- Tax -->
+      <div class="flex items-center justify-between mb-2 py-1 transition-all hover:bg-surface-50 hover:border-b hover:border-surface-300 rounded hover:px-2">
+        <span class="text-sm text-surface-600">Tax</span>
+        <span class="text-sm text-surface-600">{{ cart()?.tax | currency }}</span>
+      </div>
+
+      <p-divider styleClass="my-3"></p-divider>
+
+      <!-- Total -->
+      <div class="flex items-center justify-between mb-4 bg-surface-50 p-4 rounded-lg border border-surface-300">
+        <span class="text-lg font-semibold">Total</span>
+        <span class="text-lg font-bold text-primary-600">{{ cart()?.total | currency }}</span>
+      </div>
+    </div>
+
+    <!-- Discount Code Section -->
+    @if (!hasDiscount()) {
+      <div class="bg-surface-50 p-4 rounded-lg border border-dashed border-surface-300 mb-4">
+        <div [class.animate-expand-in]="showDiscountInput()">
+          @if (!showDiscountInput()) {
+            <p-button
+              label="Have a discount code?"
+              icon="pi pi-tag"
+              [text]="true"
+              size="small"
+              (onClick)="toggleDiscountInput()">
+            </p-button>
+          }
+          @if (showDiscountInput()) {
+            <div class="animate-fade-in">
+              <div class="p-inputgroup">
+                <input
+                  type="text"
+                  pInputText
+                  [(ngModel)]="discountCode"
+                  placeholder="Enter discount code"
+                  [disabled]="applyingDiscount()"
+                  (keyup.enter)="applyDiscountCode()"
+                  class="flex-1">
+                <p-button
+                  label="Apply"
+                  [loading]="applyingDiscount()"
+                  [disabled]="!discountCode.trim()"
+                  (onClick)="applyDiscountCode()">
+                </p-button>
+              </div>
+              <p-button
+                icon="pi pi-times"
+                [text]="true"
+                size="small"
+                severity="secondary"
+                (onClick)="hideDiscountInput()"
+                class="mt-2">
+              </p-button>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- Applied Discount Display -->
+    @if (hasDiscount()) {
+      <div class="bg-green-50 p-4 rounded-lg border border-green-200 mb-4">
+        <div class="flex flex-col">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <i class="pi pi-check-circle text-green-500"></i>
+              <span class="text-sm font-medium text-green-600">
+                Discount Applied
+              </span>
+            </div>
+            <p-button
+              icon="pi pi-times"
+              [text]="true"
+              size="small"
+              severity="danger"
+              pTooltip="Remove discount"
+              (onClick)="removeDiscount()">
+            </p-button>
+          </div>
+          <div class="mt-1">
+            <span class="text-xs text-green-600">
+              You saved {{ cart()?.discount | currency }}!
+            </span>
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- Error Messages -->
+    @if (errors() && errors().length > 0) {
+      <div class="my-4">
+        <p-message severity="error" [closable]="false">
+          <ng-template pTemplate>
+            <div class="flex flex-col gap-2">
+              @for (error of errors(); track error) {
+                <div class="flex items-center text-red-600">
+                  <i class="pi pi-exclamation-triangle mr-2"></i>
+                  {{ formatError(error) }}
+                </div>
+              }
+            </div>
+          </ng-template>
+        </p-message>
+      </div>
+    }
+
+    <!-- Checkout Button -->
+    <div class="relative">
+      <p-button
+        label="Proceed to Checkout"
+        icon="pi pi-credit-card"
+        [disabled]="!isCheckoutEnabled() || !cart() || (cart()?.items?.length || 0) === 0"
+        (onClick)="onCheckout()"
+        styleClass="w-full p-button-lg"
+        [loading]="processingCheckout()">
+      </p-button>
+
+      <!-- Checkout Disabled Reasons -->
+      @if (!isCheckoutEnabled()) {
+        <div class="mt-2 animate-slide-in">
+          <div class="text-xs text-surface-500 text-center">
+            @if (minimumOrderProgress() < 100) {
+              <span>
+                Add {{ minimumOrderAmount - (cart()?.subtotal || 0) | currency }} more to continue
+              </span>
+            }
+            @if (minimumOrderProgress() >= 100 && errors() && errors().length > 0) {
+              <span>
+                Please resolve the issues above to continue
+              </span>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- Estimated Delivery Time -->
+      @if (isCheckoutEnabled()) {
+        <div class="bg-blue-50 p-3 rounded-md border border-blue-200 mt-3 text-center">
+          <div class="flex items-center justify-center gap-2">
+            <i class="pi pi-clock text-sm text-surface-500"></i>
+            <span class="text-sm text-surface-500">
+              Estimated delivery: {{ estimatedDeliveryTime }}
+            </span>
+          </div>
+        </div>
+      }
+    </div>
+
+    <!-- Payment Methods Preview -->
+    @if (isCheckoutEnabled()) {
+      <div class="bg-surface-50 p-4 rounded-lg mt-4">
+        <p-divider styleClass="my-3"></p-divider>
+        <div>
+          <h6 class="text-sm font-medium mb-2 text-center">We Accept</h6>
+          <div class="flex items-center justify-center gap-2 opacity-70 hover:opacity-100 transition-opacity">
+            <i class="pi pi-credit-card text-xl text-surface-500" pTooltip="Credit Cards"></i>
+            <i class="pi pi-paypal text-xl text-surface-500" pTooltip="PayPal"></i>
+            <i class="pi pi-apple text-xl text-surface-500" pTooltip="Apple Pay"></i>
+            <i class="pi pi-google text-xl text-surface-500" pTooltip="Google Pay"></i>
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+</p-card>

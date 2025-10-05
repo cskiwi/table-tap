@@ -10,8 +10,8 @@ export type DayjsTimeZone = string;
 
 export interface NgxDayjsConfig {
   defaultLocale?: string;
-  enablePlugins?: string[];
-  plugins?: DayjsPlugin[];
+  enablePlugins?: string[]
+  plugins?: DayjsPlugin[]
 }
 
 export interface DayjsPlugin {

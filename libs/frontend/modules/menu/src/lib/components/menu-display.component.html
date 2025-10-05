@@ -1,0 +1,393 @@
+<div class="menu-display" [attr.aria-label]="'Menu for ' + cafeName()">
+  <!-- Search and Filters -->
+  <div class="menu-controls bg-surface-ground border border-surface-border rounded-lg p-4 mb-4" role="search" aria-label="Menu search and filters">
+    <div class="search-section flex gap-2 mb-4">
+      <div class="p-input-icon-left w-full">
+        <i class="pi pi-search" aria-hidden="true"></i>
+        <input
+          #searchInput
+          pInputText
+          type="text"
+          [(ngModel)]="searchQuery"
+          placeholder="Search menu items..."
+          class="w-full"
+          [attr.aria-label]="'Search menu items'"
+          (input)="onSearchChange($event)"
+          autocomplete="off"
+        />
+      </div>
+      @if (searchQuery) {
+        <button
+          pButton
+          type="button"
+          icon="pi pi-times"
+          class="p-button-text p-button-sm"
+          (click)="clearSearch()"
+          [attr.aria-label]="'Clear search'"
+          pTooltip="Clear search"
+        ></button>
+      }
+    </div>
+
+    <div class="filter-section flex flex-wrap gap-3 items-center mb-4">
+      <!-- Category Filter -->
+      <p-select
+        [options]="categoryOptions()"
+        [(ngModel)]="selectedCategoryId"
+        placeholder="All Categories"
+        optionLabel="label"
+        optionValue="value"
+        [showClear]="true"
+        (onChange)="onCategoryChange($event.value)"
+        [attr.aria-label]="'Filter by category'"
+        class="category-dropdown min-w-[200px]"
+      ></p-select>
+
+      <!-- Status Filter -->
+      <p-select
+        [options]="statusOptions"
+        [(ngModel)]="selectedStatus"
+        placeholder="All Items"
+        optionLabel="label"
+        optionValue="value"
+        [showClear]="true"
+        (onChange)="onStatusChange($event.value)"
+        [attr.aria-label]="'Filter by availability status'"
+        class="status-dropdown min-w-[200px]"
+      ></p-select>
+
+      <!-- View Toggle -->
+      <div class="view-controls ml-auto">
+        <p-toggleButton
+          [(ngModel)]="isGridView"
+          onLabel="Grid"
+          offLabel="List"
+          onIcon="pi pi-th-large"
+          offIcon="pi pi-list"
+          (onChange)="onViewChange($event.checked)"
+          [attr.aria-label]="'Toggle between grid and list view'"
+          pTooltip="Toggle view"
+        ></p-toggleButton>
+      </div>
+    </div>
+
+    <!-- Advanced Filters -->
+    @if (showAdvancedFilters) {
+      <div class="advanced-filters flex flex-col gap-4 pt-4 border-t border-surface-border" role="group" aria-label="Advanced filters">
+        <!-- Price Range -->
+        <div class="filter-group flex flex-col gap-2">
+          <label for="priceRange" class="filter-label font-semibold text-color text-sm">Price Range</label>
+          <div class="price-range flex items-center gap-4">
+            <span class="price-label min-w-[50px] text-center font-semibold text-primary">{{ priceRange[0] | currency }}</span>
+            <p-slider
+              id="priceRange"
+              [(ngModel)]="priceRange"
+              [range]="true"
+              [min]="0"
+              [max]="maxPrice()"
+              [step]="0.5"
+              (onSlideEnd)="onPriceRangeChange($event.values)"
+              class="price-slider flex-1"
+              [attr.aria-label]="'Price range filter'"
+            ></p-slider>
+            <span class="price-label min-w-[50px] text-center font-semibold text-primary">{{ priceRange[1] | currency }}</span>
+          </div>
+        </div>
+
+        <!-- Allergen Filter -->
+        <div class="filter-group flex flex-col gap-2">
+          <label for="allergens" class="filter-label font-semibold text-color text-sm">Exclude Allergens</label>
+          <p-chip
+            id="allergens"
+            [(ngModel)]="excludedAllergens"
+            placeholder="Add allergen to exclude"
+            (onAdd)="onAllergensChange($event)"
+            (onRemove)="onAllergensChange($event)"
+            [attr.aria-label]="'Exclude allergens'"
+          ></p-chip>
+        </div>
+
+        <!-- Preparation Time -->
+        <div class="filter-group flex flex-col gap-2">
+          <label for="prepTime" class="filter-label font-semibold text-color text-sm">
+            Max Preparation Time: {{ maxPrepTime }} min
+          </label>
+          <p-slider
+            id="prepTime"
+            [(ngModel)]="maxPrepTime"
+            [min]="0"
+            [max]="60"
+            [step]="5"
+            (onSlideEnd)="onPrepTimeChange($event.value)"
+            [attr.aria-label]="'Maximum preparation time filter'"
+          ></p-slider>
+        </div>
+      </div>
+    }
+
+    <div class="filter-actions flex justify-between items-center pt-2">
+      <button
+        pButton
+        type="button"
+        label="Advanced Filters"
+        [icon]="showAdvancedFilters ? 'pi pi-chevron-up' : 'pi pi-chevron-down'"
+        class="p-button-text"
+        (click)="toggleAdvancedFilters()"
+        [attr.aria-expanded]="showAdvancedFilters"
+        [attr.aria-label]="'Toggle advanced filters'"
+      ></button>
+
+      @if (hasActiveFilters()) {
+        <button
+          pButton
+          type="button"
+          label="Clear Filters"
+          icon="pi pi-filter-slash"
+          class="p-button-text p-button-secondary"
+          (click)="clearFilters()"
+          [attr.aria-label]="'Clear all filters'"
+        ></button>
+      }
+    </div>
+  </div>
+
+  <p-divider></p-divider>
+
+  <!-- Loading State -->
+  @if (loading()) {
+    <div class="loading-state" role="status" aria-label="Loading menu items">
+      <div class="skeleton-grid grid gap-4" [ngClass]="{'grid-cols-1': !isGridView, 'grid-cols-[repeat(auto-fill,minmax(300px,1fr))]': isGridView}">
+        @for (item of Array(6); track $index) {
+          <div class="skeleton-item p-4 border border-surface-border rounded-lg bg-surface-card">
+            <p-skeleton height="200px" width="100%" class="mb-2"></p-skeleton>
+            <p-skeleton height="20px" width="80%" class="mb-1"></p-skeleton>
+            <p-skeleton height="15px" width="60%"></p-skeleton>
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- Error State -->
+  @if (error() && !loading()) {
+    <div class="error-state text-center p-8 bg-surface-card rounded-lg border border-surface-border" role="alert">
+      <p-message
+        severity="error"
+        text="Failed to load menu items. Please try again."
+        [closable]="false"
+      ></p-message>
+      <button
+        pButton
+        type="button"
+        label="Retry"
+        icon="pi pi-refresh"
+        class="p-button-outlined mt-3"
+        (click)="retryLoad.emit()"
+        [attr.aria-label]="'Retry loading menu'"
+      ></button>
+    </div>
+  }
+
+  <!-- Menu Content -->
+  @if (!loading() && !error()) {
+    <!-- Results Info -->
+    <div class="results-info flex justify-between items-center mb-4 py-3" role="status" aria-live="polite">
+      <p class="results-count text-color-secondary text-sm m-0">
+        {{ filteredItems().length }} item{{ filteredItems().length !== 1 ? 's' : '' }} found
+        @if (selectedCategoryName()) {
+          <span> in {{ selectedCategoryName() }}</span>
+        }
+      </p>
+
+      <!-- Sort Options -->
+      <div class="sort-section flex items-center gap-2">
+        <label for="sortBy" class="sort-label text-sm text-color-secondary whitespace-nowrap">Sort by:</label>
+        <p-select
+          id="sortBy"
+          [options]="sortOptions"
+          [(ngModel)]="selectedSort"
+          optionLabel="label"
+          optionValue="value"
+          (onChange)="onSortChange($event.value)"
+          [attr.aria-label]="'Sort menu items'"
+          class="sort-dropdown min-w-[150px]"
+        ></p-select>
+      </div>
+    </div>
+
+    <!-- Category Tabs (when showing all categories) -->
+    @if (!selectedCategoryId && categories().length > 0) {
+      <div class="category-tabs flex gap-1 mb-6 overflow-x-auto pb-2" role="tablist" aria-label="Menu categories">
+        <button
+          type="button"
+          class="category-tab"
+          [class.active]="!selectedCategoryId"
+          (click)="selectCategory(null)"
+          role="tab"
+          [attr.aria-selected]="!selectedCategoryId"
+          [attr.aria-label]="'Show all categories'"
+        >
+          All Items
+          <p-badge [value]="filteredItems().length" severity="info"></p-badge>
+        </button>
+        @for (category of categories(); track category.id) {
+          <button
+            type="button"
+            class="category-tab"
+            [class.active]="selectedCategoryId === category.id"
+            (click)="selectCategory(category.id)"
+            role="tab"
+            [attr.aria-selected]="selectedCategoryId === category.id"
+            [attr.aria-label]="'Show ' + category.name + ' category'"
+          >
+            {{ category.name }}
+            <p-badge
+              [value]="getItemCountForCategory(category.id)"
+              severity="info"
+            ></p-badge>
+          </button>
+        }
+      </div>
+    }
+
+    <!-- Menu Items Grid/List -->
+    @if (filteredItems().length > 0) {
+      <div
+        class="menu-items"
+        [ngClass]="{'grid-view': isGridView, 'list-view': !isGridView}"
+        role="grid"
+        [attr.aria-label]="'Menu items'"
+      >
+        @for (item of filteredItems(); track item.id) {
+          <div
+            class="menu-item-card"
+            role="gridcell"
+            [attr.aria-label]="item.name + ', ' + item.price + ' dollars'"
+            (click)="onItemClick(item)"
+            (keydown.enter)="onItemClick(item)"
+            (keydown.space)="onItemClick(item)"
+            tabindex="0"
+          >
+            <p-card [header]="item.name" class="menu-item-card-content h-full flex flex-col">
+              @if (item.imageUrl && displayOptions().showImages) {
+                <div class="item-image relative w-full h-[200px] mb-4 rounded-md overflow-hidden bg-surface-200">
+                  <img
+                    [src]="item.imageUrl"
+                    [alt]="item.name"
+                    loading="lazy"
+                    class="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+                    (error)="onImageError($event)"
+                  />
+                  @if (item.status !== 'AVAILABLE') {
+                    <div class="status-overlay absolute top-2 right-2 z-[2]">
+                      <p-tag
+                        [value]="getStatusLabel(item.status)"
+                        [severity]="getStatusSeverity(item.status)"
+                      ></p-tag>
+                    </div>
+                  }
+                </div>
+              }
+
+              <div class="item-content flex-1 flex flex-col gap-3">
+                @if (!isGridView || !item.imageUrl) {
+                  <div class="item-header flex justify-between items-start gap-2">
+                    <h3 class="item-name m-0 text-lg font-semibold text-color leading-tight">{{ item.name }}</h3>
+                    @if (item.status !== 'AVAILABLE') {
+                      <p-tag
+                        [value]="getStatusLabel(item.status)"
+                        [severity]="getStatusSeverity(item.status)"
+                        class="status-tag flex-shrink-0"
+                      ></p-tag>
+                    }
+                  </div>
+                }
+
+                @if (item.description) {
+                  <p class="item-description text-color-secondary text-sm leading-relaxed m-0 flex-1">
+                    {{ isGridView ? truncateText(item.description, 100) : item.description }}
+                  </p>
+                }
+
+                <div class="item-details flex flex-col gap-2">
+                  <div class="price-info flex justify-between items-center flex-wrap gap-2">
+                    <span class="item-price text-xl font-bold text-primary" [attr.aria-label]="'Price: ' + item.price + ' dollars'">
+                      {{ item.price | currency }}
+                    </span>
+                    @if (item.preparationTime) {
+                      <span class="prep-time flex items-center gap-1 text-sm text-color-secondary" [attr.aria-label]="'Preparation time: ' + item.preparationTime + ' minutes'">
+                        <i class="pi pi-clock text-xs" aria-hidden="true"></i>
+                        {{ item.preparationTime }}min
+                      </span>
+                    }
+                  </div>
+
+                  @if (displayOptions().showAllergens && item.allergens?.length && item.allergens) {
+                    <div class="allergens flex items-start gap-2 p-2 bg-orange-50 border border-orange-200 rounded text-orange-700 text-xs" [attr.aria-label]="'Contains allergens: ' + item.allergens.join(', ')">
+                      <i class="pi pi-exclamation-triangle mt-[2px] text-orange-600" aria-hidden="true"></i>
+                      <span class="allergen-list flex-1 leading-tight">{{ item.allergens.join(', ') }}</span>
+                    </div>
+                  }
+
+                  @if (displayOptions().showNutrition && item.nutritionalInfo) {
+                    <div class="nutrition-summary flex gap-4 text-sm text-color-secondary">
+                      @if (item.nutritionalInfo['calories']) {
+                        <span class="calories font-medium" [attr.aria-label]="'Calories: ' + item.nutritionalInfo['calories']">
+                          {{ item.nutritionalInfo['calories'] }} cal
+                        </span>
+                      }
+                    </div>
+                  }
+                </div>
+
+                <div class="item-actions flex gap-2 mt-auto pt-3">
+                  <button
+                    pButton
+                    type="button"
+                    label="View Details"
+                    icon="pi pi-eye"
+                    class="p-button-outlined p-button-sm flex-1 min-h-[36px]"
+                    (click)="onItemClick(item, $event)"
+                    [disabled]="item.status === 'DISCONTINUED'"
+                    [attr.aria-label]="'View details for ' + item.name"
+                  ></button>
+                  @if (item.status === 'AVAILABLE') {
+                    <button
+                      pButton
+                      type="button"
+                      label="Add to Order"
+                      icon="pi pi-plus"
+                      class="p-button-sm flex-1 min-h-[36px]"
+                      (click)="onAddToCart(item, $event)"
+                      [attr.aria-label]="'Add ' + item.name + ' to order'"
+                    ></button>
+                  }
+                </div>
+              </div>
+            </p-card>
+          </div>
+        }
+      </div>
+    } @else {
+      <!-- Empty State -->
+      <div class="empty-state text-center p-12 bg-surface-card rounded-lg border border-surface-border" role="status" aria-label="No menu items found">
+        <div class="empty-content max-w-[400px] mx-auto">
+          <i class="pi pi-search text-5xl text-color-secondary mb-4" aria-hidden="true"></i>
+          <h3 class="m-0 mb-2 text-color text-xl">No items found</h3>
+          <p class="m-0 mb-6 text-color-secondary leading-relaxed">Try adjusting your search or filters to find menu items.</p>
+          @if (hasActiveFilters()) {
+            <button
+              pButton
+              type="button"
+              label="Clear Filters"
+              icon="pi pi-filter-slash"
+              class="p-button-outlined"
+              (click)="clearFilters()"
+              [attr.aria-label]="'Clear all filters to show more items'"
+            ></button>
+          }
+        </div>
+      </div>
+    }
+  }
+</div>

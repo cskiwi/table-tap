@@ -1,0 +1,270 @@
+,
+    <div class="tier-progression-container">
+      <!-- Current Tier Display -->
+      <div class="current-tier-section">
+        <div class="tier-header">
+          <h3>Your Tier Status</h3>
+          @if (account()()?.tierAchievedAt) {
+            <div class="tier-date">
+              Member since {{ account()()!.tierAchievedAt | date:'mediumDate' }}
+            </div>
+          }
+        </div>
+    
+        @if (currentTier()) {
+          <div class="current-tier-card">
+            <div class="tier-badge" [style.background-color]="currentTier()!.color">
+              <i [class]="currentTier()!.icon || 'fas fa-star'"></i>
+            </div>
+            <div class="tier-info">
+              <h4 class="tier-name">{{ currentTier()!.name }}</h4>
+              <p class="tier-description">{{ currentTier()!.description }}</p>
+            </div>
+            @if (currentTier()!.benefits) {
+              <div class="tier-perks">
+                <button class="perks-btn" (click)="showPerks.set(!showPerks())">
+                  <span>View Benefits</span>
+                  <i class="fas" [class.fa-chevron-down]="!showPerks()" [class.fa-chevron-up]="showPerks()"></i>
+                </button>
+              </div>
+            }
+          </div>
+        }
+    
+        <!-- Current Tier Benefits -->
+        @if (showPerks() && currentTier()?.benefits) {
+          <div class="tier-benefits">
+            <h5>Your Current Benefits</h5>
+            <div class="benefits-list">
+              @for (benefit of parseBenefits(currentTier()!.benefits); track benefit) {
+                <div class="benefit-item">
+                  <i class="fas fa-check-circle"></i>
+                  <span>{{ benefit }}</span>
+                </div>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    
+      <!-- Progress to Next Tier -->
+      @if (nextTier()) {
+        <div class="progress-section">
+          <div class="progress-header">
+            <h4>Progress to {{ nextTier()!.name }}</h4>
+            <div class="progress-percentage">{{ tierProgress() }}%</div>
+          </div>
+          <!-- Multi-metric Progress -->
+          <div class="progress-metrics">
+            <!-- Points Progress -->
+            @if (pointsRequired() > 0) {
+              <div class="metric-progress">
+                <div class="metric-header">
+                  <span class="metric-label">
+                    <i class="fas fa-coins"></i>
+                    Lifetime Points
+                  </span>
+                  <span class="metric-value">
+                    {{ account()()?.lifetimePoints | number:'1.0-0' }} / {{ pointsRequired() | number:'1.0-0' }}
+                  </span>
+                </div>
+                <div class="progress-bar">
+                  <div
+                    class="progress-fill points-progress",
+                    [style.width.%]="pointsProgress()">
+                  </div>
+                </div>
+                <div class="progress-remaining">
+                  {{ pointsRemaining() | number:'1.0-0' }} points to go
+                </div>
+              </div>
+            }
+            <!-- Spending Progress -->
+            @if (spendingRequired() > 0) {
+              <div class="metric-progress">
+                <div class="metric-header">
+                  <span class="metric-label">
+                    <i class="fas fa-dollar-sign"></i>
+                    Annual Spending
+                  </span>
+                  <span class="metric-value">
+                    {{ account()()?.yearlySpent | currency:'USD':'symbol':'1.2-2' }} / {{ spendingRequired() | currency:'USD':'symbol':'1.2-2' }}
+                  </span>
+                </div>
+                <div class="progress-bar">
+                  <div
+                    class="progress-fill spending-progress",
+                    [style.width.%]="spendingProgress()">
+                  </div>
+                </div>
+                <div class="progress-remaining">
+                  {{ spendingRemaining() | currency:'USD':'symbol':'1.2-2' }} spending to go
+                </div>
+              </div>
+            }
+            <!-- Orders Progress -->
+            @if (ordersRequired() > 0) {
+              <div class="metric-progress">
+                <div class="metric-header">
+                  <span class="metric-label">
+                    <i class="fas fa-shopping-bag"></i>
+                    Orders This Year
+                  </span>
+                  <span class="metric-value">
+                    {{ account()()?.yearlyOrders | number:'1.0-0' }} / {{ ordersRequired() | number:'1.0-0' }}
+                  </span>
+                </div>
+                <div class="progress-bar">
+                  <div
+                    class="progress-fill orders-progress",
+                    [style.width.%]="ordersProgress()">
+                  </div>
+                </div>
+                <div class="progress-remaining">
+                  {{ ordersRemaining() | number:'1.0-0' }} orders to go
+                </div>
+              </div>
+            }
+          </div>
+          <!-- Next Tier Preview -->
+          <div class="next-tier-preview">
+            <div class="preview-header">
+              <h5>What you'll unlock at {{ nextTier()!.name }}</h5>
+            </div>
+            @if (nextTier()!.benefits) {
+              <div class="next-tier-benefits">
+                @for (benefit of parseBenefits(nextTier()!.benefits); track benefit) {
+                  <div class="benefit-item">
+                    <i class="fas fa-gift"></i>
+                    <span>{{ benefit }}</span>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+          <!-- Tier Boost Tips -->
+          @if (showTips()) {
+            <div class="tier-tips">
+              <h5>Ways to reach {{ nextTier()!.name }} faster</h5>
+              <div class="tips-list">
+                @for (tip of getTierTips(); track tip) {
+                  <div class="tip-item">
+                    <i class="fas fa-lightbulb"></i>
+                    <span>{{ tip }}</span>
+                  </div>
+                }
+              </div>
+            </div>
+          }
+        </div>
+      }
+    
+      <!-- Top Tier Achievement -->
+      @if (isTopTier()) {
+        <div class="top-tier-section">
+          <div class="achievement-icon">
+            <i class="fas fa-crown"></i>
+          </div>
+          <h4>Congratulations!</h4>
+          <p>You've reached the highest tier in our loyalty program. Enjoy all the exclusive benefits!</p>
+          <!-- Tier Maintenance -->
+          @if (currentTier()?.maintenanceSpendRequired) {
+            <div class="tier-maintenance">
+              <h5>Tier Maintenance</h5>
+              <p>To maintain your {{ currentTier()!.name }} status, spend {{ currentTier()!.minAnnualSpending | currency:'USD':'symbol':'1.2-2' }} annually.</p>
+              <div class="maintenance-progress">
+                <div class="progress-bar">
+                  <div
+                    class="progress-fill maintenance-progress",
+                    [style.width.%]="maintenanceProgress()">
+                  </div>
+                </div>
+                <div class="maintenance-text">
+                  {{ account()()?.yearlySpent | currency:'USD':'symbol':'1.2-2' }} of {{ currentTier()!.minAnnualSpending | currency:'USD':'symbol':'1.2-2' }} this year
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      }
+    
+      <!-- All Tiers Overview -->
+      @if (showAllTiers()()) {
+        <div class="all-tiers-section">
+          <div class="tiers-header">
+            <h4>All Loyalty Tiers</h4>
+            <button class="toggle-tiers-btn" (click)="tiersExpanded.set(!tiersExpanded())">
+              {{ tiersExpanded() ? 'Hide' : 'Show All' }}
+              <i class="fas" [class.fa-chevron-down]="!tiersExpanded()" [class.fa-chevron-up]="tiersExpanded()"></i>
+            </button>
+          </div>
+          @if (tiersExpanded()) {
+            <div class="tiers-list">
+              @for (tier of allTiers(); track tier; let i = $index) {
+                <div
+                  class="tier-overview-card",
+                  [class.current]="tier.id === currentTier()?.id"
+                  [class.achieved]="i <= currentTierIndex()"
+                  [class.next]="tier.id === nextTier()?.id">
+                  <div class="tier-overview-badge" [style.background-color]="tier.color">
+                    <i [class]="tier.icon || 'fas fa-star'"></i>
+                  </div>
+                  <div class="tier-overview-info">
+                    <h6 class="tier-overview-name">{{ tier.name }}</h6>
+                    <p class="tier-overview-description">{{ tier.description }}</p>
+                    @if (tier.minPoints || tier.minAnnualSpending) {
+                      <div class="tier-requirements">
+                        @if (tier.minPoints) {
+                          <div class="requirement">
+                            <i class="fas fa-coins"></i>
+                            {{ tier.minPoints | number:'1.0-0' }} lifetime points
+                          </div>
+                        }
+                        @if (tier.minAnnualSpending) {
+                          <div class="requirement">
+                            <i class="fas fa-dollar-sign"></i>
+                            {{ tier.minAnnualSpending | currency:'USD':'symbol':'1.2-2' }} annual spending
+                          </div>
+                        }
+                      </div>
+                    }
+                  </div>
+                  <div class="tier-status">
+                    @if (i <= currentTierIndex()) {
+                      <i class="fas fa-check-circle"></i>
+                    }
+                    @if (tier.id === nextTier()?.id) {
+                      <i class="fas fa-target"></i>
+                    }
+                    @if (i > currentTierIndex() + 1) {
+                      <i class="fas fa-lock"></i>
+                    }
+                  </div>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      }
+    
+      <!-- Historical Timeline -->
+      @if (showHistory()()) {
+        <div class="tier-history">
+          <h4>Your Tier Journey</h4>
+          <div class="timeline">
+            @for (milestone of tierHistory(); track milestone) {
+              <div class="timeline-item">
+                <div class="timeline-date">{{ milestone.date | date:'mediumDate' }}</div>
+                <div class="timeline-badge" [style.background-color]="milestone.tier.color">
+                  <i [class]="milestone.tier.icon || 'fas fa-star'"></i>
+                </div>
+                <div class="timeline-content">
+                  <h6>Achieved {{ milestone.tier.name }}</h6>
+                  <p>{{ milestone.description }}</p>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      }
+    </div>

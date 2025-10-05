@@ -5,7 +5,7 @@ import { SEO_CONFIG, ISeoConfig } from '@app/frontend-modules-seo';
 import { User } from '@app/models';
 
 type ISeoMetaData = {
-  keywords?: string[];
+  keywords?: string[]
   author?: string;
   type?: 'article' | 'website';
   image?: string;

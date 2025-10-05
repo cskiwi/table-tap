@@ -31,7 +31,7 @@ export const SERVICE_CONFIG = {
   version: '1.0.0',
   author: 'Restaurant Ordering System',
   description: 'Comprehensive Angular service architecture for restaurant management'
-};
+}
 
 // Service Dependencies
 export const SERVICE_DEPENDENCIES = [
@@ -43,8 +43,7 @@ export const SERVICE_DEPENDENCIES = [
   'apollo-angular',
   '@auth0/auth0-angular',
   'socket.io-client',
-  'rxjs'
-];
+  'rxjs']
 
 // Service Providers (for app.config.ts)
 export const SERVICE_PROVIDERS = [
@@ -52,5 +51,4 @@ export const SERVICE_PROVIDERS = [
   // Real-time services
   // State management services
   // Integration services
-  // Utility services
-];
+  // Utility services]

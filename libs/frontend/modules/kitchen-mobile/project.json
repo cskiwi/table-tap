@@ -1,0 +1,42 @@
+{
+  "$schema": "../../../../node_modules/nx/schemas/project-schema.json",
+  "name": "frontend-modules-kitchen-mobile",
+  "projectType": "library",
+  "sourceRoot": "libs/frontend/modules/kitchen-mobile/src",
+  "targets": {
+    "build": {
+      "executor": "@nx/angular:ng-packagr-lite",
+      "outputs": ["{workspaceRoot}/dist/{projectRoot}"],
+      "options": {
+        "project": "libs/frontend/modules/kitchen-mobile/ng-package.json"
+      },
+      "configurations": {
+        "production": {
+          "tsConfig": "libs/frontend/modules/kitchen-mobile/tsconfig.lib.prod.json"
+        },
+        "development": {
+          "tsConfig": "libs/frontend/modules/kitchen-mobile/tsconfig.lib.json"
+        }
+      },
+      "defaultConfiguration": "production"
+    },
+    "test": {
+      "executor": "@nx/jest:jest",
+      "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
+      "options": {
+        "jestConfig": "libs/frontend/modules/kitchen-mobile/jest.config.ts"
+      }
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint",
+      "outputs": ["{options.outputFile}"],
+      "options": {
+        "lintFilePatterns": [
+          "libs/frontend/modules/kitchen-mobile/**/*.ts",
+          "libs/frontend/modules/kitchen-mobile/**/*.html"
+        ]
+      }
+    }
+  },
+  "tags": ["scope:frontend", "type:modules", "platform:mobile", "domain:kitchen"]
+}

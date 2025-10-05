@@ -1,0 +1,33 @@
+{
+  "name": "frontend-modules-admin",
+  "$schema": "../../../project.json",
+  "projectType": "library",
+  "sourceRoot": "libs/frontend/modules/admin/src",
+  "prefix": "tt",
+  "targets": {
+    "build": {
+      "executor": "@nx/angular:ng-packagr-lite",
+      "outputs": ["{workspaceRoot}/dist/libs/frontend/modules/admin"],
+      "options": {
+        "project": "libs/frontend/modules/admin/ng-package.json"
+      }
+    },
+    "test": {
+      "executor": "@nx/jest:jest",
+      "outputs": ["{workspaceRoot}/coverage/libs/frontend/modules/admin"],
+      "options": {
+        "jestConfig": "libs/frontend/modules/admin/jest.config.ts"
+      }
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint",
+      "outputs": ["{options.outputFile}"],
+      "options": {
+        "lintFilePatterns": [
+          "libs/frontend/modules/admin/**/*.ts",
+          "libs/frontend/modules/admin/**/*.html"
+        ]
+      }
+    }
+  }
+}

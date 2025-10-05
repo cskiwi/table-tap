@@ -1,0 +1,207 @@
+<p-card [styleClass]="cardClasses()">
+  <!-- Card Header -->
+  <ng-template pTemplate="header">
+    <div class="flex items-center justify-between p-4 border-b">
+      <div class="flex items-center gap-3">
+        <div class="text-xl font-bold">#{{ order.orderNumber }}</div>
+        @if (order.orderType) {
+          <div class="flex items-center gap-1 text-sm text-500">
+            <i [class]="'pi pi-' + getOrderTypeIcon()"></i>
+            {{ order.orderType | titlecase }}
+          </div>
+        }
+      </div>
+
+      <div class="flex items-center gap-2">
+        <div class="flex items-center gap-1 text-sm" [class.text-red-500]="isOverdue()">
+          <i class="pi pi-clock"></i>
+          {{ getElapsedTime() }}
+        </div>
+        @if (order.estimatedPrepTime) {
+          <div class="text-sm text-500">
+            Est: {{ order.estimatedPrepTime }}min
+          </div>
+        }
+      </div>
+
+      <div class="flex items-center gap-2">
+        <!-- Priority Badge -->
+        @if (order.priority !== 'normal') {
+          <p-chip
+            [label]="order.priority | titlecase"
+            [styleClass]="'priority-' + order.priority">
+            <i [class]="'pi pi-' + getPriorityIcon()"></i>
+          </p-chip>
+        }
+
+        <!-- Status Badge -->
+        <p-chip
+          [label]="getStatusLabel()"
+          [styleClass]="'status-' + order.status">
+        </p-chip>
+
+        <!-- More Actions Menu -->
+        <p-button
+          icon="pi pi-ellipsis-v"
+          [rounded]="true"
+          [text]="true"
+          severity="secondary">
+        </p-button>
+      </div>
+    </div>
+  </ng-template>
+
+  <!-- Customer Info -->
+  @if (order.customerName || order.tableNumber) {
+    <div class="flex items-center gap-4 p-3 surface-50 rounded-md mb-3">
+      @if (order.customerName) {
+        <div class="flex items-center gap-2">
+          <i class="pi pi-user"></i>
+          {{ order.customerName }}
+        </div>
+      }
+      @if (order.tableNumber) {
+        <div class="flex items-center gap-2">
+          <i class="pi pi-table"></i>
+          Table {{ order.tableNumber }}
+        </div>
+      }
+    </div>
+  }
+
+  <!-- Order Items -->
+  <div class="flex flex-col gap-2 mb-3">
+    @for (item of order.items; track trackByItemId($index, item)) {
+      <app-order-item
+        [item]="item"
+        [showTimer]="showTimers"
+        [showNotes]="showNotes"
+        [showAllergies]="showAllergies"
+        [compactMode]="compactMode"
+        (statusChanged)="onItemStatusChanged($event)"
+        (timerRequested)="onItemTimerRequested($event)"
+        (notesClicked)="showItemNotes($event)">
+      </app-order-item>
+    }
+  </div>
+
+  <!-- Order Notes -->
+  @if (showNotes && (order.notes || order.specialInstructions)) {
+    <div class="flex gap-2 p-3 surface-100 rounded-md mb-3">
+      <i class="pi pi-file-edit"></i>
+      <div class="flex-1">
+        @if (order.specialInstructions) {
+          <div class="mb-2">
+            <strong>Special Instructions:</strong> {{ order.specialInstructions }}
+          </div>
+        }
+        @if (order.notes) {
+          <div>
+            <strong>Notes:</strong> {{ order.notes }}
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- Allergy Warnings -->
+  @if (showAllergies && hasAllergyNotes()) {
+    <div class="flex gap-2 p-3 bg-orange-50 border border-orange-200 rounded-md mb-3">
+      <i class="pi pi-exclamation-triangle text-orange-500"></i>
+      <div class="flex-1">
+        <strong>Allergy Alert:</strong>
+        @for (allergy of getAllergyNotes(); track allergy; let last = $last) {
+          <span>
+            {{ allergy }}@if (!last) {
+            <span>, </span>
+          }
+        </span>
+      }
+    </div>
+  </div>
+}
+
+<!-- Assigned Staff -->
+@if (order.assignedStaff) {
+  <div class="flex items-center gap-2 p-3 surface-50 rounded-md mb-3">
+    <i class="pi pi-user-plus"></i>
+    <span>Assigned to: {{ order.assignedStaff.firstName }} {{ order.assignedStaff.lastName }}</span>
+  </div>
+}
+
+<!-- Progress Indicator -->
+@if (showProgressIndicator()) {
+  <div class="mb-3">
+    <p-progressBar
+      [value]="getProgressPercentage()"
+      [showValue]="false">
+    </p-progressBar>
+    <div class="text-sm text-500 mt-1 text-center">
+      {{ getCompletedItemsCount() }} / {{ order.items.length }} items completed
+    </div>
+  </div>
+}
+
+<!-- Action Buttons -->
+<ng-template pTemplate="footer">
+  <div class="flex items-center justify-between gap-2">
+    <div class="flex items-center gap-2">
+      <!-- Start/Complete Order Button -->
+      <p-button
+        [label]="getPrimaryActionLabel()"
+        [icon]="'pi pi-' + getPrimaryActionIcon()"
+        [severity]="getPrimaryActionColor()"
+        [disabled]="isProcessing()"
+        (onClick)="onPrimaryAction()">
+      </p-button>
+
+      <!-- Timer Button -->
+      @if (showTimers && canCreateTimer()) {
+        <p-button
+          label="Timer"
+          icon="pi pi-stopwatch"
+          severity="secondary"
+          [outlined]="true"
+          (onClick)="openTimerDialog()">
+        </p-button>
+      }
+    </div>
+
+    <div class="flex items-center gap-1">
+      <!-- Quality Check Button -->
+      @if (order.status === 'ready') {
+        <p-button
+          icon="pi pi-check-circle"
+          [rounded]="true"
+          [text]="true"
+          severity="success"
+          pTooltip="Quality Check"
+          (onClick)="onQualityCheck()">
+        </p-button>
+      }
+
+      <!-- Print Button -->
+      <p-button
+        icon="pi pi-print"
+        [rounded]="true"
+        [text]="true"
+        severity="secondary"
+        pTooltip="Print Order"
+        (onClick)="printOrder()">
+      </p-button>
+
+      <!-- Assign Staff Button -->
+      @if (!order.assignedStaff) {
+        <p-button
+          icon="pi pi-user-plus"
+          [rounded]="true"
+          [text]="true"
+          severity="secondary"
+          pTooltip="Assign Staff"
+          (onClick)="openStaffAssignment()">
+        </p-button>
+      }
+    </div>
+  </div>
+</ng-template>
+</p-card>

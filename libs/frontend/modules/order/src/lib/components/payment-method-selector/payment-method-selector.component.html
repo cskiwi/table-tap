@@ -1,0 +1,360 @@
+<div class="flex flex-col gap-6">
+  <!-- Existing Payment Methods -->
+  @if (paymentMethods().length > 0) {
+    <div class="flex flex-col gap-4">
+      <h3 class="text-xl font-semibold text-surface-900 dark:text-surface-0">Select Payment Method</h3>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        @for (method of paymentMethods(); track method.id) {
+          <div
+            class="border-2 rounded-lg p-4 cursor-pointer transition-all hover:shadow-md"
+            [class]="selectedMethod()?.id === method.id
+              ? 'border-primary bg-primary-50 dark:bg-primary-900/20'
+              : !method.isValid
+                ? 'border-surface-300 dark:border-surface-600 bg-surface-100 dark:bg-surface-800 opacity-60 cursor-not-allowed'
+                : 'border-surface-300 dark:border-surface-600 hover:border-primary'"
+            (click)="selectMethod(method)"
+            role="button"
+            tabindex="0"
+            (keydown.enter)="selectMethod(method)"
+            (keydown.space)="selectMethod(method)"
+          >
+            <div class="flex items-start gap-3">
+              <div class="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-lg bg-surface-200 dark:bg-surface-700 text-surface-700 dark:text-surface-200">
+                <i [class]="getPaymentIcon(method.type)" class="text-xl"></i>
+              </div>
+
+              <div class="flex-1 min-w-0">
+                <div class="font-semibold text-surface-900 dark:text-surface-0 mb-1">{{ method.name }}</div>
+
+                @switch (method.type) {
+                  @case ('CREDIT_CARD') {
+                    <div class="text-sm text-surface-600 dark:text-surface-400">•••• •••• •••• {{ method.last4 }}</div>
+                    <div class="text-xs text-surface-500 dark:text-surface-500 mt-1">{{ method.expiryMonth }}/{{ method.expiryYear }}</div>
+                  }
+                  @case ('DEBIT_CARD') {
+                    <div class="text-sm text-surface-600 dark:text-surface-400">•••• •••• •••• {{ method.last4 }}</div>
+                    <div class="text-xs text-surface-500 dark:text-surface-500 mt-1">{{ method.expiryMonth }}/{{ method.expiryYear }}</div>
+                  }
+                  @case ('DIGITAL_WALLET') {
+                    <div class="text-sm text-surface-600 dark:text-surface-400">Digital Wallet</div>
+                  }
+                  @case ('CASH') {
+                    <div class="text-sm text-surface-600 dark:text-surface-400">Pay at restaurant</div>
+                  }
+                  @case ('GIFT_CARD') {
+                    <div class="text-sm text-surface-600 dark:text-surface-400">Gift Card Balance: {{ '$' + (method.balance?.toFixed(2) || '0.00') }}</div>
+                  }
+                  @case ('STORE_CREDIT') {
+                    <div class="text-sm text-surface-600 dark:text-surface-400">Store Credit: {{ '$' + (method.balance?.toFixed(2) || '0.00') }}</div>
+                  }
+                }
+
+                @if (method.isDefault) {
+                  <div class="inline-flex items-center gap-1 mt-2 px-2 py-0.5 rounded-full text-xs font-medium bg-primary text-primary-contrast">
+                    Default
+                  </div>
+                }
+              </div>
+
+              <div class="flex-shrink-0">
+                @if (selectedMethod()?.id === method.id) {
+                  <i class="icon-check-circle text-2xl text-primary"></i>
+                } @else {
+                  <i class="icon-circle text-2xl text-surface-400 dark:text-surface-600"></i>
+                }
+              </div>
+            </div>
+
+            @if (!method.isValid) {
+              <div class="mt-3 pt-3 border-t border-surface-300 dark:border-surface-600 flex items-center gap-2 text-sm text-orange-600 dark:text-orange-400">
+                <i class="icon-warning"></i>
+                <span>{{ method.validationMessage || 'Payment method unavailable' }}</span>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- Add New Payment Method -->
+  <div class="flex flex-col gap-4">
+    <div class="flex items-center justify-between">
+      <h3 class="text-xl font-semibold text-surface-900 dark:text-surface-0">
+        @if (paymentMethods().length > 0) {
+          Add New Payment Method
+        } @else {
+          Add Payment Method
+        }
+      </h3>
+      @if (showNewPaymentForm()) {
+        <button
+          type="button"
+          class="px-4 py-2 text-sm font-medium text-primary hover:text-primary-emphasis transition-colors"
+          (click)="hideNewPaymentForm()"
+        >
+          Cancel
+        </button>
+      }
+    </div>
+
+    @if (!showNewPaymentForm()) {
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+        @for (type of availablePaymentTypes(); track type.value) {
+          <button
+            type="button"
+            class="relative flex flex-col items-center gap-2 p-4 border-2 rounded-lg transition-all hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+            [class]="type.popular
+              ? 'border-primary bg-primary-50 dark:bg-primary-900/20 hover:bg-primary-100 dark:hover:bg-primary-900/30'
+              : 'border-surface-300 dark:border-surface-600 bg-surface-0 dark:bg-surface-900 hover:border-primary'"
+            (click)="showPaymentForm(type.value)"
+            [disabled]="type.disabled"
+          >
+            <i [class]="getPaymentIcon(type.value)" class="text-3xl text-surface-700 dark:text-surface-200"></i>
+            <span class="text-sm font-medium text-surface-900 dark:text-surface-0">{{ type.label }}</span>
+            @if (type.popular) {
+              <span class="absolute -top-2 -right-2 px-2 py-0.5 text-xs font-bold rounded-full bg-green-500 text-white shadow-md">
+                Popular
+              </span>
+            }
+            @if (type.disabled) {
+              <span class="absolute -top-2 -right-2 px-2 py-0.5 text-xs font-medium rounded-full bg-surface-400 dark:bg-surface-600 text-surface-0">
+                Unavailable
+              </span>
+            }
+          </button>
+        }
+      </div>
+    } @else {
+      <!-- Payment Form -->
+      <div class="border border-surface-300 dark:border-surface-600 rounded-lg p-6 bg-surface-0 dark:bg-surface-900">
+        @switch (selectedPaymentType()) {
+          @case ('CREDIT_CARD') {
+            <form [formGroup]="cardForm" class="flex flex-col gap-4">
+              <div class="flex flex-col gap-2">
+                <label for="cardNumber" class="text-sm font-medium text-surface-900 dark:text-surface-0">Card Number *</label>
+                <input
+                  id="cardNumber"
+                  type="text"
+                  formControlName="cardNumber"
+                  class="px-4 py-2.5 border rounded-md text-surface-900 dark:text-surface-0 bg-surface-0 dark:bg-surface-800 transition-colors focus:outline-none focus:ring-2"
+                  [class]="cardForm.get('cardNumber')?.invalid && cardForm.get('cardNumber')?.touched
+                    ? 'border-red-500 dark:border-red-400 focus:ring-red-500/50'
+                    : 'border-surface-300 dark:border-surface-600 focus:ring-primary/50 focus:border-primary'"
+                  placeholder="1234 5678 9012 3456"
+                  (input)="formatCardNumber($event)"
+                  maxlength="19"
+                />
+                @if (cardForm.get('cardNumber')?.invalid && cardForm.get('cardNumber')?.touched) {
+                  <div class="text-sm text-red-600 dark:text-red-400">Valid card number is required</div>
+                }
+                <div class="flex items-center gap-2 text-sm text-surface-600 dark:text-surface-400">
+                  @if (detectedCardType(); as cardType) {
+                    <i [class]="'icon-' + cardType.toLowerCase()"></i>
+                    <span>{{ cardType }}</span>
+                  }
+                </div>
+              </div>
+
+              <div class="grid grid-cols-3 gap-4">
+                <div class="flex flex-col gap-2">
+                  <label for="expiryMonth" class="text-sm font-medium text-surface-900 dark:text-surface-0">Expiry Month *</label>
+                  <select
+                    id="expiryMonth"
+                    formControlName="expiryMonth"
+                    class="px-4 py-2.5 border rounded-md text-surface-900 dark:text-surface-0 bg-surface-0 dark:bg-surface-800 transition-colors focus:outline-none focus:ring-2"
+                    [class]="cardForm.get('expiryMonth')?.invalid && cardForm.get('expiryMonth')?.touched
+                      ? 'border-red-500 dark:border-red-400 focus:ring-red-500/50'
+                      : 'border-surface-300 dark:border-surface-600 focus:ring-primary/50 focus:border-primary'"
+                  >
+                    <option value="">Month</option>
+                    @for (month of months(); track month.value) {
+                      <option [value]="month.value">{{ month.label }}</option>
+                    }
+                  </select>
+                </div>
+
+                <div class="flex flex-col gap-2">
+                  <label for="expiryYear" class="text-sm font-medium text-surface-900 dark:text-surface-0">Expiry Year *</label>
+                  <select
+                    id="expiryYear"
+                    formControlName="expiryYear"
+                    class="px-4 py-2.5 border rounded-md text-surface-900 dark:text-surface-0 bg-surface-0 dark:bg-surface-800 transition-colors focus:outline-none focus:ring-2"
+                    [class]="cardForm.get('expiryYear')?.invalid && cardForm.get('expiryYear')?.touched
+                      ? 'border-red-500 dark:border-red-400 focus:ring-red-500/50'
+                      : 'border-surface-300 dark:border-surface-600 focus:ring-primary/50 focus:border-primary'"
+                  >
+                    <option value="">Year</option>
+                    @for (year of years(); track year) {
+                      <option [value]="year">{{ year }}</option>
+                    }
+                  </select>
+                </div>
+
+                <div class="flex flex-col gap-2">
+                  <label for="cvv" class="text-sm font-medium text-surface-900 dark:text-surface-0">CVV *</label>
+                  <input
+                    id="cvv"
+                    type="text"
+                    formControlName="cvv"
+                    class="px-4 py-2.5 border rounded-md text-surface-900 dark:text-surface-0 bg-surface-0 dark:bg-surface-800 transition-colors focus:outline-none focus:ring-2"
+                    [class]="cardForm.get('cvv')?.invalid && cardForm.get('cvv')?.touched
+                      ? 'border-red-500 dark:border-red-400 focus:ring-red-500/50'
+                      : 'border-surface-300 dark:border-surface-600 focus:ring-primary/50 focus:border-primary'"
+                    placeholder="123"
+                    maxlength="4"
+                    (input)="formatCvv($event)"
+                  />
+                  <div class="flex items-center gap-1 text-xs text-surface-500 dark:text-surface-500">
+                    <i class="icon-info-circle"></i>
+                    <span>3-4 digits on back of card</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="flex flex-col gap-2">
+                <label for="nameOnCard" class="text-sm font-medium text-surface-900 dark:text-surface-0">Name on Card *</label>
+                <input
+                  id="nameOnCard"
+                  type="text"
+                  formControlName="nameOnCard"
+                  class="px-4 py-2.5 border rounded-md text-surface-900 dark:text-surface-0 bg-surface-0 dark:bg-surface-800 transition-colors focus:outline-none focus:ring-2"
+                  [class]="cardForm.get('nameOnCard')?.invalid && cardForm.get('nameOnCard')?.touched
+                    ? 'border-red-500 dark:border-red-400 focus:ring-red-500/50'
+                    : 'border-surface-300 dark:border-surface-600 focus:ring-primary/50 focus:border-primary'"
+                  placeholder="John Doe"
+                />
+              </div>
+
+              <div class="flex flex-col gap-2">
+                <label for="billingZip" class="text-sm font-medium text-surface-900 dark:text-surface-0">Billing ZIP Code *</label>
+                <input
+                  id="billingZip"
+                  type="text"
+                  formControlName="billingZip"
+                  class="px-4 py-2.5 border rounded-md text-surface-900 dark:text-surface-0 bg-surface-0 dark:bg-surface-800 transition-colors focus:outline-none focus:ring-2"
+                  [class]="cardForm.get('billingZip')?.invalid && cardForm.get('billingZip')?.touched
+                    ? 'border-red-500 dark:border-red-400 focus:ring-red-500/50'
+                    : 'border-surface-300 dark:border-surface-600 focus:ring-primary/50 focus:border-primary'"
+                  placeholder="12345"
+                  maxlength="10"
+                />
+              </div>
+
+              <div class="flex items-center gap-2">
+                <label class="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    formControlName="saveCard"
+                    class="w-4 h-4 rounded border-surface-300 dark:border-surface-600 text-primary focus:ring-2 focus:ring-primary/50"
+                  />
+                  <span class="text-sm text-surface-700 dark:text-surface-300">Save this card for future orders</span>
+                </label>
+              </div>
+            </form>
+          }
+
+          @case ('DIGITAL_WALLET') {
+            <div class="flex flex-col gap-3">
+              @for (wallet of digitalWalletOptions(); track wallet.type) {
+                <button
+                  type="button"
+                  class="flex items-center gap-4 p-4 border-2 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  [class]="wallet.available
+                    ? 'border-surface-300 dark:border-surface-600 hover:border-primary hover:bg-surface-50 dark:hover:bg-surface-800'
+                    : 'border-surface-300 dark:border-surface-600 bg-surface-100 dark:bg-surface-800'"
+                  [disabled]="!wallet.available"
+                  (click)="selectDigitalWallet(wallet.type)"
+                >
+                  <i [class]="getPaymentIcon(wallet.type)" class="text-3xl text-surface-700 dark:text-surface-200"></i>
+                  <span class="flex-1 text-left font-medium text-surface-900 dark:text-surface-0">{{ wallet.name }}</span>
+                  @if (!wallet.available) {
+                    <span class="text-sm text-surface-500 dark:text-surface-500">Not available on this device</span>
+                  }
+                </button>
+              }
+            </div>
+          }
+
+          @case ('CASH') {
+            <div class="flex flex-col items-center gap-4 p-8 rounded-lg bg-surface-50 dark:bg-surface-800">
+              <div class="flex flex-col items-center gap-4 text-center">
+                <i class="icon-cash text-6xl text-green-600 dark:text-green-400"></i>
+                <h4 class="text-lg font-semibold text-surface-900 dark:text-surface-0">Pay with Cash</h4>
+                <p class="text-surface-600 dark:text-surface-400">You'll pay when you pick up your order at the restaurant.</p>
+                <div class="flex flex-col gap-2 w-full max-w-md">
+                  <div class="flex items-center gap-2 text-sm text-surface-700 dark:text-surface-300">
+                    <i class="icon-check text-green-600 dark:text-green-400"></i>
+                    <span>No processing fees</span>
+                  </div>
+                  <div class="flex items-center gap-2 text-sm text-surface-700 dark:text-surface-300">
+                    <i class="icon-check text-green-600 dark:text-green-400"></i>
+                    <span>Order confirmed immediately</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          }
+        }
+
+        <!-- Form Actions -->
+        <div class="flex items-center justify-end gap-3 mt-6 pt-6 border-t border-surface-300 dark:border-surface-600">
+          <button
+            type="button"
+            class="px-6 py-2.5 border-2 border-surface-300 dark:border-surface-600 rounded-lg font-medium text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-800 transition-colors"
+            (click)="hideNewPaymentForm()"
+          >
+            Cancel
+          </button>
+
+          @if (selectedPaymentType() === 'CASH') {
+            <button
+              type="button"
+              class="px-6 py-2.5 rounded-lg font-medium bg-primary text-primary-contrast hover:bg-primary-emphasis transition-colors"
+              (click)="selectCashPayment()"
+            >
+              Select Cash Payment
+            </button>
+          } @else if (selectedPaymentType() === 'DIGITAL_WALLET') {
+            <!-- Digital wallet buttons handled above -->
+          } @else {
+            <button
+              type="button"
+              class="px-6 py-2.5 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed bg-primary text-primary-contrast hover:bg-primary-emphasis"
+              [disabled]="!cardForm?.valid || isProcessing()"
+              (click)="addPaymentMethod()"
+            >
+              @if (isProcessing()) {
+                <span class="inline-block w-4 h-4 border-2 border-primary-contrast border-t-transparent rounded-full animate-spin mr-2"></span>
+                Adding...
+              } @else {
+                Add Payment Method
+              }
+            </button>
+          }
+        </div>
+      </div>
+    }
+  </div>
+
+  <!-- Error Display -->
+  @if (errorState(); as paymentError) {
+    <div class="p-4 rounded-lg border-l-4 border-red-500 bg-red-50 dark:bg-red-900/20">
+      <div class="flex items-center justify-between gap-4">
+        <div class="flex items-center gap-3 flex-1">
+          <i class="icon-warning text-xl text-red-600 dark:text-red-400"></i>
+          <span class="text-sm text-red-800 dark:text-red-300">{{ paymentError.message }}</span>
+        </div>
+        @if (paymentError.retryable) {
+          <button
+            type="button"
+            class="px-4 py-1.5 rounded-md text-sm font-medium bg-red-600 dark:bg-red-500 text-white hover:bg-red-700 dark:hover:bg-red-600 transition-colors"
+            (click)="retryLastAction()"
+          >
+            Retry
+          </button>
+        }
+      </div>
+    </div>
+  }
+</div>

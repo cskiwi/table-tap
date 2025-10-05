@@ -1,0 +1,287 @@
+<!-- Mobile Kitchen Dashboard -->
+<div class="kitchen-mobile-dashboard" [class.handset]="isHandset$ | async" [class.tablet]="isTablet$ | async">
+
+  <!-- Header Section -->
+  <header class="dashboard-header" [class.offline]="isOffline$ | async">
+    <div class="header-top">
+      <h1 class="dashboard-title">
+        <i class="pi pi-home"></i>
+        Kitchen
+      </h1>
+
+      <!-- Status indicators -->
+      <div class="status-indicators">
+        <button
+          pButton
+          type="button"
+          [icon]="(isVoiceListening$ | async) ? 'pi pi-microphone' : 'pi pi-volume-off'"
+          class="p-button-rounded p-button-text"
+          [class.active]="isVoiceListening$ | async"
+          (click)="toggleVoiceListening()"
+          [disabled]="!(voiceService.isSupported | async)"
+          pTooltip="Voice Control">
+        </button>
+
+        <button
+          pButton
+          type="button"
+          icon="pi pi-qrcode"
+          class="p-button-rounded p-button-text"
+          [class.active]="isBarcodeScanning$ | async"
+          (click)="startBarcodeScanning()"
+          pTooltip="Barcode Scanner">
+        </button>
+
+        <div class="sync-status" [class.offline]="isOffline$ | async">
+          <i [class]="'pi ' + ((isOffline$ | async) ? 'pi-cloud-download' : 'pi-cloud-upload')"></i>
+        </div>
+      </div>
+    </div>
+
+    <!-- Kitchen Stats -->
+    @if (kitchenStats$ | async; as stats) {
+      <div class="kitchen-stats">
+        <div class="stat-card">
+          <span class="stat-value">{{stats.ordersInProgress}}</span>
+          <span class="stat-label">Active</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-value">{{stats.ordersCompleted}}</span>
+          <span class="stat-label">Complete</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-value">{{formatTimeRemaining(stats.currentWaitTime)}}</span>
+          <span class="stat-label">Wait Time</span>
+        </div>
+      </div>
+    }
+
+    <!-- Quick Filters -->
+    <div class="quick-filters">
+      <p-selectButton [options]="stationOptions" [(ngModel)]="selectedStation" (onChange)="updateFilter({station: selectedStation})"></p-selectButton>
+    </div>
+  </header>
+
+  <!-- Notifications Overlay -->
+  @if ((notifications$ | async)?.length) {
+    <div class="notifications-overlay">
+      @for (notification of (notifications$ | async); track trackByNotificationId($index, notification)) {
+        <div
+          class="notification-card"
+          [class]="'notification-' + notification.type"
+          [@slideInOut]>
+          <div class="notification-header">
+            <i [class]="'pi notification-icon ' + getNotificationIcon(notification.type)"></i>
+            <span class="notification-title">{{notification.title}}</span>
+            <button
+              pButton
+              type="button"
+              icon="pi pi-times"
+              class="notification-close p-button-rounded p-button-text"
+              (click)="notificationService.dismissNotification(notification.id)">
+            </button>
+          </div>
+          <div class="notification-content">
+            {{notification.message}}
+          </div>
+          @if (notification.actions?.length) {
+            <div class="notification-actions">
+              @for (action of notification.actions; track action) {
+                <button
+                  pButton
+                  type="button"
+                  [label]="action.label"
+                  [class]="'action-' + action.style"
+                  (click)="action.action()">
+                </button>
+              }
+            </div>
+          }
+        </div>
+      }
+    </div>
+  }
+
+  <!-- Main Content -->
+  <main class="dashboard-content">
+
+    <!-- Search Bar -->
+    <div class="search-section">
+      <span class="p-input-icon-right search-field">
+        <i class="pi pi-search"></i>
+        <input
+          pInputText
+          type="text"
+          [value]="(filters$ | async)?.searchTerm"
+          (input)="updateFilter({searchTerm: $event.target.value})"
+          placeholder="Search orders...">
+        </span>
+      </div>
+
+      <!-- Orders Grid -->
+      @if (filteredOrders$ | async; as orders) {
+        <div class="orders-grid">
+          <!-- No orders state -->
+          @if (orders.length === 0) {
+            <div class="no-orders">
+              <i class="pi pi-home"></i>
+              <h3>No Orders</h3>
+              <p>All caught up! No orders match your current filters.</p>
+              <button pButton type="button" label="Clear Filters" (click)="clearFilters()"></button>
+            </div>
+          }
+          <!-- Order Cards -->
+          @for (order of orders; track trackByOrderId($index, order)) {
+            <app-kitchen-order-card
+              [order]="order"
+              [timer]="getTimerForOrder(order.id) | async"
+              [class.priority-high]="order.priority === OrderPriority.HIGH"
+              [class.priority-urgent]="order.priority === OrderPriority.URGENT"
+              (orderComplete)="completeOrder($event)"
+              (orderReady)="markOrderReady($event)"
+              (timerStart)="startTimerForOrder($event)"
+              (timerStop)="timerService.stopTimer($event)"
+              [@cardAnimation]>
+            </app-kitchen-order-card>
+          }
+        </div>
+      }
+
+      <!-- Station View (Alternative Layout for Tablets) -->
+      @if ((isTablet$ | async) && (filters$ | async)?.station === 'all') {
+        <div class="station-view">
+          @for (station of Object.values(KitchenStation); track station) {
+            <div class="station-column">
+              <h3 class="station-header">
+                <i [class]="'pi ' + getStationIcon(station)"></i>
+                {{station | titlecase}}
+                <span class="order-count">({{(getOrdersByStation(station) | async)?.length || 0}})</span>
+              </h3>
+              <div class="station-orders">
+                @for (order of getOrdersByStation(station) | async; track trackByOrderId($index, order)) {
+                  <app-kitchen-order-card
+                    [order]="order"
+                    [timer]="getTimerForOrder(order.id) | async"
+                    [compact]="true"
+                    (orderComplete)="completeOrder($event)"
+                    (orderReady)="markOrderReady($event)"
+                    (timerStart)="startTimerForOrder($event)"
+                    (timerStop)="timerService.stopTimer($event)">
+                  </app-kitchen-order-card>
+                }
+              </div>
+            </div>
+          }
+        </div>
+      }
+
+    </main>
+
+    <!-- Barcode Scanner Modal -->
+    @if (isBarcodeScanning$ | async) {
+      <div class="barcode-scanner-modal" (click)="stopBarcodeScanning()">
+        <div class="scanner-content" (click)="$event.stopPropagation()">
+          <div class="scanner-header">
+            <h3>Scan Barcode</h3>
+            <button pButton type="button" icon="pi pi-times" class="p-button-rounded p-button-text" (click)="stopBarcodeScanning()"></button>
+          </div>
+          <div class="scanner-viewport">
+            <video #barcodeVideo autoplay playsinline class="scanner-video"></video>
+            <div class="scanner-overlay">
+              <div class="scanner-frame"></div>
+            </div>
+          </div>
+          <div class="scanner-controls">
+            <button pButton type="button" icon="pi pi-refresh" label="Switch Camera" (click)="barcodeService.switchCamera()"></button>
+            <button pButton type="button" [icon]="torchEnabled ? 'pi pi-sun' : 'pi pi-moon'" [label]="torchEnabled ? 'Flash Off' : 'Flash On'" (click)="barcodeService.setTorch(!torchEnabled)"></button>
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- Voice Recognition Feedback -->
+    @if (isVoiceListening$ | async) {
+      <div class="voice-feedback" [@fadeInOut]>
+        <div class="voice-indicator">
+          <i class="pi pi-microphone pulsing"></i>
+          <span>Listening...</span>
+        </div>
+        <div class="voice-commands">
+          <small>Say: "Start timer", "Complete order", "Show grill orders"</small>
+        </div>
+      </div>
+    }
+
+    <!-- Floating Action Buttons -->
+    <div class="fab-container" [class.expanded]="fabExpanded">
+      <button
+        pButton
+        type="button"
+        [icon]="fabExpanded ? 'pi pi-times' : 'pi pi-plus'"
+        class="main-fab p-button-rounded"
+        [class.expanded]="fabExpanded"
+        (click)="fabExpanded = !fabExpanded">
+      </button>
+
+      <button
+        pButton
+        type="button"
+        icon="pi pi-microphone"
+        class="sub-fab voice-fab p-button-rounded"
+        [class.visible]="fabExpanded"
+        (click)="toggleVoiceListening(); fabExpanded = false"
+        pTooltip="Voice Control">
+      </button>
+
+      <button
+        pButton
+        type="button"
+        icon="pi pi-qrcode"
+        class="sub-fab scanner-fab p-button-rounded"
+        [class.visible]="fabExpanded"
+        (click)="startBarcodeScanning(); fabExpanded = false"
+        pTooltip="Scan Barcode">
+      </button>
+
+      <button
+        pButton
+        type="button"
+        icon="pi pi-sync"
+        class="sub-fab sync-fab p-button-rounded"
+        [class.visible]="fabExpanded"
+        (click)="syncService.forcePullFromServer(); fabExpanded = false"
+        pTooltip="Sync Now">
+      </button>
+    </div>
+
+    <!-- Quick Actions Bar (Handset Only) -->
+    @if (isHandset$ | async) {
+      <div class="quick-actions-bar">
+        <button
+          pButton
+          type="button"
+          icon="pi pi-pause"
+          label="Pause All"
+          class="quick-action"
+          (click)="timerService.pauseAllTimers()">
+        </button>
+        <button
+          pButton
+          type="button"
+          icon="pi pi-play"
+          label="Resume All"
+          class="quick-action"
+          (click)="timerService.resumeAllTimers()">
+        </button>
+        <button
+          pButton
+          type="button"
+          icon="pi pi-filter-slash"
+          label="Clear Filters"
+          class="quick-action"
+          (click)="clearFilters()">
+        </button>
+      </div>
+    }
+
+  </div>

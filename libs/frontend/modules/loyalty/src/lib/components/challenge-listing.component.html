@@ -1,0 +1,485 @@
+,
+    <div class="challenge-listing">
+      <!-- Header -->
+      <div class="listing-header">
+        <h2 class="page-title">
+          <i class="fas fa-trophy"></i>
+          Challenge Center
+        </h2>
+        <p class="page-subtitle">Complete challenges to earn points and unlock rewards</p>
+    
+        <!-- Quick Stats -->
+        @if (loyaltyAccount()) {
+          <div class="quick-stats">
+            <div class="stat-card active">
+              <div class="stat-icon">
+                <i class="fas fa-play-circle"></i>
+              </div>
+              <div class="stat-content">
+                <span class="stat-number">{{ activeChallengesCount }}</span>
+                <span class="stat-label">Active</span>
+              </div>
+            </div>
+            <div class="stat-card completed">
+              <div class="stat-icon">
+                <i class="fas fa-check-circle"></i>
+              </div>
+              <div class="stat-content">
+                <span class="stat-number">{{ completedChallengesCount }}</span>
+                <span class="stat-label">Completed</span>
+              </div>
+            </div>
+            <div class="stat-card points">
+              <div class="stat-icon">
+                <i class="fas fa-coins"></i>
+              </div>
+              <div class="stat-content">
+                <span class="stat-number">{{ totalPointsEarned }}</span>
+                <span class="stat-label">Points Earned</span>
+              </div>
+            </div>
+            <div class="stat-card streak">
+              <div class="stat-icon">
+                <i class="fas fa-fire"></i>
+              </div>
+              <div class="stat-content">
+                <span class="stat-number">{{ currentStreak }}</span>
+                <span class="stat-label">Day Streak</span>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    
+      <!-- Search and Filters -->
+      <div class="filters-section">
+        <!-- Search Bar -->
+        <div class="search-bar">
+          <div class="search-input-wrapper">
+            <i class="fas fa-search search-icon"></i>
+            <input
+              type="text",
+              class="search-input",
+              placeholder="Search challenges...",
+              [(ngModel)]="searchQuery"
+              (keyup)="onSearchChange($event)">
+            @if (searchQuery) {
+              <button
+                class="clear-search-btn",
+                (click)="clearSearch()">
+                <i class="fas fa-times"></i>
+              </button>
+            }
+          </div>
+        </div>
+    
+        <!-- Filter Tabs -->
+        <div class="filter-tabs">
+          <button
+            class="filter-tab",
+            [class.active]="activeTab === 'all'"
+            (click)="setActiveTab('all')">
+            <i class="fas fa-list"></i>
+            All Challenges
+            @if (allChallengesCount) {
+              <span class="count">{{ allChallengesCount }}</span>
+            }
+          </button>
+    
+          <button
+            class="filter-tab",
+            [class.active]="activeTab === 'available'"
+            (click)="setActiveTab('available')">
+            <i class="fas fa-plus-circle"></i>
+            Available to Join
+            @if (availableChallengesCount) {
+              <span class="count">{{ availableChallengesCount }}</span>
+            }
+          </button>
+    
+          <button
+            class="filter-tab",
+            [class.active]="activeTab === 'active'"
+            (click)="setActiveTab('active')">
+            <i class="fas fa-play-circle"></i>
+            My Active
+            @if (activeChallengesCount) {
+              <span class="count">{{ activeChallengesCount }}</span>
+            }
+          </button>
+    
+          <button
+            class="filter-tab",
+            [class.active]="activeTab === 'completed'"
+            (click)="setActiveTab('completed')">
+            <i class="fas fa-check-circle"></i>
+            Completed
+            @if (completedChallengesCount) {
+              <span class="count">{{ completedChallengesCount }}</span>
+            }
+          </button>
+    
+          <button
+            class="filter-tab featured",
+            [class.active]="activeTab === 'featured'"
+            (click)="setActiveTab('featured')">
+            <i class="fas fa-star"></i>
+            Featured
+            @if (featuredChallengesCount) {
+              <span class="count">{{ featuredChallengesCount }}</span>
+            }
+          </button>
+        </div>
+    
+        <!-- Advanced Filters -->
+        <div class="advanced-filters" [class.expanded]="showAdvancedFilters">
+          <button
+            class="advanced-toggle",
+            (click)="toggleAdvancedFilters()">
+            <i class="fas" [class.fa-chevron-down]="!showAdvancedFilters" [class.fa-chevron-up]="showAdvancedFilters"></i>
+            Advanced Filters
+          </button>
+    
+          @if (showAdvancedFilters) {
+            <div class="filter-controls">
+              <!-- Challenge Type Filter -->
+              <div class="filter-group">
+                <label>Challenge Type</label>
+                <select [(ngModel)]="filters.type" (change)="applyFilters()">
+                  <option value="">All Types</option>
+                  <option value="order_count">Order Challenges</option>
+                  <option value="spend_amount">Spending Challenges</option>
+                  <option value="points_earned">Points Challenges</option>
+                  <option value="product_variety">Variety Challenges</option>
+                  <option value="category_exploration">Explorer Challenges</option>
+                  <option value="consecutive_days">Streak Challenges</option>
+                  <option value="weekly_visits">Weekly Challenges</option>
+                  <option value="monthly_goal">Monthly Challenges</option>
+                  <option value="referral_count">Referral Challenges</option>
+                  <option value="social_sharing">Social Challenges</option>
+                </select>
+              </div>
+              <!-- Difficulty Filter -->
+              <div class="filter-group">
+                <label>Difficulty</label>
+                <select [(ngModel)]="filters.difficulty" (change)="applyFilters()">
+                  <option value="">All Difficulties</option>
+                  <option value="easy">Easy</option>
+                  <option value="medium">Medium</option>
+                  <option value="hard">Hard</option>
+                  <option value="expert">Expert</option>
+                </select>
+              </div>
+              <!-- Sort Options -->
+              <div class="filter-group">
+                <label>Sort By</label>
+                <select [(ngModel)]="sortBy" (change)="applySorting()">
+                  <option value="newest">Newest First</option>
+                  <option value="popular">Most Popular</option>
+                  <option value="difficulty_asc">Difficulty: Easy to Hard</option>
+                  <option value="difficulty_desc">Difficulty: Hard to Easy</option>
+                  <option value="ending_soon">Ending Soon</option>
+                  <option value="points_asc">Points: Low to High</option>
+                  <option value="points_desc">Points: High to Low</option>
+                  <option value="alphabetical">Alphabetical</option>
+                </select>
+              </div>
+              <!-- Clear Filters -->
+              <button class="clear-filters-btn" (click)="clearAllFilters()">
+                <i class="fas fa-undo"></i>
+                Clear Filters
+              </button>
+            </div>
+          }
+        </div>
+    
+        <!-- Active Filters Display -->
+        @if (hasActiveFilters()) {
+          <div class="active-filters">
+            <span class="filters-label">Active filters:</span>
+            <div class="filter-tags">
+              @if (filters.type) {
+                <span class="filter-tag">
+                  Type: {{ getTypeDisplayName(filters.type) }};
+                  <button (click)="clearFilter('type')" class="remove-filter">×</button>
+                </span>
+              }
+              @if (filters.difficulty) {
+                <span class="filter-tag">
+                  Difficulty: {{ getDifficultyDisplayName(filters.difficulty) }};
+                  <button (click)="clearFilter('difficulty')" class="remove-filter">×</button>
+                </span>
+              }
+              @if (searchQuery) {
+                <span class="filter-tag">
+                  Search: "{{ searchQuery }}";
+                  <button (click)="clearSearch()" class="remove-filter">×</button>
+                </span>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    
+      <!-- Loading State -->
+      @if (isLoading) {
+        <div class="loading-state">
+          <div class="loading-animation">
+            <div class="trophy-spinner">
+              <i class="fas fa-trophy"></i>
+            </div>
+          </div>
+          <p>Loading challenges...</p>
+        </div>
+      }
+    
+      <!-- Challenge Grid -->
+      @if (!isLoading && filteredChallenges.length > 0) {
+        <div class="challenge-grid">
+          @for (challenge of filteredChallenges; track trackByChallenge($index, challenge)) {
+            <div
+              class="challenge-card",
+              [class.featured]="challenge.isFeatured"
+              [class.active]="isActiveChallengeForUser(challenge)"
+              [class.completed]="isCompletedByUser(challenge)"
+              [class.expired]="challenge.isExpired"
+              [class.ending-soon]="isEndingSoon(challenge)"
+              (click)="selectChallenge(challenge)">
+              <!-- Challenge Badge/Status -->
+              <div class="challenge-status-badge">
+                <span class="badge"
+                  [class.featured]="challenge.isFeatured"
+                  [class.active]="isActiveChallengeForUser(challenge)"
+                  [class.completed]="isCompletedByUser(challenge)"
+                  [class.expired]="challenge.isExpired">
+                  {{ getChallengeStatusText(challenge) }}
+                </span>
+              </div>
+              <!-- Challenge Header -->
+              <div class="challenge-header">
+                <div class="challenge-icon" [style.background-color]="challenge.color">
+                  <i [class]="challenge.icon || getChallengeIcon(challenge.type)"></i>
+                </div>
+                <div class="challenge-meta">
+                  <div class="challenge-type">{{ challenge.displayType }}</div>
+                  <h3 class="challenge-name">{{ challenge.name }}</h3>
+                  <p class="challenge-description">{{ challenge.shortDescription || challenge.description }}</p>
+                </div>
+                <div class="difficulty-display">
+                  <div class="difficulty-stars" [style.color]="challenge.difficultyColor">
+                    @for (star of getDifficultyStars(challenge.difficultyStars); track star) {
+                      <i
+                      class="fas fa-star"></i>
+                    }
+                  </div>
+                  <span class="difficulty-label">{{ getDifficultyDisplayName(challenge.difficulty) }}</span>
+                </div>
+              </div>
+              <!-- Progress Section (for active challenges) -->
+              @if (isActiveChallengeForUser(challenge) && getChallengeProgress(challenge); as progress) {
+                <div class="progress-section">
+                  <div class="progress-header">
+                    <span class="progress-label">Progress</span>
+                    <span class="progress-percentage">{{ progress.percentage | number:'1.0-0' }}%</span>
+                  </div>
+                  <div class="progress-bar-container">
+                    <div class="progress-bar">
+                      <div class="progress-fill"
+                        [style.width.%]="progress.percentage"
+                        [style.background-color]="challenge.color">
+                      </div>
+                    </div>
+                    @if (challenge.milestones?.length) {
+                      <div class="progress-milestones">
+                        @for (milestone of challenge.milestones; track milestone) {
+                          <div class="milestone"
+                            [style.left.%]="milestone.percentage"
+                            [class.completed]="progress.percentage >= milestone.percentage">
+                            <div class="milestone-marker"></div>
+                            <div class="milestone-tooltip">{{ milestone.title }}</div>
+                          </div>
+                        }
+                      </div>
+                    }
+                  </div>
+                  <div class="progress-details">
+                    <span class="current-value">{{ progress.current | number:'1.0-0' }}</span>
+                    <span class="separator"> / </span>
+                    <span class="target-value">{{ progress.target | number:'1.0-0' }}</span>
+                    <span class="unit">{{ getChallengeUnit(challenge.type) }}</span>
+                  </div>
+                </div>
+              }
+              <!-- Goal Description -->
+              <div class="goal-section">
+                <div class="goal-description">
+                  <i class="fas fa-bullseye"></i>
+                  <span>{{ getChallengeGoalText(challenge) }}</span>
+                </div>
+              </div>
+              <!-- Rewards Section -->
+              <div class="rewards-section">
+                @if (challenge.rewards.completionPoints) {
+                  <div class="reward-item">
+                    <i class="fas fa-coins"></i>
+                    <span class="reward-value">{{ challenge.rewards.completionPoints | number:'1.0-0' }}</span>
+                    <span class="reward-label">points</span>
+                  </div>
+                }
+                @if (challenge.rewards.badgeName) {
+                  <div class="reward-item">
+                    <i class="fas fa-medal"></i>
+                    <span class="reward-label">{{ challenge.rewards.badgeName }} Badge</span>
+                  </div>
+                }
+                @if (challenge.rewards.freeItemId) {
+                  <div class="reward-item">
+                    <i class="fas fa-gift"></i>
+                    <span class="reward-label">Free Item</span>
+                  </div>
+                }
+                @if (challenge.rewards.discountPercentage) {
+                  <div class="reward-item">
+                    <i class="fas fa-percentage"></i>
+                    <span class="reward-value">{{ challenge.rewards.discountPercentage }}%</span>
+                    <span class="reward-label">discount</span>
+                  </div>
+                }
+              </div>
+              <!-- Time Information -->
+              <div class="time-section">
+                @if (challenge.daysUntilEnd !== null && challenge.daysUntilEnd > 0) {
+                  <div class="time-info">
+                    <i class="fas fa-clock"></i>
+                    <span class="time-text" [class.ending-soon]="challenge.daysUntilEnd <= 3">
+                      {{ getTimeRemainingText(challenge.daysUntilEnd) }}
+                    </span>
+                  </div>
+                }
+                @if (challenge.isExpired) {
+                  <div class="time-info expired">
+                    <i class="fas fa-times-circle"></i>
+                    <span class="time-text">Expired</span>
+                  </div>
+                }
+              </div>
+              <!-- Participation Stats -->
+              <div class="participation-section">
+                <div class="participant-count">
+                  <i class="fas fa-users"></i>
+                  <span>{{ challenge.participantCount | number:'1.0-0' }} participating</span>
+                </div>
+                @if (challenge.completionRate > 0) {
+                  <div class="completion-rate">
+                    <i class="fas fa-chart-line"></i>
+                    <span>{{ challenge.completionRate | number:'1.0-0' }}% completion rate</span>
+                  </div>
+                }
+              </div>
+              <!-- Action Buttons -->
+              <div class="challenge-actions">
+                @if (!isActiveChallengeForUser(challenge) && !isCompletedByUser(challenge) && !challenge.isExpired) {
+                  <button
+                    class="action-btn primary",
+                    (click)="joinChallenge(challenge, $event)"
+                    [disabled]="isJoining">
+                    <i class="fas fa-plus-circle"></i>
+                    {{ isJoining ? 'Joining...' : 'Join Challenge' }}
+                  </button>
+                }
+                @if (isActiveChallengeForUser(challenge)) {
+                  <button
+                    class="action-btn secondary",
+                    (click)="viewChallengeDetail(challenge, $event)">
+                    <i class="fas fa-eye"></i>
+                    View Progress
+                  </button>
+                }
+                @if (isCompletedByUser(challenge)) {
+                  <button
+                    class="action-btn success",
+                    (click)="viewChallengeDetail(challenge, $event)">
+                    <i class="fas fa-check-circle"></i>
+                    View Completed
+                  </button>
+                }
+                <button
+                  class="action-btn outline",
+                  (click)="shareChallenge(challenge, $event)">
+                  <i class="fas fa-share-alt"></i>
+                  Share
+                </button>
+                <button
+                  class="action-btn outline",
+                  (click)="viewLeaderboard(challenge, $event)">
+                  <i class="fas fa-trophy"></i>
+                  Leaderboard
+                </button>
+              </div>
+              <!-- Featured Glow Effect -->
+              @if (challenge.isFeatured) {
+                <div class="featured-glow"></div>
+              }
+            </div>
+          }
+        </div>
+      }
+    
+      <!-- Empty State -->
+      @if (!isLoading && filteredChallenges.length === 0 && !error) {
+        <div class="empty-state">
+          <div class="empty-icon">
+            <i class="fas fa-search"></i>
+          </div>
+          <h3>No Challenges Found</h3>
+          @if (hasActiveFilters()) {
+            <p>
+              Try adjusting your filters to see more challenges.
+            </p>
+          }
+          @if (!hasActiveFilters()) {
+            <p>
+              No challenges are currently available. Check back soon for new challenges!
+            </p>
+          }
+          @if (hasActiveFilters()) {
+            <button class="clear-filters-btn"
+              (click)="clearAllFilters()">
+              Clear All Filters
+            </button>
+          }
+        </div>
+      }
+    
+      <!-- Error State -->
+      @if (error && !isLoading) {
+        <div class="error-state">
+          <div class="error-icon">
+            <i class="fas fa-exclamation-triangle"></i>
+          </div>
+          <h3>Unable to Load Challenges</h3>
+          <p>{{ error }}</p>
+          <button class="retry-btn" (click)="loadChallenges()">
+            <i class="fas fa-redo"></i>
+            Try Again
+          </button>
+        </div>
+      }
+    
+      <!-- Load More Button -->
+      @if (!isLoading && hasMoreChallenges) {
+        <div class="load-more-section">
+          <button class="load-more-btn"
+            (click)="loadChallenges()"
+            [disabled]="isLoadingMore">
+            @if (isLoadingMore) {
+              <i class="fas fa-spinner fa-spin"></i>
+            }
+            @if (!isLoadingMore) {
+              <i class="fas fa-chevron-down"></i>
+            }
+            {{ isLoadingMore ? 'Loading...' : 'Load More Challenges' }}
+          </button>
+        </div>
+      }
+    </div>

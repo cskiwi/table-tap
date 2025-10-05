@@ -1,0 +1,345 @@
+<div class="flex flex-col gap-4 p-6">
+  <!-- Header -->
+  <div class="flex justify-between items-start mb-4">
+    <div>
+      <h1 class="text-3xl font-bold text-color">Analytics & Reports</h1>
+      <p class="text-color-secondary mt-1">Comprehensive business insights and reporting</p>
+    </div>
+
+    <div class="flex gap-2">
+      <p-datepicker
+        [(ngModel)]="selectedDateRange"
+        selectionMode="range"
+        [readonlyInput]="true"
+        placeholder="Select Date Range"
+        (onSelect)="onDateRangeChange()">
+      </p-datepicker>
+
+      <p-select
+        [options]="periodOptions"
+        [(ngModel)]="selectedPeriod"
+        (onChange)="onPeriodChange()"
+        placeholder="Select Period">
+      </p-select>
+
+      <p-button
+        icon="pi pi-download"
+        label="Export"
+        [outlined]="true"
+        (click)="exportReports()">
+      </p-button>
+    </div>
+  </div>
+
+  <!-- Analytics Tabs -->
+  <p-tabs>
+    <!-- Sales Analytics -->
+    <p-tabpanel header="Sales" leftIcon="pi pi-chart-line">
+      <div class="flex flex-col gap-4">
+        <!-- Sales Summary Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <p-card class="bg-surface-card border border-surface-border rounded-lg">
+            <div class="flex items-center gap-4">
+              <div class="flex items-center justify-center w-12 h-12 rounded-full bg-primary">
+                <i class="pi pi-dollar text-surface-0"></i>
+              </div>
+              <div>
+                <h3 class="text-2xl font-bold text-color">{{ salesMetrics().totalRevenue | currency }}</h3>
+                <p class="text-color-secondary">Total Revenue</p>
+                <span class="text-green-500 text-sm">+12.5% vs last period</span>
+              </div>
+            </div>
+          </p-card>
+
+          <p-card class="bg-surface-card border border-surface-border rounded-lg">
+            <div class="flex items-center gap-4">
+              <div class="flex items-center justify-center w-12 h-12 rounded-full bg-primary">
+                <i class="pi pi-shopping-cart text-surface-0"></i>
+              </div>
+              <div>
+                <h3 class="text-2xl font-bold text-color">{{ salesMetrics().orderCount }}</h3>
+                <p class="text-color-secondary">Total Orders</p>
+                <span class="text-green-500 text-sm">+8.3% vs last period</span>
+              </div>
+            </div>
+          </p-card>
+
+          <p-card class="bg-surface-card border border-surface-border rounded-lg">
+            <div class="flex items-center gap-4">
+              <div class="flex items-center justify-center w-12 h-12 rounded-full bg-primary">
+                <i class="pi pi-credit-card text-surface-0"></i>
+              </div>
+              <div>
+                <h3 class="text-2xl font-bold text-color">{{ salesMetrics().averageOrderValue | currency }}</h3>
+                <p class="text-color-secondary">Average Order Value</p>
+                <span class="text-green-500 text-sm">+3.7% vs last period</span>
+              </div>
+            </div>
+          </p-card>
+        </div>
+
+        <!-- Charts Row -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <!-- Revenue Trend -->
+          <p-card class="bg-surface-card border border-surface-border rounded-lg">
+            <ng-template pTemplate="header">
+              <h3 class="text-xl font-semibold text-color p-4">Revenue Trend</h3>
+            </ng-template>
+            <p-chart
+              type="line"
+              [data]="revenueChartData()"
+              [options]="lineChartOptions"
+              height="300px">
+            </p-chart>
+          </p-card>
+
+          <!-- Sales by Time -->
+          <p-card class="bg-surface-card border border-surface-border rounded-lg">
+            <ng-template pTemplate="header">
+              <h3 class="text-xl font-semibold text-color p-4">Sales by Hour</h3>
+            </ng-template>
+            <p-chart
+              type="bar"
+              [data]="hourlyChartData()"
+              [options]="barChartOptions"
+              height="300px">
+            </p-chart>
+          </p-card>
+        </div>
+
+        <!-- Top Products -->
+        <p-card class="bg-surface-card border border-surface-border rounded-lg">
+          <ng-template pTemplate="header">
+            <h3 class="text-xl font-semibold text-color p-4">Top Selling Products</h3>
+          </ng-template>
+
+          <p-table
+            [value]="topProducts()"
+            [rows]="10"
+            styleClass="p-datatable-sm">
+
+            <ng-template pTemplate="header">
+              <tr>
+                <th class="text-color">Product</th>
+                <th class="text-color">Quantity Sold</th>
+                <th class="text-color">Revenue</th>
+                <th class="text-color">Growth</th>
+                <th class="text-color">Performance</th>
+              </tr>
+            </ng-template>
+
+            <ng-template pTemplate="body" let-product let-i="rowIndex">
+              <tr>
+                <td>
+                  <div class="flex items-center gap-2">
+                    <span class="text-color-secondary">#{{ i + 1 }}</span>
+                    <strong class="text-color">{{ product.productName }}</strong>
+                  </div>
+                </td>
+                <td class="text-color">{{ product.quantity }}</td>
+                <td><strong class="text-color">{{ product.revenue | currency }}</strong></td>
+                <td>
+                  <span class="text-green-500">+{{ product.growth || 15 }}%</span>
+                </td>
+                <td>
+                  <p-progressBar
+                    [value]="getProductPerformance(product, i)"
+                    [showValue]="false"
+                    severity="info">
+                  </p-progressBar>
+                </td>
+              </tr>
+            </ng-template>
+          </p-table>
+        </p-card>
+      </div>
+    </p-tabpanel>
+
+    <!-- Performance Analytics -->
+    <p-tabpanel header="Performance" leftIcon="pi pi-chart-pie">
+      <div class="flex flex-col gap-4">
+        <!-- Performance Metrics -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <p-card class="bg-surface-card border border-surface-border rounded-lg">
+            <div class="text-center">
+              <h4 class="text-lg font-medium text-color mb-2">Avg Order Time</h4>
+              <div class="mb-2">
+                <span class="text-3xl font-bold text-color">12.5</span>
+                <span class="text-color-secondary ml-1">minutes</span>
+              </div>
+              <p-progressBar [value]="75" severity="success" [showValue]="false"></p-progressBar>
+              <span class="text-color-secondary text-sm mt-2 block">-2.3min vs last week</span>
+            </div>
+          </p-card>
+
+          <p-card class="bg-surface-card border border-surface-border rounded-lg">
+            <div class="text-center">
+              <h4 class="text-lg font-medium text-color mb-2">Kitchen Efficiency</h4>
+              <div class="mb-2">
+                <span class="text-3xl font-bold text-color">87</span>
+                <span class="text-color-secondary ml-1">%</span>
+              </div>
+              <p-progressBar [value]="87" severity="info" [showValue]="false"></p-progressBar>
+              <span class="text-color-secondary text-sm mt-2 block">+3% vs last week</span>
+            </div>
+          </p-card>
+
+          <p-card class="bg-surface-card border border-surface-border rounded-lg">
+            <div class="text-center">
+              <h4 class="text-lg font-medium text-color mb-2">Customer Rating</h4>
+              <div class="mb-2">
+                <span class="text-3xl font-bold text-color">4.8</span>
+                <span class="text-color-secondary ml-1">/5.0</span>
+              </div>
+              <p-progressBar [value]="96" severity="success" [showValue]="false"></p-progressBar>
+              <span class="text-color-secondary text-sm mt-2 block">+0.2 vs last week</span>
+            </div>
+          </p-card>
+
+          <p-card class="bg-surface-card border border-surface-border rounded-lg">
+            <div class="text-center">
+              <h4 class="text-lg font-medium text-color mb-2">Table Turnover</h4>
+              <div class="mb-2">
+                <span class="text-3xl font-bold text-color">2.3</span>
+                <span class="text-color-secondary ml-1">turns/day</span>
+              </div>
+              <p-progressBar [value]="68" severity="warning" [showValue]="false"></p-progressBar>
+              <span class="text-color-secondary text-sm mt-2 block">+0.1 vs last week</span>
+            </div>
+          </p-card>
+        </div>
+
+        <!-- Performance Charts -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <p-card class="bg-surface-card border border-surface-border rounded-lg">
+            <ng-template pTemplate="header">
+              <h3 class="text-xl font-semibold text-color p-4">Order Processing Time</h3>
+            </ng-template>
+            <p-chart
+              type="doughnut"
+              [data]="orderTimeDistribution()"
+              [options]="doughnutOptions"
+              height="300px">
+            </p-chart>
+          </p-card>
+
+          <p-card class="bg-surface-card border border-surface-border rounded-lg">
+            <ng-template pTemplate="header">
+              <h3 class="text-xl font-semibold text-color p-4">Employee Performance</h3>
+            </ng-template>
+            <p-chart
+              type="radar"
+              [data]="employeePerformanceChart()"
+              [options]="radarOptions"
+              height="300px">
+            </p-chart>
+          </p-card>
+        </div>
+      </div>
+    </p-tabpanel>
+
+    <!-- Inventory Analytics -->
+    <p-tabpanel header="Inventory" leftIcon="pi pi-box">
+      <div class="flex flex-col gap-4">
+        <!-- Inventory Metrics -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <p-card class="bg-surface-card border border-surface-border rounded-lg">
+            <div class="text-center">
+              <h4 class="text-lg font-medium text-color mb-2">Inventory Value</h4>
+              <h3 class="text-2xl font-bold text-color">{{ inventoryMetrics().totalValue | currency }}</h3>
+              <span class="text-green-500 text-sm">+5.2% this month</span>
+            </div>
+          </p-card>
+
+          <p-card class="bg-surface-card border border-surface-border rounded-lg">
+            <div class="text-center">
+              <h4 class="text-lg font-medium text-color mb-2">Turnover Rate</h4>
+              <h3 class="text-2xl font-bold text-color">{{ inventoryMetrics().turnoverRate }}x</h3>
+              <span class="text-color-secondary text-sm">Monthly average</span>
+            </div>
+          </p-card>
+
+          <p-card class="bg-surface-card border border-surface-border rounded-lg">
+            <div class="text-center">
+              <h4 class="text-lg font-medium text-color mb-2">Waste Percentage</h4>
+              <h3 class="text-2xl font-bold text-color">{{ inventoryMetrics().wastePercentage }}%</h3>
+              <span class="text-red-500 text-sm">+0.3% vs last month</span>
+            </div>
+          </p-card>
+
+          <p-card class="bg-surface-card border border-surface-border rounded-lg">
+            <div class="text-center">
+              <h4 class="text-lg font-medium text-color mb-2">Stock Accuracy</h4>
+              <h3 class="text-2xl font-bold text-color">{{ inventoryMetrics().stockAccuracy }}%</h3>
+              <span class="text-green-500 text-sm">+2.1% improvement</span>
+            </div>
+          </p-card>
+        </div>
+
+        <!-- Inventory Charts -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <p-card class="bg-surface-card border border-surface-border rounded-lg">
+            <ng-template pTemplate="header">
+              <h3 class="text-xl font-semibold text-color p-4">Stock Levels by Category</h3>
+            </ng-template>
+            <p-chart
+              type="bar"
+              [data]="categoryStockChart()"
+              [options]="barChartOptions"
+              height="300px">
+            </p-chart>
+          </p-card>
+
+          <p-card class="bg-surface-card border border-surface-border rounded-lg">
+            <ng-template pTemplate="header">
+              <h3 class="text-xl font-semibold text-color p-4">Inventory Movement</h3>
+            </ng-template>
+            <p-chart
+              type="line"
+              [data]="inventoryMovementChart()"
+              [options]="lineChartOptions"
+              height="300px">
+            </p-chart>
+          </p-card>
+        </div>
+      </div>
+    </p-tabpanel>
+
+    <!-- Customer Analytics -->
+    <p-tabpanel header="Customers" leftIcon="pi pi-users">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <p-card class="bg-surface-card border border-surface-border rounded-lg">
+          <div class="text-center">
+            <h4 class="text-lg font-medium text-color mb-2">Total Customers</h4>
+            <h3 class="text-2xl font-bold text-color">{{ customerMetrics().totalCustomers }}</h3>
+            <span class="text-green-500 text-sm">+45 this month</span>
+          </div>
+        </p-card>
+
+        <p-card class="bg-surface-card border border-surface-border rounded-lg">
+          <div class="text-center">
+            <h4 class="text-lg font-medium text-color mb-2">Returning Customers</h4>
+            <h3 class="text-2xl font-bold text-color">{{ customerMetrics().returningCustomers }}%</h3>
+            <span class="text-green-500 text-sm">+3.2% vs last month</span>
+          </div>
+        </p-card>
+
+        <p-card class="bg-surface-card border border-surface-border rounded-lg">
+          <div class="text-center">
+            <h4 class="text-lg font-medium text-color mb-2">Customer Lifetime Value</h4>
+            <h3 class="text-2xl font-bold text-color">{{ customerMetrics().lifetimeValue | currency }}</h3>
+            <span class="text-green-500 text-sm">+8.7% increase</span>
+          </div>
+        </p-card>
+
+        <p-card class="bg-surface-card border border-surface-border rounded-lg">
+          <div class="text-center">
+            <h4 class="text-lg font-medium text-color mb-2">Avg Visit Frequency</h4>
+            <h3 class="text-2xl font-bold text-color">{{ customerMetrics().visitFrequency }}</h3>
+            <span class="text-color-secondary text-sm">visits per month</span>
+          </div>
+        </p-card>
+      </div>
+    </p-tabpanel>
+  </p-tabs>
+</div>

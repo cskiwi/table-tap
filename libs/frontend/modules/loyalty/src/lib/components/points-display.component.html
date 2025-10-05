@@ -1,0 +1,180 @@
+<div class="points-display-container">
+      <!-- Main Points Card -->
+      <div class="points-card" [class.animated]="animatePointsChange()">
+        <div class="points-header">
+          <div class="points-icon">
+            <i class="fas fa-coins"></i>
+          </div>
+          <div class="points-info">
+            <h3 class="points-title">Available Points</h3>
+            <p class="points-subtitle">Ready to spend</p>
+          </div>
+        </div>
+    
+        <div class="points-main">
+          <div class="points-number">
+            {{ (account()()?.currentPoints || 0) | number:'1.0-0' }}
+          </div>
+          <div class="points-label">Points</div>
+        </div>
+    
+        <!-- Points breakdown -->
+        @if (showBreakdown()()) {
+          <div class="points-breakdown">
+            <div class="breakdown-item">
+              <span class="label">Lifetime Earned</span>
+              <span class="value">{{ (account()()?.lifetimePoints || 0) | number:'1.0-0' }}</span>
+            </div>
+            <div class="breakdown-item">
+              <span class="label">Total Redeemed</span>
+              <span class="value">{{ (account()()?.pointsRedeemed || 0) | number:'1.0-0' }}</span>
+            </div>
+            @if (pendingPoints() > 0) {
+              <div class="breakdown-item">
+                <span class="label">Pending</span>
+                <span class="value pending">{{ pendingPoints() | number:'1.0-0' }}</span>
+              </div>
+            }
+          </div>
+        }
+    
+        <!-- Quick Actions -->
+        @if (showActions()()) {
+          <div class="points-actions">
+            <button class="action-btn earn-btn" (click)="showEarnPointsGuide()">
+              <i class="fas fa-plus-circle"></i>
+              <span>Earn More</span>
+            </button>
+            <button
+              class="action-btn spend-btn"
+              (click)="showRewardsStore()"
+              [disabled]="(account()()?.currentPoints || 0) === 0">
+              <i class="fas fa-gift"></i>
+              <span>Spend Points</span>
+            </button>
+          </div>
+        }
+      </div>
+    
+      <!-- Points Velocity Card -->
+      @if (showVelocity()()) {
+        <div class="velocity-card">
+          <div class="velocity-header">
+            <h4>This Month</h4>
+            <i class="fas fa-chart-line"></i>
+          </div>
+          <div class="velocity-stats">
+            <div class="stat-item">
+              <div class="stat-value">{{ monthlyEarned() | number:'1.0-0' }}</div>
+              <div class="stat-label">Earned</div>
+            </div>
+            <div class="stat-divider"></div>
+            <div class="stat-item">
+              <div class="stat-value">{{ monthlySpent() | number:'1.0-0' }}</div>
+              <div class="stat-label">Spent</div>
+            </div>
+          </div>
+          <div class="velocity-indicator">
+            <div class="velocity-bar">
+              <div
+                class="velocity-fill"
+                [style.width.%]="earnVsSpendRatio()"
+                [class.positive]="earnVsSpendRatio() > 50">
+              </div>
+            </div>
+            <div class="velocity-text">
+              <span [class.positive]="netGain() > 0" [class.negative]="netGain() < 0">
+                {{ netGain() > 0 ? '+' : '' }}{{ netGain() | number:'1.0-0' }} net this month
+              </span>
+            </div>
+          </div>
+        </div>
+      }
+    
+      <!-- Expiring Points Alert -->
+      @if (expiringPoints().length > 0) {
+        <div class="expiring-alert">
+          <div class="alert-icon">
+            <i class="fas fa-exclamation-triangle"></i>
+          </div>
+          <div class="alert-content">
+            <h4>Points Expiring Soon</h4>
+            <p>{{ totalExpiringPoints() | number:'1.0-0' }} points expire in the next 30 days</p>
+            <button class="alert-btn" (click)="showExpiringDetails()">
+              View Details
+            </button>
+          </div>
+        </div>
+      }
+    
+      <!-- Points History Quick View -->
+      @if (recentTransactions().length > 0) {
+        <div class="history-preview">
+          <div class="history-header">
+            <h4>Recent Activity</h4>
+            <button class="view-all-btn" (click)="showFullHistory()">
+              View All
+            </button>
+          </div>
+          <div class="transaction-list">
+            @for (transaction of recentTransactions().slice(0, 3); track transaction) {
+              <div
+                class="transaction-item"
+                >
+                <div class="transaction-icon" [class.earned]="transaction.points > 0" [class.spent]="transaction.points < 0">
+                  <i class="fas" [class.fa-plus]="transaction.points > 0" [class.fa-minus]="transaction.points < 0"></i>
+                </div>
+                <div class="transaction-details">
+                  <div class="transaction-description">{{ transaction.description }}</div>
+                  <div class="transaction-date">{{ transaction.createdAt | date:'short' }}</div>
+                </div>
+                <div class="transaction-points" [class.earned]="transaction.points > 0" [class.spent]="transaction.points < 0">
+                  {{ transaction.points > 0 ? '+' : '' }}{{ transaction.points | number:'1.0-0' }}
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      }
+    
+      <!-- Gamification Elements -->
+      @if (showGamification()()) {
+        <div class="gamification-section">
+          <!-- Streak Counter -->
+          @if (currentStreak() > 0) {
+            <div class="streak-card">
+              <div class="streak-icon">
+                <i class="fas fa-fire"></i>
+              </div>
+              <div class="streak-content">
+                <div class="streak-number">{{ currentStreak() }}</div>
+                <div class="streak-label">Day Streak</div>
+              </div>
+            </div>
+          }
+          <!-- Achievement Preview -->
+          @if (nextAchievement()) {
+            <div class="next-achievement">
+              <div class="achievement-progress">
+                <div class="achievement-icon">
+                  <i [class]="nextAchievement()!.icon"></i>
+                </div>
+                <div class="achievement-info">
+                  <div class="achievement-name">{{ nextAchievement()!.name }}</div>
+                  <div class="achievement-description">{{ nextAchievement()!.description }}</div>
+                </div>
+              </div>
+              <div class="achievement-progress-bar">
+                <div
+                  class="progress-fill"
+                  [style.width.%]="achievementProgress()">
+                </div>
+              </div>
+              <div class="achievement-status">
+                {{ achievementProgressText() }}
+              </div>
+            </div>
+          }
+        </div>
+      }
+    </div>

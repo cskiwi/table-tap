@@ -6,6 +6,6 @@ export const provideTranslation = (config: ITranslateConfig) => ({
   lang: 'en',
   loader: provideTranslateHttpLoader({
     prefix: `${config.api}`,
-    suffix: '',
-  }),
+    suffix: ''
+  })
 });

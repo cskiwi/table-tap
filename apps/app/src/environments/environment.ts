@@ -5,5 +5,5 @@
       Auth0Audience: 'ranking-simulation',
       Auth0ClientId: '2LqkYZMbrTTXEE0OMkQJLmpRrOVQheoF',
       baseUrl: 'http://localhost:5000',
-    };
+    }
   

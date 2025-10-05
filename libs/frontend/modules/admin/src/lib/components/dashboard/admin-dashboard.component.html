@@ -1,0 +1,319 @@
+<div class="p-4 max-w-[1920px] mx-auto">
+  <!-- Header -->
+  <div class="flex flex-wrap items-start justify-between gap-4 mb-6">
+    <div class="flex-1 min-w-0">
+      <h1 class="text-3xl font-bold mb-2 text-surface-900 dark:text-surface-0">Restaurant Dashboard</h1>
+      <p class="text-surface-600 dark:text-surface-400">Overview of your restaurant's performance</p>
+    </div>
+
+    <div class="flex gap-3 items-center flex-shrink-0">
+      <p-datepicker
+        [(ngModel)]="selectedDateRange"
+        selectionMode="range"
+        [readonlyInput]="true"
+        placeholder="Select Date Range"
+        (onSelect)="onDateRangeChange()">
+      </p-datepicker>
+
+      <p-button
+        icon="pi pi-refresh"
+        [loading]="loading()"
+        (click)="refreshData()"
+        pTooltip="Refresh Data">
+      </p-button>
+    </div>
+  </div>
+
+  <!-- KPI Cards -->
+  @if (metrics()) {
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-6">
+      <p-card class="surface-card">
+        <div class="flex items-start gap-4">
+          <div class="flex items-center justify-center w-12 h-12 rounded-lg bg-blue-100 dark:bg-blue-900/30">
+            <i class="pi pi-dollar text-2xl text-primary"></i>
+          </div>
+          <div class="flex-1 min-w-0">
+            <h3 class="text-2xl font-bold mb-1 text-surface-900 dark:text-surface-0">{{ metrics()!.todayRevenue | currency }}</h3>
+            <p class="text-sm text-surface-600 dark:text-surface-400 mb-2">Today's Revenue</p>
+            <span class="inline-flex items-center gap-1 text-sm text-green-600 dark:text-green-400">
+              <i class="pi pi-arrow-up"></i>
+              +{{ revenueGrowth() }}%
+            </span>
+          </div>
+        </div>
+      </p-card>
+
+      <p-card class="surface-card">
+        <div class="flex items-start gap-4">
+          <div class="flex items-center justify-center w-12 h-12 rounded-lg bg-orange-100 dark:bg-orange-900/30">
+            <i class="pi pi-shopping-cart text-2xl text-orange-600 dark:text-orange-400"></i>
+          </div>
+          <div class="flex-1 min-w-0">
+            <h3 class="text-2xl font-bold mb-1 text-surface-900 dark:text-surface-0">{{ metrics()!.todayOrders }}</h3>
+            <p class="text-sm text-surface-600 dark:text-surface-400 mb-2">Today's Orders</p>
+            <div class="text-sm text-surface-700 dark:text-surface-300">
+              <span>{{ metrics()!.pendingOrders }} Pending</span>
+            </div>
+          </div>
+        </div>
+      </p-card>
+
+      <p-card class="surface-card">
+        <div class="flex items-start gap-4">
+          <div class="flex items-center justify-center w-12 h-12 rounded-lg bg-green-100 dark:bg-green-900/30">
+            <i class="pi pi-users text-2xl text-green-600 dark:text-green-400"></i>
+          </div>
+          <div class="flex-1 min-w-0">
+            <h3 class="text-2xl font-bold mb-1 text-surface-900 dark:text-surface-0">{{ metrics()!.activeEmployees }}</h3>
+            <p class="text-sm text-surface-600 dark:text-surface-400 mb-2">Active Employees</p>
+            <span class="inline-block w-2 h-2 rounded-full bg-green-500"></span>
+          </div>
+        </div>
+      </p-card>
+
+      <p-card class="surface-card">
+        <div class="flex items-start gap-4">
+          <div class="flex items-center justify-center w-12 h-12 rounded-lg bg-red-100 dark:bg-red-900/30">
+            <i class="pi pi-exclamation-triangle text-2xl text-red-600 dark:text-red-400"></i>
+          </div>
+          <div class="flex-1 min-w-0">
+            <h3 class="text-2xl font-bold mb-1 text-surface-900 dark:text-surface-0">{{ metrics()!.lowStockItems }}</h3>
+            <p class="text-sm text-surface-600 dark:text-surface-400 mb-2">Low Stock Alerts</p>
+            <span class="text-sm" [class]="metrics()!.lowStockItems > 0 ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'">
+              {{ metrics()!.lowStockItems > 0 ? 'Attention Required' : 'All Good' }}
+            </span>
+          </div>
+        </div>
+      </p-card>
+
+      <p-card class="surface-card">
+        <div class="flex items-start gap-4">
+          <div class="flex items-center justify-center w-12 h-12 rounded-lg bg-purple-100 dark:bg-purple-900/30">
+            <i class="pi pi-user-plus text-2xl text-purple-600 dark:text-purple-400"></i>
+          </div>
+          <div class="flex-1 min-w-0">
+            <h3 class="text-2xl font-bold mb-1 text-surface-900 dark:text-surface-0">{{ metrics()!.customerCount }}</h3>
+            <p class="text-sm text-surface-600 dark:text-surface-400 mb-2">Total Customers</p>
+            <span class="text-sm text-surface-600 dark:text-surface-400">{{ metrics()!.averageOrderValue | currency }} AOV</span>
+          </div>
+        </div>
+      </p-card>
+
+      <p-card class="surface-card">
+        <div class="flex items-start gap-4">
+          <div class="flex items-center justify-center w-12 h-12 rounded-lg bg-cyan-100 dark:bg-cyan-900/30">
+            <i class="pi pi-box text-2xl text-cyan-600 dark:text-cyan-400"></i>
+          </div>
+          <div class="flex-1 min-w-0">
+            <h3 class="text-2xl font-bold mb-1 text-surface-900 dark:text-surface-0">{{ metrics()!.inventoryValue | currency }}</h3>
+            <p class="text-sm text-surface-600 dark:text-surface-400 mb-2">Inventory Value</p>
+            <span class="text-sm text-surface-600 dark:text-surface-400">Current Stock</span>
+          </div>
+        </div>
+      </p-card>
+    </div>
+  } @else {
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-6">
+      @for (i of [1,2,3,4,5,6]; track i) {
+        <p-card class="surface-card">
+          <p-skeleton height="80px"></p-skeleton>
+        </p-card>
+      }
+    </div>
+  }
+
+  <!-- Charts and Analytics Section -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+    <!-- Revenue Chart -->
+    <p-card class="surface-card">
+      <ng-template pTemplate="header">
+        <div class="flex items-center justify-between p-4 border-b border-surface-200 dark:border-surface-700">
+          <h3 class="text-xl font-semibold text-surface-900 dark:text-surface-0">Revenue Overview</h3>
+          <p-select
+            [options]="chartPeriods"
+            [(ngModel)]="selectedPeriod"
+            (onChange)="updateCharts()"
+            placeholder="Select Period">
+          </p-select>
+        </div>
+      </ng-template>
+
+      <p-chart
+        type="line"
+        [data]="revenueChartData()"
+        [options]="chartOptions"
+        height="300px">
+      </p-chart>
+    </p-card>
+
+    <!-- Order Status Distribution -->
+    <p-card class="surface-card">
+      <ng-template pTemplate="header">
+        <div class="p-4 border-b border-surface-200 dark:border-surface-700">
+          <h3 class="text-xl font-semibold text-surface-900 dark:text-surface-0">Order Status Distribution</h3>
+        </div>
+      </ng-template>
+
+      <p-chart
+        type="doughnut"
+        [data]="orderStatusChartData()"
+        [options]="doughnutOptions"
+        height="300px">
+      </p-chart>
+    </p-card>
+  </div>
+
+  <!-- Critical Alerts Section -->
+  @if (criticalAlerts().length > 0) {
+    <div class="mb-6">
+      <p-card class="surface-card">
+        <ng-template pTemplate="header">
+          <div class="flex items-center justify-between p-4 border-b border-surface-200 dark:border-surface-700">
+            <h3 class="text-xl font-semibold text-surface-900 dark:text-surface-0">
+              <i class="pi pi-exclamation-triangle mr-2"></i>
+              Critical Alerts
+            </h3>
+            <p-button
+              label="View All"
+              [text]="true"
+              routerLink="/admin/inventory">
+            </p-button>
+          </div>
+        </ng-template>
+
+        <div class="flex flex-col gap-3">
+          @for (alert of criticalAlerts().slice(0, 3); track alert) {
+            <div class="flex items-start gap-4 p-4 rounded-lg border"
+                 [class]="alert.severity === 'CRITICAL' ? 'border-red-500 bg-red-50 dark:bg-red-900/10' : 'border-orange-500 bg-orange-50 dark:bg-orange-900/10'">
+              <div class="flex items-center justify-center w-10 h-10 rounded-full"
+                   [class]="alert.severity === 'CRITICAL' ? 'bg-red-100 dark:bg-red-900/30' : 'bg-orange-100 dark:bg-orange-900/30'">
+                <i [class]="getAlertIcon(alert.type)"
+                   [class.text-red-600]="alert.severity === 'CRITICAL'"
+                   [class.text-orange-600]="alert.severity !== 'CRITICAL'"
+                   class="text-xl dark:text-red-400"></i>
+              </div>
+              <div class="flex-1 min-w-0">
+                <h4 class="font-semibold mb-1 text-surface-900 dark:text-surface-0">{{ alert.itemName }}</h4>
+                <p class="text-sm text-surface-700 dark:text-surface-300 mb-2">{{ alert.message }}</p>
+                <span class="text-xs text-surface-600 dark:text-surface-400">
+                  SKU: {{ alert.sku }} • {{ alert.createdAt | date:'short' }}
+                </span>
+              </div>
+              <div class="flex-shrink-0">
+                <p-button
+                  icon="pi pi-times"
+                  [text]="true"
+                  size="small"
+                  (click)="dismissAlert(alert.id)">
+                </p-button>
+              </div>
+            </div>
+          }
+        </div>
+      </p-card>
+    </div>
+  }
+
+  <!-- Employee Performance Section -->
+  <div class="mb-6">
+    <p-card class="surface-card">
+      <ng-template pTemplate="header">
+        <div class="flex items-center justify-between p-4 border-b border-surface-200 dark:border-surface-700">
+          <h3 class="text-xl font-semibold text-surface-900 dark:text-surface-0">Employee Performance</h3>
+          <p-button
+            label="View All"
+            [text]="true"
+            routerLink="/admin/employees">
+          </p-button>
+        </div>
+      </ng-template>
+
+      <p-table
+        [value]="topEmployees()"
+        [rows]="5"
+        styleClass="p-datatable-sm">
+
+        <ng-template pTemplate="header">
+          <tr>
+            <th class="text-surface-900 dark:text-surface-0">Employee</th>
+            <th class="text-surface-900 dark:text-surface-0">Position</th>
+            <th class="text-surface-900 dark:text-surface-0">Orders Processed</th>
+            <th class="text-surface-900 dark:text-surface-0">Avg. Time</th>
+            <th class="text-surface-900 dark:text-surface-0">Rating</th>
+            <th class="text-surface-900 dark:text-surface-0">Status</th>
+            <th class="text-surface-900 dark:text-surface-0">Efficiency</th>
+          </tr>
+        </ng-template>
+
+        <ng-template pTemplate="body" let-employee>
+          <tr>
+            <td>
+              <div class="font-semibold text-surface-900 dark:text-surface-0">
+                {{ employee.employeeName }}
+              </div>
+            </td>
+            <td class="text-surface-700 dark:text-surface-300">{{ employee.position }}</td>
+            <td class="text-surface-700 dark:text-surface-300">{{ employee.ordersProcessed }}</td>
+            <td class="text-surface-700 dark:text-surface-300">{{ employee.averageOrderTime }}m</td>
+            <td>
+              <div class="flex items-center gap-1">
+                <i class="pi pi-star-fill text-yellow-500"></i>
+                <span class="text-surface-900 dark:text-surface-0">{{ employee.customerRating }}</span>
+              </div>
+            </td>
+            <td>
+              <p-tag
+                [value]="employee.currentStatus"
+                [severity]="getEmployeeStatusSeverity(employee.currentStatus)">
+              </p-tag>
+            </td>
+            <td>
+              <div class="flex items-center gap-2">
+                <p-knob
+                  [(ngModel)]="employee.efficiency"
+                  [readonly]="true"
+                  [size]="40"
+                  [showValue]="false"
+                  valueTemplate="{value}%">
+                </p-knob>
+                <span class="text-sm font-semibold text-surface-900 dark:text-surface-0">{{ employee.efficiency }}%</span>
+              </div>
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </p-card>
+  </div>
+
+  <!-- Recent Activity -->
+  <div class="mb-6">
+    <p-card class="surface-card">
+      <ng-template pTemplate="header">
+        <div class="p-4 border-b border-surface-200 dark:border-surface-700">
+          <h3 class="text-xl font-semibold text-surface-900 dark:text-surface-0">Recent Activity</h3>
+        </div>
+      </ng-template>
+
+      <div class="flex flex-col gap-4">
+        @for (activity of recentActivities; track activity) {
+          <div class="flex items-start gap-4">
+            <div class="flex items-center justify-center w-10 h-10 rounded-full"
+                 [class]="activity.type === 'order' ? 'bg-blue-100 dark:bg-blue-900/30' :
+                          activity.type === 'inventory' ? 'bg-orange-100 dark:bg-orange-900/30' :
+                          'bg-green-100 dark:bg-green-900/30'">
+              <i [class]="activity.icon + ' text-lg'"
+                 [class.text-primary]="activity.type === 'order'"
+                 [class.text-orange-600]="activity.type === 'inventory'"
+                 [class.text-green-600]="activity.type === 'employee'"></i>
+            </div>
+            <div class="flex-1 min-w-0">
+              <p class="font-semibold mb-1 text-surface-900 dark:text-surface-0">{{ activity.title }}</p>
+              <p class="text-sm text-surface-700 dark:text-surface-300 mb-1">{{ activity.description }}</p>
+              <span class="text-xs text-surface-600 dark:text-surface-400">{{ activity.timestamp | date:'short' }}</span>
+            </div>
+          </div>
+        }
+      </div>
+    </p-card>
+  </div>
+</div>

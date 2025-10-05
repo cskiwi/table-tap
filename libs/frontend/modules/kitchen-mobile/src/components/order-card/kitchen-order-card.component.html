@@ -1,0 +1,292 @@
+<!-- Kitchen Order Card with Swipe Gestures -->
+<div
+  #cardElement
+  class="kitchen-order-card"
+  [class.compact]="compact()"
+  [class.expanded]="isExpanded"
+  [class.swiping]="isSwipeActive"
+  [class.urgent]="shouldShowUrgentIndicator()"
+  [class.timer-running]="timer()?.isRunning"
+  [style.transform]="'translateX(' + swipeOffset + 'px)'"
+  [style.border-left-color]="getPriorityColor()">
+
+  <!-- Swipe Action Indicators -->
+  <div class="swipe-actions">
+    <div class="swipe-action left" [class.active]="swipeDirection === 'left'">
+      <i [class]="'pi ' + (timer()?.isRunning ?? false ? 'pi-stop' : 'pi-play')"></i>
+      <span>{{timer()?.isRunning ?? false ? 'Stop Timer' : 'Start Timer'}}</span>
+    </div>
+    <div class="swipe-action right" [class.active]="swipeDirection === 'right'">
+      <i [class]="'pi ' + (order().status === 'ready' ? 'pi-check-circle' : 'pi-check')"></i>
+      <span>{{order().status === 'ready' ? 'Complete' : 'Ready'}}</span>
+    </div>
+  </div>
+
+  <!-- Card Header -->
+  <div class="card-header">
+    <div class="order-info">
+      <div class="order-id">
+        <span class="id-label">Order</span>
+        <span class="id-number">#{{order().id}}</span>
+      </div>
+      <div class="order-meta">
+        <span class="order-age">{{getOrderAge()}}</span>
+        <div class="station-badge">
+          <i [class]="'pi ' + getStationIcon()"></i>
+          <span>{{order().station | titlecase}}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="priority-indicator" [style.color]="getPriorityColor()">
+      <i [class]="'pi ' + getPriorityIcon()"></i>
+    </div>
+  </div>
+
+  <!-- Timer Section -->
+  @if (timer()) {
+    <div class="timer-section">
+      <div class="timer-display">
+        <div class="timer-main">
+          <span class="timer-time" [style.color]="getTimerColor() === 'warn' ? '#f44336' : '#2196f3'">
+            {{formatTime(timer()?.remainingTime ?? 0)}}
+          </span>
+          <div class="timer-status">
+            <i [class]="'pi timer-icon ' + ((timer()?.isRunning ?? false) ? ((timer()?.isPaused ?? false) ? 'pi-pause' : 'pi-clock') : 'pi-clock')" [class.paused]="timer()?.isPaused ?? false"></i>
+            @if (timer()?.isRunning ?? false) {
+              <span class="ready-time">
+                Ready at {{getEstimatedReadyTime()}}
+              </span>
+            }
+          </div>
+        </div>
+        <!-- Timer Progress Bar -->
+        <p-progressBar
+          class="timer-progress"
+          [value]="getTimerProgress()">
+        </p-progressBar>
+      </div>
+      <!-- Timer Controls (Expandable) -->
+      <div class="timer-controls" [class.visible]="showTimerControls">
+        <button
+          pButton
+          type="button"
+          icon="pi pi-play"
+          class="timer-control p-button-rounded p-button-text"
+          (click)="startTimer()"
+          [disabled]="timer()?.isRunning ?? false"
+          pTooltip="Start Timer">
+        </button>
+        <button
+          pButton
+          type="button"
+          icon="pi pi-pause"
+          class="timer-control p-button-rounded p-button-text"
+          (click)="pauseTimer()"
+          [disabled]="!(timer()?.isRunning ?? false) || (timer()?.isPaused ?? false)"
+          pTooltip="Pause Timer">
+        </button>
+        <button
+          pButton
+          type="button"
+          icon="pi pi-play"
+          class="timer-control p-button-rounded p-button-text"
+          (click)="resumeTimer()"
+          [disabled]="!(timer()?.isPaused ?? false)"
+          pTooltip="Resume Timer">
+        </button>
+        <button
+          pButton
+          type="button"
+          icon="pi pi-stop"
+          class="timer-control p-button-rounded p-button-text"
+          (click)="stopTimer()"
+          [disabled]="!(timer()?.isRunning ?? false)"
+          pTooltip="Stop Timer">
+        </button>
+      </div>
+      <button
+        pButton
+        type="button"
+        [icon]="showTimerControls ? 'pi pi-chevron-up' : 'pi pi-chevron-down'"
+        class="timer-toggle p-button-rounded p-button-text"
+        (click)="toggleTimerControls()"
+        pTooltip="Timer Controls">
+      </button>
+    </div>
+  }
+
+  <!-- Order Items -->
+  <div class="order-items">
+    @if (!compact()) {
+      <div class="items-header" (click)="toggleExpanded()">
+        <span class="items-label">Items ({{order().items?.length || 0}})</span>
+        <i class="pi pi-chevron-down expand-icon" [class.expanded]="isExpanded"></i>
+      </div>
+    }
+
+    <div class="items-list" [class.compact]="compact()">
+      <!-- Compact view -->
+      @if (compact() || !isExpanded) {
+        <div class="items-summary">
+          {{getItemsDisplay()}}
+        </div>
+      }
+
+      <!-- Expanded view -->
+      @if (!compact() && isExpanded) {
+        <div class="items-detailed">
+          @for (item of order().items; track item) {
+            <div class="order-item">
+              <div class="item-main">
+                <span class="item-quantity">{{item.quantity}}x</span>
+                <span class="item-name">{{item.name}}</span>
+                <div class="item-status" [class.ready]="item.isReady">
+                  <i [class]="'pi ' + (item.isReady ? 'pi-check-circle' : 'pi-circle')"></i>
+                </div>
+              </div>
+              @if (item.modificationNotes || item.allergens?.length) {
+                <div class="item-details">
+                  @if (item.modificationNotes) {
+                    <div class="modifications">
+                      <i class="pi pi-pencil"></i>
+                      <span>{{item.modificationNotes}}</span>
+                    </div>
+                  }
+                  @if (item.allergens?.length) {
+                    <div class="allergens">
+                      <i class="pi pi-exclamation-triangle allergen-icon"></i>
+                      <span>{{item.allergens?.join(', ')}}</span>
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          }
+        </div>
+      }
+    </div>
+  </div>
+
+  <!-- Notes Section -->
+  @if (order().notes?.length || isExpanded) {
+    <div class="notes-section">
+      @if (order().notes?.length) {
+        <div class="notes-header">
+          <i class="pi pi-file"></i>
+          <span>Notes</span>
+        </div>
+      }
+      <div class="notes-list">
+        @for (note of order().notes; track note) {
+          <div class="note-item">
+            {{note}}
+          </div>
+        }
+      </div>
+      <!-- Add Note (Expanded View) -->
+      @if (isExpanded) {
+        <div class="add-note">
+          <span class="p-float-label note-field">
+            <input pInputText id="noteInput" #noteInput (keyup.enter)="addNoteToOrder(noteInput.value); noteInput.value = ''">
+            <label for="noteInput">Add note...</label>
+            <button
+              pButton
+              type="button"
+              icon="pi pi-plus"
+              class="p-button-rounded p-button-text"
+              (click)="addNoteToOrder(noteInput.value); noteInput.value = ''"
+              [disabled]="!noteInput.value?.trim()">
+            </button>
+          </span>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- Allergen Warnings -->
+  @if (hasAllergens()) {
+    <div class="allergen-warning">
+      <i class="pi pi-exclamation-triangle warning-icon"></i>
+      <span>Contains allergens: {{order().allergens?.join(', ')}}</span>
+    </div>
+  }
+
+  <!-- Quick Actions (Show on Long Press) -->
+  <div class="quick-actions" [class.visible]="showActions" [@slideInOut]>
+    <div class="actions-header">
+      <span>Quick Actions</span>
+      <button pButton type="button" icon="pi pi-times" class="p-button-rounded p-button-text" (click)="showActions = false"></button>
+    </div>
+
+    <div class="action-buttons">
+      <button
+        pButton
+        type="button"
+        icon="pi pi-check"
+        label="Mark Ready"
+        class="action-btn ready-btn"
+        (click)="markReady(); showActions = false"
+        [disabled]="order().status === OrderStatus.READY || order().status === OrderStatus.DELIVERED">
+      </button>
+
+      <button
+        pButton
+        type="button"
+        icon="pi pi-check-circle"
+        label="Complete"
+        class="action-btn complete-btn"
+        (click)="markComplete(); showActions = false"
+        [disabled]="order().status === OrderStatus.DELIVERED">
+      </button>
+
+      <button
+        pButton
+        type="button"
+        [icon]="(timer()?.isRunning ?? false) ? 'pi pi-stop' : 'pi pi-play'"
+        [label]="(timer()?.isRunning ?? false) ? 'Stop Timer' : 'Start Timer'"
+        class="action-btn timer-btn"
+        (click)="(timer()?.isRunning ?? false) ? stopTimer() : startTimer(); showActions = false">
+      </button>
+
+      <!-- Priority Actions -->
+      <div class="priority-actions">
+        <span class="action-label">Priority:</span>
+        @for (priority of [OrderPriority.LOW, OrderPriority.NORMAL, OrderPriority.HIGH, OrderPriority.URGENT]; track priority) {
+          <button
+            pButton
+            type="button"
+            [icon]="'pi ' + getPriorityIcon()"
+            [style.color]="getPriorityColor()"
+            class="p-button-rounded p-button-text"
+            [class.active]="order().priority === priority"
+            (click)="updatePriority(priority); showActions = false"
+            [pTooltip]="priority | titlecase">
+          </button>
+        }
+      </div>
+    </div>
+  </div>
+
+  <!-- Status Indicator -->
+  <div class="status-indicator" [style.background-color]="getStatusColor()">
+    <span>{{order().status | titlecase}}</span>
+  </div>
+
+  <!-- Urgent Indicator (Pulsing Animation) -->
+  @if (shouldShowUrgentIndicator()) {
+    <div class="urgent-indicator" [@pulse]>
+      <i class="pi pi-exclamation-circle"></i>
+      <span>URGENT</span>
+    </div>
+  }
+
+</div>
+
+<!-- Swipe Gesture Helper Text (First Time User) -->
+@if (false) {
+  <div class="swipe-helper" [@fadeInOut]>
+    <i class="pi pi-arrows-h"></i>
+    <span>Swipe left for timer, right for status</span>
+  </div>
+}

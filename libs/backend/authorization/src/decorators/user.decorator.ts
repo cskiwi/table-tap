@@ -5,7 +5,7 @@ import { getRequest } from '../utils';
 export const ReqUser = createParamDecorator(async (data: unknown, context: ExecutionContext) => {
   const request = getRequest(context);
 
-  const user = request['user'];
+  const user = request['user']
 
   // If we have a user in the request, return it
   if (user && user.sub && user.id) {
@@ -18,17 +18,17 @@ export const ReqUser = createParamDecorator(async (data: unknown, context: Execu
     hasAllPermissions: () => env['NODE_ENV'] === 'development' || false,
     toJSON: () => ({}),
     ...user,
-  };
+  }
 });
 
 export interface LoggedInUser extends User {
   context: {
     iss: string;
     sub: string;
-    aud: string[];
+    aud: string[]
     iat: number;
     exp: number;
     azp: string;
     scope: string;
-  };
+  }
 }

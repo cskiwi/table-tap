@@ -13,14 +13,14 @@ export interface ApiResponse<T> {
   data: T;
   success: boolean;
   message?: string;
-  errors?: string[];
+  errors?: string[]
   metadata?: {
     total?: number;
     page?: number;
     limit?: number;
     hasNext?: boolean;
     hasPrevious?: boolean;
-  };
+  }
 }
 
 export interface PaginationOptions {
@@ -36,7 +36,7 @@ export interface Order extends BaseEntity {
   orderNumber: string;
   customerId?: string;
   tableId?: string;
-  items: OrderItem[];
+  items: OrderItem[]
   status: OrderStatus;
   totalAmount: number;
   subtotal: number;
@@ -57,7 +57,7 @@ export interface OrderItem {
   quantity: number;
   unitPrice: number;
   totalPrice: number;
-  customizations?: ProductCustomization[];
+  customizations?: ProductCustomization[]
   notes?: string;
 }
 
@@ -104,10 +104,10 @@ export interface Product extends BaseEntity {
   imageUrl?: string;
   isAvailable: boolean;
   preparationTime: number;
-  allergens?: string[];
+  allergens?: string[]
   nutritionalInfo?: NutritionalInfo;
-  customizationOptions?: CustomizationOption[];
-  ingredients?: Ingredient[];
+  customizationOptions?: CustomizationOption[]
+  ingredients?: Ingredient[]
   isVegan?: boolean;
   isGlutenFree?: boolean;
   isSpicy?: boolean;
@@ -128,7 +128,7 @@ export interface CustomizationOption {
   name: string;
   type: 'SINGLE' | 'MULTIPLE';
   required: boolean;
-  options: CustomizationValue[];
+  options: CustomizationValue[]
 }
 
 export interface CustomizationValue {
@@ -193,7 +193,7 @@ export interface Employee extends BaseEntity {
   isActive: boolean;
   hourlyRate?: number;
   cafeId: string;
-  permissions: Permission[];
+  permissions: Permission[]
 }
 
 export enum EmployeeRole {
@@ -285,11 +285,11 @@ export interface CafeSettings {
   autoAcceptOrders: boolean;
   orderTimeoutMinutes: number;
   allowTips: boolean;
-  defaultTipPercentages: number[];
+  defaultTipPercentages: number[]
   printReceipts: boolean;
   sendEmailReceipts: boolean;
   currency: string;
-  paymentMethods: PaymentMethod[];
+  paymentMethods: PaymentMethod[]
 }
 
 export interface Table extends BaseEntity {
@@ -317,7 +317,7 @@ export interface OrderUpdate extends WebSocketMessage {
     status: OrderStatus;
     estimatedTime?: number;
     message?: string;
-  };
+  }
 }
 
 export interface InventoryAlert extends WebSocketMessage {
@@ -328,7 +328,7 @@ export interface InventoryAlert extends WebSocketMessage {
     currentStock: number;
     minimumStock: number;
     severity: 'LOW' | 'CRITICAL';
-  };
+  }
 }
 
 export interface NotificationMessage extends WebSocketMessage {
@@ -341,8 +341,8 @@ export interface NotificationMessage extends WebSocketMessage {
     action?: {
       label: string;
       url: string;
-    };
-  };
+    }
+  }
 }
 
 // Authentication types
@@ -352,7 +352,7 @@ export interface User {
   firstName?: string;
   lastName?: string;
   role: UserRole;
-  permissions: string[];
+  permissions: string[]
   cafeId?: string;
   isActive: boolean;
   lastLoginAt?: Date;
@@ -374,7 +374,7 @@ export interface UserPreferences {
     email: boolean;
     push: boolean;
     sms: boolean;
-  };
+  }
   defaultCurrency?: string;
 }
 
@@ -471,23 +471,23 @@ export interface AuthState {
 
 export interface OrderState {
   currentOrder: Order | null;
-  orderHistory: Order[];
-  cartItems: OrderItem[];
+  orderHistory: Order[]
+  cartItems: OrderItem[]
   isLoading: boolean;
   error: string | null;
 }
 
 export interface ProductState {
-  products: Product[];
-  categories: ProductCategory[];
+  products: Product[]
+  categories: ProductCategory[]
   selectedCategory: string | null;
   isLoading: boolean;
   error: string | null;
 }
 
 export interface InventoryState {
-  items: InventoryItem[];
-  alerts: InventoryAlert[];
+  items: InventoryItem[]
+  alerts: InventoryAlert[]
   isLoading: boolean;
   error: string | null;
 }
@@ -496,11 +496,11 @@ export interface UIState {
   theme: 'light' | 'dark';
   sidebarOpen: boolean;
   loading: boolean;
-  notifications: NotificationMessage[];
+  notifications: NotificationMessage[]
 }
 
 export interface OfflineState {
   isOnline: boolean;
-  pendingActions: any[];
+  pendingActions: any[]
   lastSyncTime: Date | null;
 }

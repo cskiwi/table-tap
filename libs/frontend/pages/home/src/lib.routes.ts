@@ -5,5 +5,4 @@ export const pageHomeRoutes: Route[] = [
   {
     path: '',
     component: PageHomeComponent,
-  },
-];
+  },]

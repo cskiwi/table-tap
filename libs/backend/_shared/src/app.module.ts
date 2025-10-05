@@ -1,6 +1,6 @@
 import { AuthorizationModule } from '@app/backend-authorization';
 import { DatabaseModule } from '@app/backend-database';
-import { GraphQLModule } from '@app/backend-graphql';
+// import { GraphQLModule } from '@app/backend-graphql'; // Import directly in main app
 import { HealthModule } from '@app/backend-health';
 import { SeoModule } from '@app/backend-seo';
 import { TranslateModule } from '@app/backend-translate';
@@ -15,7 +15,7 @@ import { ScheduleModule } from '@nestjs/schedule';
     }),
     DatabaseModule,
     AuthorizationModule,
-    GraphQLModule,
+    // GraphQLModule, // Import directly in main app
     SeoModule,
     HealthModule,
     TranslateModule,

@@ -1,0 +1,199 @@
+<div class="p-4">
+  <div class="flex items-center gap-3 mb-4">
+    <i class="pi pi-clock text-2xl"></i>
+    <h2 class="text-xl font-semibold">Create Cooking Timer</h2>
+  </div>
+
+  <form [formGroup]="timerForm" class="flex flex-col gap-4">
+    <!-- Timer Name -->
+    <p-floatlabel>
+      <input
+        pInputText
+        formControlName="name"
+        class="w-full"
+        id="timerName"
+        placeholder="e.g., Pasta Cooking">
+      <label for="timerName">Timer Name</label>
+    </p-floatlabel>
+
+    <!-- Duration Input -->
+    <div>
+      <h3 class="font-medium mb-3">Duration</h3>
+
+      <!-- Quick Duration Buttons -->
+      <div class="grid grid-cols-3 gap-2 mb-3">
+        @for (duration of quickDurations; track duration) {
+          <p-button
+            [label]="duration.label"
+            [severity]="selectedQuickDuration() === duration.seconds ? 'primary' : 'secondary'"
+            [outlined]="selectedQuickDuration() !== duration.seconds"
+            (click)="setQuickDuration(duration.seconds)"
+            class="w-full">
+          </p-button>
+        }
+      </div>
+
+      <p-divider></p-divider>
+
+      <!-- Custom Duration -->
+      <div class="mt-3">
+        <div class="grid grid-cols-2 gap-3 mb-3">
+          <p-floatlabel>
+            <input
+              pInputText
+              type="number"
+              min="0"
+              max="60"
+              formControlName="minutes"
+              class="w-full"
+              id="minutes"
+              (input)="updateDuration()">
+            <label for="minutes">Minutes</label>
+          </p-floatlabel>
+
+          <p-floatlabel>
+            <input
+              pInputText
+              type="number"
+              min="0"
+              max="59"
+              formControlName="seconds"
+              class="w-full"
+              id="seconds"
+              (input)="updateDuration()">
+            <label for="seconds">Seconds</label>
+          </p-floatlabel>
+        </div>
+
+        <!-- Duration Slider -->
+        <div>
+          <label class="block mb-2 font-medium">Total Duration: {{ formatDuration(getTotalSeconds()) }}</label>
+          <p-slider
+            [min]="30"
+            [max]="3600"
+            [step]="30"
+            [ngModel]="getTotalSeconds()"
+            [ngModelOptions]="{standalone: true}"
+            (onSlideEnd)="onSliderChange($event)"
+            class="w-full">
+          </p-slider>
+        </div>
+      </div>
+    </div>
+
+    <p-divider></p-divider>
+
+    <!-- Timer Type -->
+    <p-floatlabel>
+      <p-select
+        formControlName="type"
+        [options]="[
+          { label: 'Cooking', value: 'cooking', icon: 'pi-fire' },
+          { label: 'Preparation', value: 'preparation', icon: 'pi-scissors' },
+          { label: 'Rest/Settling', value: 'rest', icon: 'pi-pause' },
+          { label: 'Cooling', value: 'cooling', icon: 'pi-snowflake' },
+          { label: 'Serving Window', value: 'serving', icon: 'pi-box' },
+          { label: 'Custom', value: 'custom', icon: 'pi-clock' }
+        ]"
+        optionLabel="label"
+        optionValue="value"
+        class="w-full"
+        inputId="timerType">
+        <ng-template pTemplate="item" let-option>
+          <div class="flex items-center gap-2">
+            <i [class]="'pi ' + option.icon"></i>
+            <span>{{ option.label }}</span>
+          </div>
+        </ng-template>
+      </p-select>
+      <label for="timerType">Timer Type</label>
+    </p-floatlabel>
+
+    <!-- Priority -->
+    <p-floatlabel>
+      <p-select
+        formControlName="priority"
+        [options]="[
+          { label: 'Low', value: 'low', icon: 'pi-arrow-down' },
+          { label: 'Medium', value: 'medium', icon: 'pi-minus' },
+          { label: 'High', value: 'high', icon: 'pi-arrow-up' },
+          { label: 'Critical', value: 'critical', icon: 'pi-exclamation-circle' }
+        ]"
+        optionLabel="label"
+        optionValue="value"
+        class="w-full"
+        inputId="priority">
+        <ng-template pTemplate="item" let-option>
+          <div class="flex items-center gap-2">
+            <i [class]="'pi ' + option.icon"></i>
+            <span>{{ option.label }}</span>
+          </div>
+        </ng-template>
+      </p-select>
+      <label for="priority">Priority</label>
+    </p-floatlabel>
+
+    <p-divider></p-divider>
+
+    <!-- Notification Settings -->
+    <div>
+      <h3 class="font-medium mb-3">Notifications</h3>
+
+      <div class="flex flex-col gap-3">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <i class="pi pi-volume-up"></i>
+            <span>Sound Alert</span>
+          </div>
+          <p-checkbox formControlName="sound" [binary]="true"></p-checkbox>
+        </div>
+
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <i class="pi pi-mobile"></i>
+            <span>Vibration (Mobile)</span>
+          </div>
+          <p-checkbox formControlName="vibration" [binary]="true"></p-checkbox>
+        </div>
+      </div>
+    </div>
+
+    <!-- Order Context -->
+    <div class="p-3 bg-surface-50 dark:bg-surface-800 rounded-lg">
+      <h4 class="font-medium mb-2">Order Context</h4>
+      <div class="flex flex-col gap-2">
+        <div class="flex items-center gap-2">
+          <i class="pi pi-receipt"></i>
+          <span>Order #{{ data.order.orderNumber }}</span>
+        </div>
+        @if (data.order.customerName) {
+          <div class="flex items-center gap-2">
+            <i class="pi pi-user"></i>
+            <span>{{ data.order.customerName }}</span>
+          </div>
+        }
+        @if (data.order.tableNumber) {
+          <div class="flex items-center gap-2">
+            <i class="pi pi-table"></i>
+            <span>Table {{ data.order.tableNumber }}</span>
+          </div>
+        }
+      </div>
+    </div>
+  </form>
+
+  <!-- Dialog Actions -->
+  <div class="flex justify-end gap-2 mt-4 pt-4 border-t border-surface-200 dark:border-surface-700">
+    <p-button
+      label="Cancel"
+      severity="secondary"
+      (click)="onCancel()">
+    </p-button>
+    <p-button
+      label="Create Timer"
+      icon="pi pi-clock"
+      (click)="onCreate()"
+      [disabled]="!timerForm.valid || getTotalSeconds() === 0">
+    </p-button>
+  </div>
+</div>

@@ -1,0 +1,134 @@
+<div class="w-full animate-fade-in" [class.inline-block]="layout === 'inline'" role="alert" [attr.aria-label]="ariaLabel">
+  <!-- Simple Message Display -->
+  <div *ngIf="displayMode === 'simple'" class="flex flex-col gap-4">
+    <p-message
+      [severity]="messageSeverity"
+      [text]="error?.message || message"
+      [closable]="closable"
+      (onClose)="onClose()">
+    </p-message>
+
+    <div class="flex gap-3 flex-wrap" *ngIf="showActions">
+      <p-button
+        *ngIf="showRetry"
+        label="Try Again"
+        icon="pi pi-refresh"
+        severity="secondary"
+        [outlined]="true"
+        size="small"
+        (onClick)="onRetry()">
+      </p-button>
+
+      <p-button
+        *ngIf="showReport"
+        label="Report Issue"
+        icon="pi pi-flag"
+        severity="help"
+        [outlined]="true"
+        size="small"
+        (onClick)="onReport()">
+      </p-button>
+    </div>
+  </div>
+
+  <!-- Detailed Error Display -->
+  <div *ngIf="displayMode === 'detailed'" class="bg-surface-card border border-surface-border rounded-lg p-6">
+    <div class="flex items-start gap-4 mb-6">
+      <div class="flex-shrink-0">
+        <i [class]="errorIcon + ' text-3xl'" [attr.aria-hidden]="true"></i>
+      </div>
+      <div class="flex-1">
+        <h3 class="m-0 mb-2 text-xl font-semibold text-color">{{ error?.title || defaultTitle }}</h3>
+        <p class="m-0 text-color-secondary leading-relaxed">{{ error?.message || message }}</p>
+      </div>
+    </div>
+
+    <div class="bg-surface-ground rounded-md p-4 mb-4 text-sm" *ngIf="showMeta">
+      <div class="mb-2" *ngIf="error?.code">
+        <strong>Error Code:</strong> {{ error.code }}
+      </div>
+      <div class="mb-0" *ngIf="error?.timestamp">
+        <strong>Time:</strong> {{ error.timestamp | date:'medium' }}
+      </div>
+    </div>
+
+    <div class="mb-6" *ngIf="error?.details">
+      <details [open]="expandDetails">
+        <summary class="cursor-pointer">Error Details</summary>
+        <div class="bg-surface-ground rounded p-4 max-h-[300px] overflow-auto mt-2">
+          <pre class="m-0 font-mono text-xs whitespace-pre-wrap break-words">{{ error.details }}</pre>
+        </div>
+      </details>
+    </div>
+
+    <div class="mb-6" *ngIf="showStack && error?.stack">
+      <details>
+        <summary class="cursor-pointer">Technical Details</summary>
+        <div class="bg-surface-ground rounded p-4 max-h-[300px] overflow-auto mt-2">
+          <pre class="m-0 font-mono text-xs whitespace-pre-wrap break-words">{{ error.stack }}</pre>
+        </div>
+      </details>
+    </div>
+
+    <div class="flex gap-3 flex-wrap md:flex-row flex-col">
+      <p-button
+        *ngIf="showRetry"
+        label="Try Again"
+        icon="pi pi-refresh"
+        severity="secondary"
+        (onClick)="onRetry()">
+      </p-button>
+
+      <p-button
+        *ngIf="showReport"
+        label="Report Issue"
+        icon="pi pi-flag"
+        severity="help"
+        [outlined]="true"
+        (onClick)="onReport()">
+      </p-button>
+
+      <p-button
+        *ngIf="showHome"
+        label="Go Home"
+        icon="pi pi-home"
+        severity="info"
+        [outlined]="true"
+        (onClick)="onGoHome()">
+      </p-button>
+
+      <p-button
+        *ngIf="closable"
+        label="Dismiss"
+        icon="pi pi-times"
+        severity="secondary"
+        [outlined]="true"
+        (onClick)="onClose()">
+      </p-button>
+    </div>
+  </div>
+
+  <!-- Card Display -->
+  <div *ngIf="displayMode === 'card'" class="flex justify-center">
+    <div class="flex items-center gap-4 bg-surface-card border border-surface-border rounded-lg p-4 max-w-md w-full md:flex-row flex-col md:text-left text-center">
+      <i [class]="errorIcon + ' text-2xl text-red-500'" [attr.aria-hidden]="true"></i>
+      <div class="flex-1">
+        <h4 class="m-0 mb-1 text-base font-semibold text-color">{{ error?.title || defaultTitle }}</h4>
+        <p class="m-0 mb-3 text-sm text-color-secondary">{{ error?.message || message }}</p>
+        <div class="flex gap-2" *ngIf="showActions && showRetry">
+          <p-button
+            label="Retry"
+            icon="pi pi-refresh"
+            size="small"
+            (onClick)="onRetry()">
+          </p-button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Custom Error Content -->
+  <div class="mt-4" *ngIf="hasCustomContent">
+    <ng-content></ng-content>
+  </div>
+</div>

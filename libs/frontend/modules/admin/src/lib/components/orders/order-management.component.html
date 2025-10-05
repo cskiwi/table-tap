@@ -1,0 +1,451 @@
+<div class="flex flex-col gap-6 p-6">
+  <!-- Header -->
+  <div class="flex justify-between items-center">
+    <div class="flex flex-col gap-2">
+      <h1 class="text-3xl font-bold text-color m-0">Order Management</h1>
+      <p class="text-color-secondary m-0">Manage and track all restaurant orders</p>
+    </div>
+
+    <div class="flex gap-3">
+      <p-button
+        icon="pi pi-refresh"
+        [loading]="loading()"
+        (click)="refreshOrders()"
+        pTooltip="Refresh Orders">
+      </p-button>
+
+      <p-button
+        icon="pi pi-plus"
+        label="New Order"
+        (click)="createNewOrder()">
+      </p-button>
+    </div>
+  </div>
+
+  <!-- Order Status Cards -->
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+    @for (status of orderStatusCards(); track status) {
+      <p-card class="cursor-pointer" (click)="filterByStatus(status.key)">
+        <div class="flex items-center gap-4">
+          <div class="flex items-center justify-center w-12 h-12 rounded-full bg-primary-100 text-primary-600">
+            <i [class]="'pi ' + status.icon + ' text-xl'"></i>
+          </div>
+          <div class="flex flex-col">
+            <h3 class="text-3xl font-bold text-color m-0">{{ status.count }}</h3>
+            <p class="text-color-secondary m-0">{{ status.label }}</p>
+          </div>
+        </div>
+      </p-card>
+    }
+  </div>
+
+  <!-- Filters and Search -->
+  <p-card>
+    <div class="flex flex-col gap-4">
+      <div class="flex flex-col md:flex-row gap-4 items-start md:items-center">
+        <span class="p-input-icon-left flex-1">
+          <i class="pi pi-search"></i>
+          <input
+            pInputText
+            type="text"
+            [(ngModel)]="searchTerm"
+            placeholder="Search orders..."
+            (input)="onSearch()"
+            class="w-full">
+        </span>
+
+        <div class="flex flex-wrap gap-3">
+          <p-select
+            [options]="statusFilterOptions"
+            [(ngModel)]="selectedStatus"
+            placeholder="All Statuses"
+            (onChange)="applyFilters()"
+            [showClear]="true">
+          </p-select>
+
+          <p-select
+            [options]="paymentStatusOptions"
+            [(ngModel)]="selectedPaymentStatus"
+            placeholder="Payment Status"
+            (onChange)="applyFilters()"
+            [showClear]="true">
+          </p-select>
+
+          <p-select
+            [options]="orderTypeOptions"
+            [(ngModel)]="selectedOrderType"
+            placeholder="Order Type"
+            (onChange)="applyFilters()"
+            [showClear]="true">
+          </p-select>
+
+          <p-datepicker
+            [(ngModel)]="selectedDateRange"
+            selectionMode="range"
+            [readonlyInput]="true"
+            placeholder="Date Range"
+            (onSelect)="applyFilters()"
+            [showClear]="true">
+          </p-datepicker>
+        </div>
+      </div>
+
+      <div class="flex gap-3">
+        <p-button
+          icon="pi pi-filter-slash"
+          label="Clear Filters"
+          [text]="true"
+          (click)="clearFilters()">
+        </p-button>
+
+        <p-button
+          icon="pi pi-download"
+          label="Export"
+          [outlined]="true"
+          (click)="exportOrders()">
+        </p-button>
+      </div>
+    </div>
+  </p-card>
+
+  <!-- Orders Table -->
+  <p-card>
+    <p-table
+      [value]="filteredOrders()"
+      [rows]="20"
+      [paginator]="true"
+      [loading]="loading()"
+      [rowsPerPageOptions]="[10, 20, 50]"
+      [sortField]="'createdAt'"
+      [sortOrder]="-1"
+      styleClass="p-datatable-sm"
+      [globalFilterFields]="['orderNumber', 'customerName', 'customerEmail']"
+      #ordersTable>
+
+      <ng-template pTemplate="header">
+        <tr>
+          <th pSortableColumn="orderNumber" class="text-color">
+            Order # <p-sortIcon field="orderNumber"></p-sortIcon>
+          </th>
+          <th pSortableColumn="customerName" class="text-color">
+            Customer <p-sortIcon field="customerName"></p-sortIcon>
+          </th>
+          <th pSortableColumn="status" class="text-color">
+            Status <p-sortIcon field="status"></p-sortIcon>
+          </th>
+          <th class="text-color">Items</th>
+          <th pSortableColumn="totalAmount" class="text-color">
+            Amount <p-sortIcon field="totalAmount"></p-sortIcon>
+          </th>
+          <th pSortableColumn="paymentStatus" class="text-color">
+            Payment <p-sortIcon field="paymentStatus"></p-sortIcon>
+          </th>
+          <th pSortableColumn="createdAt" class="text-color">
+            Created <p-sortIcon field="createdAt"></p-sortIcon>
+          </th>
+          <th class="text-color">Assigned To</th>
+          <th class="text-color">Actions</th>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="body" let-order let-rowIndex="rowIndex">
+        <tr [class.bg-red-50]="isPriorityOrder(order)">
+          <td>
+            <div class="flex flex-col gap-1">
+              <strong class="text-color">{{ order.orderNumber }}</strong>
+              @if (order.orderType) {
+                <p-badge
+                  [value]="order.orderType"
+                  [severity]="getOrderTypeSeverity(order.orderType)">
+                </p-badge>
+              }
+            </div>
+          </td>
+
+          <td>
+            <div class="flex flex-col gap-1">
+              <strong class="text-color">{{ order.customerName }}</strong>
+              @if (order.customerEmail) {
+                <p class="text-color-secondary text-sm m-0">
+                  {{ order.customerEmail }}
+                </p>
+              }
+              @if (order.tableNumber) {
+                <p class="text-color-secondary text-sm m-0">
+                  Table {{ order.tableNumber }}
+                </p>
+              }
+            </div>
+          </td>
+
+          <td>
+            <div class="flex flex-col gap-1">
+              <p-tag
+                [value]="order.status"
+                [severity]="getOrderStatusSeverity(order.status)">
+              </p-tag>
+              @if (order.estimatedReadyTime) {
+                <div class="text-sm text-color-secondary">
+                  ETA: {{ order.estimatedReadyTime | date:'shortTime' }}
+                </div>
+              }
+            </div>
+          </td>
+
+          <td>
+            <div class="flex flex-wrap gap-2">
+              @for (item of order.items.slice(0, 2); track item) {
+                <p-chip
+                  [label]="item.menuItemName + ' (' + item.quantity + ')'">
+                </p-chip>
+              }
+              @if (order.items.length > 2) {
+                <p-chip
+                  [label]="'+' + (order.items.length - 2) + ' more'"
+                  class="cursor-pointer"
+                  (click)="showOrderDetails(order)">
+                </p-chip>
+              }
+            </div>
+          </td>
+
+          <td>
+            <strong class="text-color">{{ order.totalAmount | currency }}</strong>
+          </td>
+
+          <td>
+            <div class="flex flex-col gap-1">
+              <p-tag
+                [value]="order.paymentStatus"
+                [severity]="getPaymentStatusSeverity(order.paymentStatus)">
+              </p-tag>
+              @if (order.paymentMethod) {
+                <div class="text-sm text-color-secondary">
+                  {{ order.paymentMethod }}
+                </div>
+              }
+            </div>
+          </td>
+
+          <td>
+            <div class="flex flex-col gap-1">
+              <div class="text-color">{{ order.createdAt | date:'short' }}</div>
+              <span class="text-sm text-color-secondary">
+                ({{ getTimeAgo(order.createdAt) }})
+              </span>
+            </div>
+          </td>
+
+          <td>
+            @if (order.assignedEmployeeName) {
+              <div class="flex flex-col gap-1">
+                <div class="text-color">{{ order.assignedEmployeeName }}</div>
+                @if (order.counterName) {
+                  <div class="text-sm text-color-secondary">
+                    @ {{ order.counterName }}
+                  </div>
+                }
+              </div>
+            }
+            @if (!order.assignedEmployeeName) {
+              <span class="text-color-secondary">Unassigned</span>
+            }
+          </td>
+
+          <td>
+            <div class="flex gap-2">
+              <p-button
+                icon="pi pi-eye"
+                size="small"
+                [text]="true"
+                (click)="viewOrderDetails(order)"
+                pTooltip="View Details">
+              </p-button>
+
+              @if (canUpdateStatus(order.status)) {
+                <p-button
+                  icon="pi pi-arrow-right"
+                  size="small"
+                  [text]="true"
+                  (click)="updateOrderStatus(order)"
+                  pTooltip="Next Status">
+                </p-button>
+              }
+
+              @if (canCancelOrder(order.status)) {
+                <p-button
+                  icon="pi pi-times"
+                  size="small"
+                  [text]="true"
+                  severity="danger"
+                  (click)="cancelOrder(order)"
+                  pTooltip="Cancel Order">
+                </p-button>
+              }
+
+              <p-button
+                icon="pi pi-ellipsis-v"
+                size="small"
+                [text]="true"
+                (click)="moreActionsMenu.toggle($event)"
+                pTooltip="More Actions">
+              </p-button>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="9" class="text-center">
+            <div class="flex flex-col items-center justify-center gap-3 py-8">
+              <i class="pi pi-shopping-cart text-5xl text-color-secondary"></i>
+              <h3 class="text-xl font-semibold text-color m-0">No Orders Found</h3>
+              <p class="text-color-secondary m-0">No orders match your current filters.</p>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </p-card>
+
+  <!-- Order Details Dialog -->
+  <p-dialog
+    [(visible)]="showOrderDialog"
+    [modal]="true"
+    [style]="{ width: '800px' }"
+    header="Order Details"
+    [closable]="true">
+
+    @if (selectedOrder) {
+      <div class="flex flex-col gap-4">
+        <div class="flex justify-between items-start">
+          <div class="flex flex-col gap-2">
+            <h2 class="text-2xl font-bold text-color m-0">Order {{ selectedOrder.orderNumber }}</h2>
+            <p-tag
+              [value]="selectedOrder.status"
+              [severity]="getOrderStatusSeverity(selectedOrder.status)">
+            </p-tag>
+          </div>
+          <div class="flex flex-col gap-2 text-right">
+            <p class="text-color m-0"><strong>Created:</strong> {{ selectedOrder.createdAt | date:'medium' }}</p>
+            <p class="text-color m-0"><strong>Type:</strong> {{ selectedOrder.orderType }}</p>
+            @if (selectedOrder.tableNumber) {
+              <p class="text-color m-0"><strong>Table:</strong> {{ selectedOrder.tableNumber }}</p>
+            }
+          </div>
+        </div>
+
+        <p-divider></p-divider>
+
+        <div class="flex flex-col gap-2">
+          <h3 class="text-lg font-semibold text-color m-0">Customer Information</h3>
+          <p class="text-color m-0"><strong>Name:</strong> {{ selectedOrder.customerName }}</p>
+          @if (selectedOrder.customerEmail) {
+            <p class="text-color m-0"><strong>Email:</strong> {{ selectedOrder.customerEmail }}</p>
+          }
+        </div>
+
+        <p-divider></p-divider>
+
+        <div class="flex flex-col gap-3">
+          <h3 class="text-lg font-semibold text-color m-0">Order Items</h3>
+          <div class="flex flex-col gap-2">
+            @for (item of selectedOrder.items; track item) {
+              <div class="flex justify-between items-center p-3 border-surface-border border rounded-lg">
+                <div class="flex gap-3 items-center flex-1">
+                  <span class="text-color font-medium">{{ item.menuItemName }}</span>
+                  <span class="text-color-secondary">x{{ item.quantity }}</span>
+                </div>
+                <div class="flex gap-3 items-center">
+                  <div class="text-color font-semibold">{{ item.totalPrice | currency }}</div>
+                  <p-tag
+                    [value]="item.status"
+                    [severity]="getItemStatusSeverity(item.status)"
+                    size="small">
+                  </p-tag>
+                </div>
+              </div>
+            }
+          </div>
+
+          <p-divider></p-divider>
+
+          <div class="flex justify-end">
+            <strong class="text-xl text-color">Total: {{ selectedOrder.totalAmount | currency }}</strong>
+          </div>
+        </div>
+
+        @if (selectedOrder.specialInstructions) {
+          <div class="flex flex-col gap-2">
+            <p-divider></p-divider>
+            <h3 class="text-lg font-semibold text-color m-0">Special Instructions</h3>
+            <p class="text-color m-0">{{ selectedOrder.specialInstructions }}</p>
+          </div>
+        }
+      </div>
+    }
+
+    <ng-template pTemplate="footer">
+      <div class="flex gap-3">
+        <p-button
+          label="Close"
+          icon="pi pi-times"
+          [text]="true"
+          (click)="showOrderDialog = false">
+        </p-button>
+        @if (selectedOrder && canUpdateStatus(selectedOrder.status)) {
+          <p-button
+            label="Update Status"
+            icon="pi pi-check"
+            (click)="updateOrderStatus(selectedOrder)">
+          </p-button>
+        }
+      </div>
+    </ng-template>
+  </p-dialog>
+
+  <!-- More Actions Menu -->
+  <p-popover #moreActionsMenu [style]="{ width: '200px' }">
+    <div class="flex flex-col gap-1">
+      <p-button
+        label="Print Receipt"
+        icon="pi pi-print"
+        [text]="true"
+        class="w-full justify-content-start"
+        (click)="printReceipt()">
+      </p-button>
+      <p-button
+        label="Assign Employee"
+        icon="pi pi-user"
+        [text]="true"
+        class="w-full justify-content-start"
+        (click)="assignEmployee()">
+      </p-button>
+      <p-button
+        label="Send Update"
+        icon="pi pi-send"
+        [text]="true"
+        class="w-full justify-content-start"
+        (click)="sendOrderUpdate()">
+      </p-button>
+    </div>
+  </p-popover>
+
+  <!-- Speed Dial for Quick Actions -->
+  <p-speedDial
+    [model]="speedDialItems"
+    direction="up"
+    [transitionDelay]="80"
+    className="speeddial-custom">
+  </p-speedDial>
+</div>
+
+<!-- Toast Messages -->
+<p-toast position="top-right"></p-toast>
+
+<!-- Confirmation Dialog -->
+<p-confirmDialog
+  header="Confirmation"
+  icon="pi pi-exclamation-triangle">
+</p-confirmDialog>

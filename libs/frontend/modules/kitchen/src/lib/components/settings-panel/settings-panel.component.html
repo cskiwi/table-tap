@@ -1,0 +1,256 @@
+<div class="settings-panel p-4" [class.embedded]="embedded">
+  @if (!embedded) {
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="text-xl font-semibold flex items-center gap-2">
+        <i class="pi pi-cog"></i>
+        Display Settings
+      </h3>
+      <p-button
+        icon="pi pi-times"
+        severity="secondary"
+        [text]="true"
+        (click)="close.emit()">
+      </p-button>
+    </div>
+  }
+
+  <div class="settings-content" [class.no-header]="embedded">
+    <form [formGroup]="settingsForm" (ngSubmit)="saveSettings()">
+      <!-- Display Options -->
+      <div class="mb-4">
+        <h4 class="font-medium mb-3 flex items-center gap-2">
+          <i class="pi pi-eye"></i>
+          Display Options
+        </h4>
+
+        <div class="flex flex-col gap-3">
+          <div class="flex items-center justify-between">
+            <div>
+              <div class="font-medium">Show Timers</div>
+              <div class="text-sm text-surface-600 dark:text-surface-400">Display cooking timers on order cards</div>
+            </div>
+            <p-toggleswitch formControlName="showTimers"></p-toggleswitch>
+          </div>
+
+          <div class="flex items-center justify-between">
+            <div>
+              <div class="font-medium">Show Notes</div>
+              <div class="text-sm text-surface-600 dark:text-surface-400">Display order notes and special instructions</div>
+            </div>
+            <p-toggleswitch formControlName="showNotes"></p-toggleswitch>
+          </div>
+
+          <div class="flex items-center justify-between">
+            <div>
+              <div class="font-medium">Show Allergy Warnings</div>
+              <div class="text-sm text-surface-600 dark:text-surface-400">Display allergy alerts for orders</div>
+            </div>
+            <p-toggleswitch formControlName="showAllergies"></p-toggleswitch>
+          </div>
+
+          <div class="flex items-center justify-between">
+            <div>
+              <div class="font-medium">Compact Mode</div>
+              <div class="text-sm text-surface-600 dark:text-surface-400">Reduce spacing and show more orders on screen</div>
+            </div>
+            <p-toggleswitch formControlName="compactMode"></p-toggleswitch>
+          </div>
+        </div>
+      </div>
+
+      <p-divider></p-divider>
+
+      <!-- Auto-Refresh Settings -->
+      <div class="mb-4">
+        <h4 class="font-medium mb-3 flex items-center gap-2">
+          <i class="pi pi-refresh"></i>
+          Auto-Refresh
+        </h4>
+
+        <div class="flex flex-col gap-3">
+          <div class="flex items-center justify-between">
+            <div>
+              <div class="font-medium">Auto-Refresh Orders</div>
+              <div class="text-sm text-surface-600 dark:text-surface-400">Automatically refresh order data</div>
+            </div>
+            <p-toggleswitch formControlName="autoRefresh"></p-toggleswitch>
+          </div>
+
+          @if (settingsForm.get('autoRefresh')?.value) {
+            <div>
+              <label class="font-medium block mb-2">Refresh Interval</label>
+              <p-slider
+                formControlName="refreshInterval"
+                [min]="10"
+                [max]="300"
+                [step]="10"
+                class="w-full">
+              </p-slider>
+              <div class="text-sm text-surface-600 dark:text-surface-400 mt-2">
+                How often to refresh data ({{ settingsForm.get('refreshInterval')?.value }} seconds)
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+
+      <p-divider></p-divider>
+
+      <!-- Audio & Notifications -->
+      <div class="mb-4">
+        <h4 class="font-medium mb-3 flex items-center gap-2">
+          <i class="pi pi-bell"></i>
+          Notifications
+        </h4>
+
+        <div class="flex flex-col gap-3">
+          <div class="flex items-center justify-between">
+            <div>
+              <div class="font-medium">Sound Notifications</div>
+              <div class="text-sm text-surface-600 dark:text-surface-400">Play sounds for new orders and timer alerts</div>
+            </div>
+            <p-toggleswitch formControlName="soundEnabled"></p-toggleswitch>
+          </div>
+
+          <div class="flex items-center justify-between">
+            <div>
+              <div class="font-medium">Vibration Alerts</div>
+              <div class="text-sm text-surface-600 dark:text-surface-400">Vibrate device for critical alerts (mobile only)</div>
+            </div>
+            <p-toggleswitch formControlName="vibrationEnabled"></p-toggleswitch>
+          </div>
+
+          @if (settingsForm.get('soundEnabled')?.value) {
+            <div>
+              <p-button
+                label="Test Sound"
+                icon="pi pi-volume-up"
+                severity="secondary"
+                (click)="testSound()">
+              </p-button>
+            </div>
+          }
+        </div>
+      </div>
+
+      <p-divider></p-divider>
+
+      <!-- Appearance -->
+      <div class="mb-4">
+        <h4 class="font-medium mb-3 flex items-center gap-2">
+          <i class="pi pi-palette"></i>
+          Appearance
+        </h4>
+
+        <div class="flex flex-col gap-3">
+          <p-floatlabel>
+            <p-select
+              formControlName="theme"
+              [options]="[
+                { label: 'Light', value: 'light' },
+                { label: 'Dark', value: 'dark' },
+                { label: 'High Contrast', value: 'high-contrast' }
+              ]"
+              optionLabel="label"
+              optionValue="value"
+              class="w-full"
+              inputId="theme">
+            </p-select>
+            <label for="theme">Theme</label>
+          </p-floatlabel>
+          <div class="text-sm text-surface-600 dark:text-surface-400">
+            Choose display theme for better visibility
+          </div>
+
+          <p-floatlabel>
+            <p-select
+              formControlName="fontSize"
+              [options]="[
+                { label: 'Small', value: 'small' },
+                { label: 'Medium', value: 'medium' },
+                { label: 'Large', value: 'large' }
+              ]"
+              optionLabel="label"
+              optionValue="value"
+              class="w-full"
+              inputId="fontSize">
+            </p-select>
+            <label for="fontSize">Font Size</label>
+          </p-floatlabel>
+          <div class="text-sm text-surface-600 dark:text-surface-400">
+            Adjust text size for better readability
+          </div>
+        </div>
+      </div>
+
+      <p-divider></p-divider>
+
+      <!-- Quick Actions -->
+      <div>
+        <h4 class="font-medium mb-3 flex items-center gap-2">
+          <i class="pi pi-sliders-h"></i>
+          Quick Actions
+        </h4>
+
+        <div class="grid grid-cols-2 gap-2">
+          <p-button
+            label="Reset to Defaults"
+            icon="pi pi-replay"
+            severity="secondary"
+            (click)="resetToDefaults()"
+            class="w-full">
+          </p-button>
+
+          <p-button
+            label="Export Settings"
+            icon="pi pi-download"
+            severity="secondary"
+            (click)="exportSettings()"
+            class="w-full">
+          </p-button>
+
+          <p-button
+            label="Import Settings"
+            icon="pi pi-upload"
+            severity="secondary"
+            (click)="importSettings()"
+            class="w-full">
+          </p-button>
+
+          <p-button
+            label="Clear Cache"
+            icon="pi pi-trash"
+            severity="danger"
+            (click)="clearCache()"
+            class="w-full">
+          </p-button>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <!-- Actions -->
+  @if (!embedded) {
+    <div class="flex justify-between mt-4 pt-4 border-t border-surface-200 dark:border-surface-700">
+      <p-button
+        label="Reset"
+        icon="pi pi-undo"
+        severity="secondary"
+        (click)="resetForm()">
+      </p-button>
+      <div class="flex gap-2">
+        <p-button
+          label="Cancel"
+          severity="secondary"
+          (click)="close.emit()">
+        </p-button>
+        <p-button
+          label="Save Settings"
+          icon="pi pi-save"
+          (click)="saveSettings()"
+          [disabled]="!hasChanges()">
+        </p-button>
+      </div>
+    </div>
+  }
+</div>

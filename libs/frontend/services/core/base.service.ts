@@ -36,7 +36,7 @@ export abstract class BaseService {
     enableCaching: true,
     cacheTimeout: 300000, // 5 minutes
     enableOfflineMode: true
-  };
+  }
 
   // Cache configuration
   protected cacheConfig: CacheConfig = {
@@ -44,13 +44,13 @@ export abstract class BaseService {
     defaultTTL: 300000,
     maxSize: 100,
     storage: 'memory'
-  };
+  }
 
   // In-memory cache
-  private cache = new Map<string, { data: any; timestamp: number; ttl: number }>();
+  private cache = new Map<string, { data: any; timestamp: number; ttl: number }>()
 
   // Loading states
-  protected loadingSubjects = new Map<string, BehaviorSubject<boolean>>();
+  protected loadingSubjects = new Map<string, BehaviorSubject<boolean>>()
 
   // Error handling
   protected lastError$ = new BehaviorSubject<ApiError | null>(null);
@@ -214,7 +214,7 @@ export abstract class BaseService {
     if (!this.loadingSubjects.has(key)) {
       this.loadingSubjects.set(key, new BehaviorSubject<boolean>(false));
     }
-    return this.loadingSubjects.get(key)!.asObservable();
+    return this.loadingSubjects.get(key)!.asObservable()
   }
 
   /**
@@ -232,7 +232,7 @@ export abstract class BaseService {
         timestamp: new Date(),
         path: error.url || undefined,
         statusCode: error.status
-      };
+      }
     } else if (error.networkError) {
       // GraphQL network error
       apiError = {
@@ -241,17 +241,17 @@ export abstract class BaseService {
         details: error,
         timestamp: new Date(),
         statusCode: error.networkError.status
-      };
+      }
     } else if (error.graphQLErrors && error.graphQLErrors.length > 0) {
       // GraphQL error
-      const gqlError = error.graphQLErrors[0];
+      const gqlError = error.graphQLErrors[0]
       apiError = {
         code: gqlError.extensions?.code || 'GRAPHQL_ERROR',
         message: gqlError.message,
         details: gqlError,
         timestamp: new Date(),
         path: gqlError.path?.join('.') || undefined
-      };
+      }
     } else {
       // Generic error
       apiError = {
@@ -259,7 +259,7 @@ export abstract class BaseService {
         message: error.message || 'An unknown error occurred',
         details: error,
         timestamp: new Date()
-      };
+      }
     }
 
     // Store last error
@@ -275,11 +275,11 @@ export abstract class BaseService {
    * Build HTTP params from object
    */
   private buildHttpParams(params?: Record<string, any>): HttpParams {
-    let httpParams = new HttpParams();
+    let httpParams = new HttpParams()
 
     if (params) {
       Object.keys(params).forEach(key => {
-        const value = params[key];
+        const value = params[key]
         if (value !== null && value !== undefined) {
           if (Array.isArray(value)) {
             value.forEach(v => httpParams = httpParams.append(key, v.toString()));
@@ -308,7 +308,7 @@ export abstract class BaseService {
     const cached = this.cache.get(key);
     if (!cached) return null;
 
-    const now = Date.now();
+    const now = Date.now()
     if (now - cached.timestamp > cached.ttl) {
       this.cache.delete(key);
       return null;
@@ -338,7 +338,7 @@ export abstract class BaseService {
    * Clear all cached data
    */
   protected clearCache(): void {
-    this.cache.clear();
+    this.cache.clear()
   }
 
   /**
@@ -374,7 +374,7 @@ export abstract class BaseService {
    * Get the last error observable
    */
   public getLastError(): Observable<ApiError | null> {
-    return this.lastError$.asObservable();
+    return this.lastError$.asObservable()
   }
 
   /**
@@ -388,13 +388,13 @@ export abstract class BaseService {
    * Update service configuration
    */
   public updateConfig(config: Partial<ServiceConfig>): void {
-    this.config = { ...this.config, ...config };
+    this.config = { ...this.config, ...config }
   }
 
   /**
    * Get current service configuration
    */
   public getConfig(): ServiceConfig {
-    return { ...this.config };
+    return { ...this.config }
   }
 }

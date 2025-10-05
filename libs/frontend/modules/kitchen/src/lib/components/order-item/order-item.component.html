@@ -1,0 +1,106 @@
+<div class="p-3 border rounded-md surface-card" [class]="itemClasses()">
+  <!-- Item Header -->
+  <div class="flex items-center justify-between mb-2">
+    <div class="flex-1">
+      <div class="font-semibold">
+        <span class="text-primary-500 mr-2">{{ item.quantity }}x</span>
+        {{ item.product.name }}
+      </div>
+      @if (item.product.category) {
+        <div class="text-sm text-500">
+          {{ item.product.category | titlecase }}
+        </div>
+      }
+    </div>
+
+    <div class="flex items-center gap-2">
+      <p-chip
+        [label]="getStatusLabel()"
+        [styleClass]="'status-' + item.preparationStatus"
+        (click)="cycleStatus()">
+        <i [class]="'pi pi-' + getStatusIcon()"></i>
+      </p-chip>
+
+      @if (showTiming()) {
+        <div class="flex items-center gap-2 text-sm">
+          @if (item.product.preparationTime) {
+            <div class="flex items-center gap-1 text-500">
+              <i class="pi pi-clock"></i>
+              {{ item.product.preparationTime }}min
+            </div>
+          }
+          @if (item.preparationStartTime) {
+            <div class="flex items-center gap-1">
+              <i class="pi pi-stopwatch"></i>
+              {{ getElapsedTime() }}
+            </div>
+          }
+        </div>
+      }
+
+      <p-button
+        icon="pi pi-ellipsis-v"
+        [rounded]="true"
+        [text]="true"
+        severity="secondary"
+        size="small">
+      </p-button>
+    </div>
+  </div>
+
+  <!-- Customizations -->
+  @if (item.customizations && item.customizations.length > 0) {
+    <div class="flex flex-wrap gap-1 mb-2">
+      @for (customization of item.customizations; track customization) {
+        <p-chip
+          [label]="customization"
+          styleClass="text-xs">
+        </p-chip>
+      }
+    </div>
+  }
+
+  <!-- Special Instructions -->
+  @if (showNotes && item.specialInstructions) {
+    <div class="flex gap-2 p-2 surface-100 rounded-md mb-2">
+      <i class="pi pi-file-edit text-500"></i>
+      <span class="text-sm">{{ item.specialInstructions }}</span>
+    </div>
+  }
+
+  <!-- Allergy Notes -->
+  @if (showAllergies && item.allergiesNotes) {
+    <div class="flex gap-2 p-2 bg-orange-50 border border-orange-200 rounded-md mb-2">
+      <i class="pi pi-exclamation-triangle text-orange-500"></i>
+      <span class="text-sm"><strong>Allergies:</strong> {{ item.allergiesNotes }}</span>
+    </div>
+  }
+
+  <!-- Preparation Progress -->
+  @if (showProgress()) {
+    <div class="mb-2">
+      <p-progressBar
+        [value]="getProgressValue()"
+        [showValue]="false"
+        [styleClass]="'h-2'">
+      </p-progressBar>
+      <div class="text-xs text-500 mt-1">
+        {{ getProgressText() }}
+      </div>
+    </div>
+  }
+
+  <!-- Timer Section -->
+  @if (showTimer && canShowTimer()) {
+    <div class="mt-2">
+      <p-button
+        label="Set Timer"
+        icon="pi pi-stopwatch"
+        severity="secondary"
+        [outlined]="true"
+        size="small"
+        (onClick)="requestTimer()">
+      </p-button>
+    </div>
+  }
+</div>

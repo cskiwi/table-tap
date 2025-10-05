@@ -1,0 +1,259 @@
+;
+    @if (isVisible()()) {
+      <div class="modal-overlay" (click)="onOverlayClick($event)">
+        <div class="redemption-modal" (click)="$event.stopPropagation()">
+          <!-- Modal Header -->
+          <div class="modal-header">
+            <h2 class="modal-title">Redeem Reward</h2>
+            <button class="close-btn" (click)="closeModal()">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+          <!-- Reward Details -->
+          @if (modalData()()) {
+            <div class="reward-section">
+              <div class="reward-image">
+                <img
+                  [src]="modalData()()!.reward.image || '/assets/default-reward.png'"
+                  [alt]="modalData()()!.reward.name"
+                  onerror="this.src='/assets/default-reward.png'">
+                  <div class="reward-type-badge" [class]="getRewardTypeClass()">
+                    {{ modalData()()!.reward.type | titlecase }}
+                  </div>
+                </div>
+                <div class="reward-info">
+                  <h3 class="reward-name">{{ modalData()()!.reward.name }}</h3>
+                  <p class="reward-description">{{ modalData()()!.reward.description }}</p>
+                  <!-- Cost and Value -->
+                  <div class="reward-cost-info">
+                    <div class="cost-item">
+                      <span class="cost-label">Points Required</span>
+                      <span class="cost-value points">{{ modalData()()!.reward.pointsCost | number:'1.0-0' }}</span>
+                    </div>
+                    @if (modalData()()!.reward.cashValue) {
+                      <div class="cost-item">
+                        <span class="cost-label">Value</span>
+                        <span class="cost-value cash">{{ modalData()()!.reward.cashValue | currency:'USD':'symbol':'1.2-2' }}</span>
+                      </div>
+                    }
+                  </div>
+                  <!-- Terms and Conditions -->
+                  @if (modalData()()!.reward.terms) {
+                    <div class="reward-terms">
+                      <button class="terms-toggle" (click)="showTerms.set(!showTerms())">
+                        <i class="fas" [class.fa-chevron-down]="!showTerms()" [class.fa-chevron-up]="showTerms()"></i>
+                        Terms & Conditions
+                      </button>
+                      @if (showTerms()) {
+                        <div class="terms-content">
+                          <p>{{ modalData()()!.reward.terms }}</p>
+                        </div>
+                      }
+                    </div>
+                  }
+                </div>
+              </div>
+            }
+            <!-- Account Balance Check -->
+            <div class="balance-section">
+              <div class="balance-info" [class.insufficient]="!hasEnoughPoints()">
+                <div class="balance-item">
+                  <span class="balance-label">Your Points</span>
+                  <span class="balance-value">{{ modalData()()?.account?.currentPoints | number:'1.0-0' }}</span>
+                </div>
+                <div class="balance-item">
+                  <span class="balance-label">Required</span>
+                  <span class="balance-value">{{ modalData()()?.reward?.pointsCost | number:'1.0-0' }}</span>
+                </div>
+                <div class="balance-item">
+                  <span class="balance-label">After Redemption</span>
+                  <span class="balance-value" [class.negative]="remainingPoints() < 0">
+                    {{ remainingPoints() | number:'1.0-0' }}
+                  </span>
+                </div>
+              </div>
+              <!-- Insufficient Points Warning -->
+              @if (!hasEnoughPoints()) {
+                <div class="insufficient-warning">
+                  <i class="fas fa-exclamation-triangle"></i>
+                  <span>You need {{ pointsNeeded() | number:'1.0-0' }} more points to redeem this reward</span>
+                </div>
+              }
+            </div>
+            <!-- Redemption Form -->
+            @if (hasEnoughPoints()) {
+              <form [formGroup]="redemptionForm">
+                <!-- Order Association -->
+                @if (showOrderAssociation()) {
+                  <div class="form-section">
+                    <label class="form-label">
+                      <i class="fas fa-receipt"></i>
+                      Apply to Current Order
+                    </label>
+                    <div class="order-option">
+                      <input
+                        type="checkbox",
+                        id="applyToOrder",
+                        formControlName="applyToOrder">
+                      <label for="applyToOrder">
+                        Apply this reward to your current order
+                        @if (modalData()()?.orderId) {
+                          <span class="order-id">
+                            (Order #{{ modalData()()!.orderId }})
+                          </span>
+                        }
+                      </label>
+                    </div>
+                  </div>
+                }
+                <!-- Special Instructions -->
+                <div class="form-section">
+                  <label class="form-label" for="notes">
+                    <i class="fas fa-sticky-note"></i>
+                    Special Instructions (Optional)
+                  </label>
+                  <textarea
+                    id="notes",
+                    formControlName="notes",
+                    class="form-textarea",
+                    placeholder="Any special instructions for using this reward...",
+                    rows="3">
+                  </textarea>
+                </div>
+                <!-- Delivery Information for Physical Rewards -->
+                @if (requiresDeliveryInfo()) {
+                  <div class="form-section">
+                    <label class="form-label">
+                      <i class="fas fa-shipping-fast"></i>
+                      Delivery Information
+                    </label>
+                    <div class="delivery-info">
+                      <input
+                        type="text",
+                        formControlName="deliveryName",
+                        class="form-input",
+                        placeholder="Full Name">
+                      <input
+                        type="text",
+                        formControlName="deliveryAddress",
+                        class="form-input",
+                        placeholder="Delivery Address">
+                      <input
+                        type="tel",
+                        formControlName="deliveryPhone",
+                        class="form-input",
+                        placeholder="Phone Number">
+                    </div>
+                  </div>
+                }
+                <!-- Experience Booking for Experience Rewards -->
+                @if (requiresBooking()) {
+                  <div class="form-section">
+                    <label class="form-label">
+                      <i class="fas fa-calendar-alt"></i>
+                      Preferred Date & Time
+                    </label>
+                    <div class="booking-info">
+                      <input
+                        type="date",
+                        formControlName="preferredDate",
+                        class="form-input",
+                        [min]="minBookingDate()">
+                      <select formControlName="preferredTime" class="form-select">
+                        <option value="">Select Time</option>
+                        <option value="morning">Morning (9AM - 12PM)</option>
+                        <option value="afternoon">Afternoon (12PM - 5PM)</option>
+                        <option value="evening">Evening (5PM - 8PM)</option>
+                      </select>
+                    </div>
+                  </div>
+                }
+              </form>
+            }
+            <!-- Redemption Preview -->
+            @if (hasEnoughPoints()) {
+              <div class="redemption-preview">
+                <h4>Redemption Summary</h4>
+                <div class="preview-items">
+                  <div class="preview-item">
+                    <span>Reward</span>
+                    <span>{{ modalData()()?.reward?.name }}</span>
+                  </div>
+                  <div class="preview-item">
+                    <span>Points to Deduct</span>
+                    <span class="points-deduct">-{{ modalData()()?.reward?.pointsCost | number:'1.0-0' }}</span>
+                  </div>
+                  <div class="preview-item">
+                    <span>Remaining Balance</span>
+                    <span>{{ remainingPoints() | number:'1.0-0' }} points</span>
+                  </div>
+                  @if (estimatedValue()) {
+                    <div class="preview-item">
+                      <span>Estimated Value</span>
+                      <span class="value">{{ estimatedValue() | currency:'USD':'symbol':'1.2-2' }}</span>
+                    </div>
+                  }
+                </div>
+              </div>
+            }
+            <!-- Modal Actions -->
+            <div class="modal-actions">
+              <button class="btn btn-secondary" (click)="closeModal()" [disabled]="isProcessing()">
+                Cancel
+              </button>
+              <button
+                class="btn btn-primary",
+                (click)="processRedemption()"
+                [disabled]="!canRedeem() || isProcessing()">
+                @if (isProcessing()) {
+                  <i class="fas fa-spinner fa-spin"></i>
+                }
+                @if (!isProcessing()) {
+                  <i class="fas fa-gift"></i>
+                }
+                {{ isProcessing() ? 'Processing...' : 'Redeem Now' }}
+              </button>
+            </div>
+            <!-- Success State -->
+            @if (redemptionSuccess()) {
+              <div class="success-state">
+                <div class="success-icon">
+                  <i class="fas fa-check-circle"></i>
+                </div>
+                <h3>Redemption Successful!</h3>
+                <p>Your reward has been redeemed successfully.</p>
+                @if (redemptionResult()?.redemptionCode) {
+                  <div class="redemption-code">
+                    <span class="code-label">Redemption Code:</span>
+                    <span class="code-value">{{ redemptionResult()!.redemptionCode }}</span>
+                    <button class="copy-btn" (click)="copyRedemptionCode()">
+                      <i class="fas fa-copy"></i>
+                    </button>
+                  </div>
+                }
+                <button class="btn btn-primary" (click)="closeModal()">
+                  Close
+                </button>
+              </div>
+            }
+            <!-- Error State -->
+            @if (redemptionError()) {
+              <div class="error-state">
+                <div class="error-icon">
+                  <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <h3>Redemption Failed</h3>
+                <p>{{ redemptionError() }}</p>
+                <div class="error-actions">
+                  <button class="btn btn-secondary" (click)="closeModal()">
+                    Close
+                  </button>
+                  <button class="btn btn-primary" (click)="retryRedemption()">
+                    Try Again
+                  </button>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      }

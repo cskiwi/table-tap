@@ -15,8 +15,8 @@ import { initializeDataSource } from './orm.config';
         const { config } = initializeDataSource(configService);
 
         return config;
-      },
-    }),
-  ],
+      }
+    })
+  ]
 })
 export class DatabaseModule {}

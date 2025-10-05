@@ -10,7 +10,7 @@ const runExecutor: PromiseExecutor<BuildExecutorSchema> = async (options, contex
     Auth0Audience: process.env.AUTH0_AUDIENCE,
     Auth0ClientId: process.env.AUTH0_CLIENT_ID,
     baseUrl: process.env.BASE_URL,
-  };
+  }
 
   // Path to the Angular environment file (e.g., src/environments/environment.ts)
   const envFilePath = join(context.root, 'apps', context.projectName, 'src', 'environments', 'environment.ts');
@@ -23,7 +23,7 @@ const runExecutor: PromiseExecutor<BuildExecutorSchema> = async (options, contex
       Auth0Audience: '${environmentVariables.Auth0Audience}',
       Auth0ClientId: '${environmentVariables.Auth0ClientId}',
       baseUrl: '${environmentVariables.baseUrl}',
-    };
+    }
   `;
 
   // create the environments directory if it doesn't exist
@@ -38,7 +38,7 @@ const runExecutor: PromiseExecutor<BuildExecutorSchema> = async (options, contex
   // debug environment file
   console.log('Environment file written:', envFileContent);
 
-  return { success: true };
-};
+  return { success: true }
+}
 
 export default runExecutor;

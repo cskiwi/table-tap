@@ -1,0 +1,445 @@
+,
+    @if (isVisible()) {
+      <div class="modal-overlay" (click)="onOverlayClick($event)">
+        <div class="reward-modal" [class.redeeming]="isRedeeming">
+          <!-- Header -->
+          <div class="modal-header">
+            <div class="reward-header-info">
+              <div class="reward-category-badge" [class]="getCategoryClass(reward()?.category)">
+                <i [class]="getCategoryIcon(reward()?.category)"></i>
+                {{ getCategoryDisplayName(reward()?.category) }}
+              </div>
+              <h2 class="reward-title">{{ reward()?.name }}</h2>
+              <p class="reward-subtitle">{{ getTypeDisplayName(reward()?.type) }}</p>
+            </div>
+            <button class="close-button" (click)="close.emit()" [disabled]="isRedeeming">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+          <!-- Loading State -->
+          @if (isLoading) {
+            <div class="loading-content">
+              <div class="loading-spinner">
+                <i class="fas fa-spinner fa-spin"></i>
+              </div>
+              <p>Loading reward details...</p>
+            </div>
+          }
+          <!-- Error State -->
+          @if (error && !isLoading) {
+            <div class="error-content">
+              <div class="error-icon">
+                <i class="fas fa-exclamation-triangle"></i>
+              </div>
+              <h3>Unable to Load Reward Details</h3>
+              <p>{{ error }}</p>
+              <button class="retry-btn" (click)="loadRewardDetails()">Try Again</button>
+            </div>
+          }
+          <!-- Main Content -->
+          @if (reward() && !isLoading && !error) {
+            <div class="modal-content">
+              <!-- Reward Image -->
+              <div class="reward-hero">
+                <div class="reward-image-container">
+                  <img [src]="reward()?.image || getDefaultImage(reward()?.category)"
+                    [alt]="reward()?.name"
+                    class="reward-image">
+                  <!-- Badges -->
+                  <div class="hero-badges">
+                    @if (reward()?.isFeatured) {
+                      <span class="badge featured">
+                        <i class="fas fa-star"></i> Featured
+                      </span>
+                    }
+                    @if (reward()?.isLimitedTime) {
+                      <span class="badge limited-time">
+                        <i class="fas fa-clock"></i> Limited Time
+                      </span>
+                    }
+                    @if (reward()?.isLimitedQuantity) {
+                      <span class="badge limited-quantity">
+                        <i class="fas fa-hourglass-half"></i> {{ reward()?.remainingQuantity }} left
+                      </span>
+                    }
+                    @if (reward()?.isNearExpiry) {
+                      <span class="badge near-expiry">
+                        <i class="fas fa-exclamation"></i> {{ reward()?.daysUntilExpiry }} days left
+                      </span>
+                    }
+                  </div>
+                  <!-- Value Display -->
+                  <div class="value-overlay">
+                    <div class="display-value">{{ reward()?.displayValue }}</div>
+                    @if (reward()?.cashValue) {
+                      <div class="cash-value">
+                        {{ reward()?.cashValue | currency:'USD':'symbol':'1.2-2' }} value
+                      </div>
+                    }
+                  </div>
+                </div>
+              </div>
+              <!-- Tabs Navigation -->
+              <div class="tabs-nav">
+                <button class="tab-button"
+                  [class.active]="activeTab === 'details'"
+                  (click)="activeTab = 'details'">
+                  <i class="fas fa-info-circle"></i>
+                  Details
+                </button>
+                <button class="tab-button"
+                  [class.active]="activeTab === 'terms'"
+                  (click)="activeTab = 'terms'">
+                  <i class="fas fa-file-contract"></i>
+                  Terms & Conditions
+                </button>
+                <button class="tab-button"
+                  [class.active]="activeTab === 'redemptions'"
+                  (click)="activeTab = 'redemptions'">
+                  <i class="fas fa-history"></i>
+                  Recent Redemptions
+                </button>
+              </div>
+              <!-- Tab Content -->
+              <div class="tab-content">
+                <!-- Details Tab -->
+                @if (activeTab === 'details') {
+                  <div class="tab-panel">
+                    <div class="reward-description">
+                      <h4>About This Reward</h4>
+                      <p>{{ reward()?.description || 'No description available.' }}</p>
+                    </div>
+                    <!-- Points Cost -->
+                    <div class="points-section">
+                      <div class="points-cost-display">
+                        <div class="cost-amount">
+                          <i class="fas fa-coins"></i>
+                          <span class="points-number">{{ reward()?.pointsCost | number:'1.0-0' }}</span>
+                          <span class="points-label">points</span>
+                        </div>
+                        <div class="affordability-indicator" [class.affordable]="isAffordable">
+                          @if (isAffordable) {
+                            <span class="affordable-text">
+                              <i class="fas fa-check-circle"></i> You can redeem this
+                            </span>
+                          }
+                          @if (!isAffordable) {
+                            <span class="not-affordable-text">
+                              <i class="fas fa-exclamation-circle"></i>
+                              Need {{ pointsNeeded }} more points
+                            </span>
+                          }
+                        </div>
+                      </div>
+                    </div>
+                    <!-- Availability Info -->
+                    <div class="availability-section">
+                      <h4>Availability</h4>
+                      <div class="availability-grid">
+                        <div class="availability-item">
+                          <div class="availability-icon">
+                            <i class="fas fa-calendar-alt"></i>
+                          </div>
+                          <div class="availability-text">
+                            <strong>Valid Period</strong>
+                            @if (!reward()?.validFrom && !reward()?.validUntil) {
+                              <span>Always available</span>
+                            }
+                            @if (reward()?.validFrom || reward()?.validUntil) {
+                              <span>
+                                {{ formatValidityPeriod(reward()?.validFrom, reward()?.validUntil) }}
+                              </span>
+                            }
+                          </div>
+                        </div>
+                        @if (hasQuantityLimit) {
+                          <div class="availability-item">
+                            <div class="availability-icon">
+                              <i class="fas fa-cubes"></i>
+                            </div>
+                            <div class="availability-text">
+                              <strong>Quantity</strong>
+                              @if (reward()?.totalQuantity === -1) {
+                                <span>Unlimited</span>
+                              }
+                              @if ((reward()?.totalQuantity ?? 0) > 0) {
+                                <span>
+                                  {{ reward()?.remainingQuantity }} of {{ reward()?.totalQuantity }} remaining
+                                </span>
+                              }
+                            </div>
+                          </div>
+                        }
+                        @if (hasRedemptionLimits) {
+                          <div class="availability-item">
+                            <div class="availability-icon">
+                              <i class="fas fa-user-check"></i>
+                            </div>
+                            <div class="availability-text">
+                              <strong>Usage Limits</strong>
+                              <div class="limit-list">
+                                @if ((reward()?.maxRedemptionsPerUser ?? 0) > 0) {
+                                  <div>
+                                    Max {{ reward()?.maxRedemptionsPerUser }} per customer
+                                  </div>
+                                }
+                                @if ((reward()?.maxRedemptionsPerDay ?? 0) > 0) {
+                                  <div>
+                                    Max {{ reward()?.maxRedemptionsPerDay }} per day
+                                  </div>
+                                }
+                              </div>
+                            </div>
+                          </div>
+                        }
+                      </div>
+                    </div>
+                    <!-- Tier Requirements -->
+                    @if (reward()?.requiredTierLevels?.length && (reward()?.requiredTierLevels?.length ?? 0) > 0) {
+                      <div class="tier-requirements">
+                        <h4>Tier Requirements</h4>
+                        <div class="tier-info">
+                          <i class="fas fa-crown"></i>
+                          <span>Requires {{ getTierRequirementText(reward()!) }}</span>
+                          <span class="tier-status" [class.meets-requirement]="meetsTierRequirement">
+                            <i [class]="meetsTierRequirement ? 'fas fa-check' : 'fas fa-times'"></i>
+                            {{ meetsTierRequirement ? 'You qualify' : 'Tier upgrade needed' }}
+                          </span>
+                        </div>
+                      </div>
+                    }
+                    <!-- Special Properties -->
+                    @if (reward()?.specialProperties && hasSpecialProperties()) {
+                      <div class="special-properties">
+                        <h4>Additional Details</h4>
+                        <div class="properties-grid">
+                          @if (reward()?.specialProperties?.freeProductName) {
+                            <div class="property-item">
+                              <strong>Free Item:</strong>
+                              <span>{{ reward()?.specialProperties?.freeProductName }}</span>
+                            </div>
+                          }
+                          @if (reward()?.specialProperties?.experienceType) {
+                            <div class="property-item">
+                              <strong>Experience:</strong>
+                              <span>{{ reward()?.specialProperties?.experienceType }}</span>
+                            </div>
+                          }
+                          @if (reward()?.specialProperties?.experienceLocation) {
+                            <div class="property-item">
+                              <strong>Location:</strong>
+                              <span>{{ reward()?.specialProperties?.experienceLocation }}</span>
+                            </div>
+                          }
+                          @if (reward()?.specialProperties?.bonusPointsAmount) {
+                            <div class="property-item">
+                              <strong>Bonus Points:</strong>
+                              <span>{{ reward()?.specialProperties?.bonusPointsAmount }} points</span>
+                            </div>
+                          }
+                        </div>
+                      </div>
+                    }
+                  </div>
+                }
+                <!-- Terms Tab -->
+                @if (activeTab === 'terms') {
+                  <div class="tab-panel">
+                    <div class="terms-content">
+                      <h4>Terms & Conditions</h4>
+                      @if (reward()?.terms) {
+                        <div class="terms-text">
+                          <p>{{ reward()?.terms }}</p>
+                        </div>
+                      }
+                      @if (!reward()?.terms) {
+                        <div class="default-terms">
+                          <p>Standard loyalty program terms apply:</p>
+                          <ul>
+                            <li>Points cannot be exchanged for cash</li>
+                            <li>Rewards are non-transferable</li>
+                            <li>Rewards must be used by expiry date</li>
+                            <li>Cannot be combined with other offers unless specified</li>
+                          </ul>
+                        </div>
+                      }
+                      <div class="offer-combination">
+                        <h5>Offer Combinations</h5>
+                        <div class="combination-status">
+                          <i [class]="reward()?.canCombineWithOtherOffers ? 'fas fa-check-circle text-success' : 'fas fa-times-circle text-warning'"></i>
+                          <span>{{ reward()?.canCombineWithOtherOffers ? 'Can be combined with other offers' : 'Cannot be combined with other offers' }}</span>
+                        </div>
+                      </div>
+                      @if (reward()?.requiresApproval) {
+                        <div class="approval-requirement">
+                          <h5>Approval Required</h5>
+                          <div class="approval-info">
+                            <i class="fas fa-user-check"></i>
+                            <span>This reward requires staff approval before redemption</span>
+                          </div>
+                        </div>
+                      }
+                    </div>
+                  </div>
+                }
+                <!-- Recent Redemptions Tab -->
+                @if (activeTab === 'redemptions') {
+                  <div class="tab-panel">
+                    <div class="redemptions-content">
+                      <h4>Recent Redemptions</h4>
+                      @if (loadingRedemptions) {
+                        <div class="loading-redemptions">
+                          <i class="fas fa-spinner fa-spin"></i>
+                          <span>Loading redemption history...</span>
+                        </div>
+                      }
+                      @if (!loadingRedemptions && recentRedemptions.length > 0) {
+                        <div class="redemptions-list">
+                          @for (redemption of recentRedemptions; track redemption) {
+                            <div class="redemption-item">
+                              <div class="redemption-date">
+                                {{ redemption.createdAt | date:'short' }}
+                              </div>
+                              <div class="redemption-status" [class]="getStatusClass(redemption.status)">
+                                {{ redemption.statusDisplay }}
+                              </div>
+                              <div class="redemption-points">
+                                {{ redemption.pointsUsed | number:'1.0-0' }} points
+                              </div>
+                            </div>
+                          }
+                        </div>
+                      }
+                      @if (!loadingRedemptions && recentRedemptions.length === 0) {
+                        <div class="no-redemptions">
+                          <i class="fas fa-history"></i>
+                          <p>No recent redemptions for this reward</p>
+                        </div>
+                      }
+                      @if ((reward()?.redemptionCount ?? 0) > 0) {
+                        <div class="popularity-stats">
+                          <div class="stats-header">
+                            <h5>Popularity</h5>
+                          </div>
+                          <div class="stats-grid">
+                            <div class="stat-item">
+                              <div class="stat-value">{{ reward()?.redemptionCount | number }}</div>
+                              <div class="stat-label">Total Redemptions</div>
+                            </div>
+                            @if ((reward()?.viewCount ?? 0) > 0) {
+                              <div class="stat-item">
+                                <div class="stat-value">{{ reward()?.redemptionRate | number:'1.1-1' }}%</div>
+                                <div class="stat-label">Conversion Rate</div>
+                              </div>
+                            }
+                          </div>
+                        </div>
+                      }
+                    </div>
+                  </div>
+                }
+              </div>
+            </div>
+          }
+          <!-- Action Footer -->
+          @if (reward() && !isLoading && !error) {
+            <div class="modal-footer">
+              <!-- Points Balance Display -->
+              <div class="balance-display">
+                <div class="current-balance">
+                  <i class="fas fa-coins"></i>
+                  <span class="balance-amount">{{ (loyaltyAccount()?.currentPoints || 0) | number:'1.0-0' }}</span>
+                  <span class="balance-label">available points</span>
+                </div>
+                @if (isAffordable) {
+                  <div class="after-redemption">
+                    <i class="fas fa-arrow-right"></i>
+                    <span class="remaining-amount">{{ remainingPointsAfterRedemption | number:'1.0-0' }}</span>
+                    <span class="remaining-label">after redemption</span>
+                  </div>
+                }
+              </div>
+              <!-- Action Buttons -->
+              <div class="action-buttons">
+                <button class="cancel-btn" (click)="close.emit()" [disabled]="isRedeeming">
+                  Cancel
+                </button>
+                <button class="redeem-btn"
+                  [disabled]="!canRedeem || isRedeeming"
+                  [class.affordable]="isAffordable"
+                  (click)="startRedemption()">
+                  @if (!isRedeeming) {
+                    <span>
+                      <i class="fas fa-gift"></i>
+                      {{ getRedemptionButtonText() }}
+                    </span>
+                  }
+                  @if (isRedeeming) {
+                    <span>
+                      <i class="fas fa-spinner fa-spin"></i>
+                      Processing...
+                    </span>
+                  }
+                </button>
+              </div>
+              <!-- Redemption Preview -->
+              @if (redemptionPreview && isAffordable) {
+                <div class="redemption-preview">
+                  <div class="preview-header">
+                    <h5>Redemption Preview</h5>
+                  </div>
+                  <div class="preview-details">
+                    <div class="preview-item">
+                      <span>Points to redeem:</span>
+                      <strong>{{ redemptionPreview.pointsCost | number:'1.0-0' }}</strong>
+                    </div>
+                    <div class="preview-item">
+                      <span>Remaining balance:</span>
+                      <strong>{{ redemptionPreview.remainingPoints | number:'1.0-0' }}</strong>
+                    </div>
+                    @if (redemptionPreview.discountValue) {
+                      <div class="preview-item">
+                        <span>Discount value:</span>
+                        <strong>{{ redemptionPreview.discountValue | currency:'USD':'symbol':'1.2-2' }}</strong>
+                      </div>
+                    }
+                    @if (redemptionPreview.expiryDate) {
+                      <div class="preview-item">
+                        <span>Expires:</span>
+                        <strong>{{ redemptionPreview.expiryDate | date:'medium' }}</strong>
+                      </div>
+                    }
+                  </div>
+                </div>
+              }
+            </div>
+          }
+          <!-- Redemption Progress -->
+          @if (isRedeeming) {
+            <div class="redemption-overlay">
+              <div class="redemption-progress">
+                <div class="progress-spinner">
+                  <i class="fas fa-spinner fa-spin"></i>
+                </div>
+                <h3>Processing Your Redemption</h3>
+                <p>Please wait while we process your reward redemption...</p>
+                <div class="progress-steps">
+                  <div class="step" [class.completed]="redemptionStep >= 1">
+                    <i class="fas fa-check"></i>
+                    <span>Validating points</span>
+                  </div>
+                  <div class="step" [class.completed]="redemptionStep >= 2">
+                    <i class="fas fa-check"></i>
+                    <span>Processing redemption</span>
+                  </div>
+                  <div class="step" [class.completed]="redemptionStep >= 3">
+                    <i class="fas fa-check"></i>
+                    <span>Updating balance</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    }

@@ -1,0 +1,632 @@
+<div class="flex flex-col gap-6 p-6">
+  <!-- Header -->
+  <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <div class="flex flex-col gap-2">
+      <h1 class="text-3xl font-bold text-color m-0">Inventory Management</h1>
+      <p class="text-surface-600 m-0">Manage your restaurant's inventory and stock levels</p>
+    </div>
+
+    <div class="flex items-center gap-3">
+      <p-button
+        icon="pi pi-upload"
+        label="Import"
+        [outlined]="true"
+        (click)="showImportDialog = true">
+      </p-button>
+
+      <p-button
+        icon="pi pi-refresh"
+        [loading]="loading()"
+        (click)="refreshInventory()"
+        pTooltip="Refresh Inventory">
+      </p-button>
+
+      <p-button
+        icon="pi pi-plus"
+        label="Add Item"
+        (click)="addNewItem()">
+      </p-button>
+    </div>
+  </div>
+
+  <!-- Inventory Overview Cards -->
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+    <p-card class="bg-surface-card">
+      <div class="flex items-center gap-4">
+        <div class="flex items-center justify-center w-12 h-12 rounded-lg bg-primary-100">
+          <i class="pi pi-box text-primary text-2xl"></i>
+        </div>
+        <div class="flex flex-col gap-1">
+          <h3 class="text-2xl font-bold text-color m-0">{{ inventoryMetrics().totalItems }}</h3>
+          <p class="text-surface-600 text-sm m-0">Total Items</p>
+          <span class="text-primary font-semibold text-sm">{{ inventoryMetrics().totalValue | currency }}</span>
+        </div>
+      </div>
+    </p-card>
+
+    <p-card class="bg-surface-card">
+      <div class="flex items-center gap-4">
+        <div class="flex items-center justify-center w-12 h-12 rounded-lg bg-yellow-100">
+          <i class="pi pi-exclamation-triangle text-yellow-600 text-2xl"></i>
+        </div>
+        <div class="flex flex-col gap-1">
+          <h3 class="text-2xl font-bold text-color m-0">{{ inventoryMetrics().lowStockItems }}</h3>
+          <p class="text-surface-600 text-sm m-0">Low Stock</p>
+          <span class="text-yellow-600 font-semibold text-sm">Attention Required</span>
+        </div>
+      </div>
+    </p-card>
+
+    <p-card class="bg-surface-card">
+      <div class="flex items-center gap-4">
+        <div class="flex items-center justify-center w-12 h-12 rounded-lg bg-red-100">
+          <i class="pi pi-times-circle text-red-600 text-2xl"></i>
+        </div>
+        <div class="flex flex-col gap-1">
+          <h3 class="text-2xl font-bold text-color m-0">{{ inventoryMetrics().outOfStockItems }}</h3>
+          <p class="text-surface-600 text-sm m-0">Out of Stock</p>
+          <span class="text-red-600 font-semibold text-sm">Critical</span>
+        </div>
+      </div>
+    </p-card>
+
+    <p-card class="bg-surface-card">
+      <div class="flex items-center gap-4">
+        <div class="flex items-center justify-center w-12 h-12 rounded-lg bg-blue-100">
+          <i class="pi pi-calendar-times text-blue-600 text-2xl"></i>
+        </div>
+        <div class="flex flex-col gap-1">
+          <h3 class="text-2xl font-bold text-color m-0">{{ inventoryMetrics().expiringSoon }}</h3>
+          <p class="text-surface-600 text-sm m-0">Expiring Soon</p>
+          <span class="text-blue-600 font-semibold text-sm">Next 7 Days</span>
+        </div>
+      </div>
+    </p-card>
+  </div>
+
+  <!-- Critical Alerts -->
+  @if (criticalAlerts().length > 0) {
+    <div>
+      <p-card class="bg-surface-card">
+        <ng-template pTemplate="header">
+          <div class="flex items-center justify-between p-4 border-b border-surface-border">
+            <h3 class="text-xl font-semibold text-color m-0 flex items-center gap-2">
+              <i class="pi pi-exclamation-triangle text-yellow-600"></i>
+              Critical Inventory Alerts
+            </h3>
+            <p-button
+              label="Resolve All"
+              size="small"
+              (click)="resolveAllAlerts()">
+            </p-button>
+          </div>
+        </ng-template>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 p-4">
+          @for (alert of criticalAlerts(); track alert) {
+            <div class="p-4 rounded-lg border border-surface-border bg-surface-50">
+              <div class="flex flex-col gap-3">
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-semibold text-surface-600 uppercase">{{ alert.type.replace('_', ' ') }}</span>
+                  <p-button
+                    icon="pi pi-times"
+                    [text]="true"
+                    size="small"
+                    (click)="dismissAlert(alert.id)">
+                  </p-button>
+                </div>
+                <h4 class="text-lg font-semibold text-color m-0">{{ alert.itemName }}</h4>
+                <p class="text-surface-600 text-sm m-0">{{ alert.message }}</p>
+                <div class="flex items-center gap-4 text-xs text-surface-500">
+                  <span>SKU: {{ alert.sku }}</span>
+                  @if (alert.currentStock !== undefined) {
+                    <span>Stock: {{ alert.currentStock }}</span>
+                  }
+                </div>
+                <div class="flex justify-end">
+                  <p-button
+                    label="Update Stock"
+                    size="small"
+                    [outlined]="true"
+                    (click)="updateItemStock(alert.sku)">
+                  </p-button>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      </p-card>
+    </div>
+  }
+
+  <!-- Filters and Search -->
+  <p-card class="bg-surface-card">
+    <div class="flex flex-col gap-4 p-4">
+      <div class="flex flex-col lg:flex-row gap-4">
+        <div class="flex-1">
+          <span class="p-input-icon-left w-full">
+            <i class="pi pi-search"></i>
+            <input
+              pInputText
+              type="text"
+              [(ngModel)]="searchTerm"
+              placeholder="Search items..."
+              (input)="onSearch()"
+              class="w-full">
+          </span>
+        </div>
+
+        <div class="flex flex-wrap gap-3">
+          <p-select
+            [options]="categoryOptions"
+            [(ngModel)]="selectedCategory"
+            placeholder="All Categories"
+            (onChange)="applyFilters()"
+            [showClear]="true"
+            class="w-full sm:w-48">
+          </p-select>
+
+          <p-select
+            [options]="statusOptions"
+            [(ngModel)]="selectedStatus"
+            placeholder="All Status"
+            (onChange)="applyFilters()"
+            [showClear]="true"
+            class="w-full sm:w-48">
+          </p-select>
+
+          <p-select
+            [options]="stockLevelOptions"
+            [(ngModel)]="selectedStockLevel"
+            placeholder="Stock Level"
+            (onChange)="applyFilters()"
+            [showClear]="true"
+            class="w-full sm:w-48">
+          </p-select>
+
+          <p-toggleButton
+            [(ngModel)]="showOnlyAlerts"
+            onLabel="Alerts Only"
+            offLabel="All Items"
+            (onChange)="applyFilters()">
+          </p-toggleButton>
+        </div>
+
+        <div class="flex gap-3">
+          <p-button
+            icon="pi pi-filter-slash"
+            label="Clear"
+            [text]="true"
+            (click)="clearFilters()">
+          </p-button>
+
+          <p-button
+            icon="pi pi-download"
+            label="Export"
+            [outlined]="true"
+            (click)="exportInventory()">
+          </p-button>
+        </div>
+      </div>
+    </div>
+  </p-card>
+
+  <!-- Inventory Table -->
+  <p-card class="bg-surface-card">
+    <p-table
+      [value]="filteredItems()"
+      [rows]="25"
+      [paginator]="true"
+      [loading]="loading()"
+      [rowsPerPageOptions]="[10, 25, 50]"
+      [sortField]="'itemName'"
+      [sortOrder]="1"
+      styleClass="p-datatable-sm"
+      [globalFilterFields]="['itemName', 'sku', 'category', 'supplier']"
+      dataKey="id">
+
+      <ng-template pTemplate="header">
+        <tr>
+          <th pSortableColumn="itemName">
+            Item <p-sortIcon field="itemName"></p-sortIcon>
+          </th>
+          <th pSortableColumn="sku">
+            SKU <p-sortIcon field="sku"></p-sortIcon>
+          </th>
+          <th pSortableColumn="category">
+            Category <p-sortIcon field="category"></p-sortIcon>
+          </th>
+          <th pSortableColumn="currentStock">
+            Stock <p-sortIcon field="currentStock"></p-sortIcon>
+          </th>
+          <th>Stock Level</th>
+          <th pSortableColumn="unitCost">
+            Unit Cost <p-sortIcon field="unitCost"></p-sortIcon>
+          </th>
+          <th pSortableColumn="stockValue">
+            Value <p-sortIcon field="stockValue"></p-sortIcon>
+          </th>
+          <th pSortableColumn="status">
+            Status <p-sortIcon field="status"></p-sortIcon>
+          </th>
+          <th pSortableColumn="expiryDate">
+            Expiry <p-sortIcon field="expiryDate"></p-sortIcon>
+          </th>
+          <th>Actions</th>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="body" let-item>
+        <tr class="hover:bg-surface-hover">
+          <td>
+            <div class="flex flex-col gap-1">
+              <strong class="text-color">{{ item.itemName }}</strong>
+              @if (item.description) {
+                <p class="text-surface-600 text-sm m-0">{{ item.description }}</p>
+              }
+            </div>
+          </td>
+
+          <td class="text-color">{{ item.sku }}</td>
+
+          <td>
+            <p-tag
+              [value]="item.category"
+              severity="info">
+            </p-tag>
+          </td>
+
+          <td>
+            <div class="flex items-center gap-2">
+              <strong class="text-color">{{ item.currentStock }}</strong>
+              <span class="text-surface-600 text-sm">{{ item.unit }}</span>
+            </div>
+          </td>
+
+          <td>
+            <div class="flex flex-col gap-1">
+              <p-progressBar
+                [value]="getStockPercentage(item)"
+                [showValue]="false">
+              </p-progressBar>
+              <span class="text-surface-600 text-xs">
+                Min: {{ item.minimumStock }}
+                @if (item.maximumStock) {
+                  <span> | Max: {{ item.maximumStock }}</span>
+                }
+              </span>
+            </div>
+          </td>
+
+          <td class="text-color">{{ item.unitCost | currency }}</td>
+
+          <td>
+            <strong class="text-color">{{ item.stockValue | currency }}</strong>
+          </td>
+
+          <td>
+            <p-tag
+              [value]="item.status"
+              [severity]="getStatusSeverity(item.status)">
+            </p-tag>
+          </td>
+
+          <td>
+            @if (item.expiryDate) {
+              <div class="flex flex-col gap-1">
+                <span class="text-color">{{ item.expiryDate | date:'shortDate' }}</span>
+                <span class="text-xs text-surface-600">
+                  ({{ getDaysUntilExpiry(item.expiryDate) }})
+                </span>
+              </div>
+            }
+            @if (!item.expiryDate) {
+              <span class="text-surface-600">N/A</span>
+            }
+          </td>
+
+          <td>
+            <div class="flex items-center gap-1">
+              <p-button
+                icon="pi pi-pencil"
+                size="small"
+                [text]="true"
+                (click)="editItem(item)"
+                pTooltip="Edit Item">
+              </p-button>
+
+              <p-button
+                icon="pi pi-plus-circle"
+                size="small"
+                [text]="true"
+                (click)="adjustStock(item, 'ADD')"
+                pTooltip="Add Stock">
+              </p-button>
+
+              <p-button
+                icon="pi pi-minus-circle"
+                size="small"
+                [text]="true"
+                (click)="adjustStock(item, 'SUBTRACT')"
+                pTooltip="Remove Stock">
+              </p-button>
+
+              <p-button
+                icon="pi pi-trash"
+                size="small"
+                [text]="true"
+                severity="danger"
+                (click)="deleteItem(item)"
+                pTooltip="Delete Item">
+              </p-button>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="10" class="text-center p-8">
+            <div class="flex flex-col items-center gap-4">
+              <i class="pi pi-box text-6xl text-surface-500"></i>
+              <h3 class="text-xl font-semibold text-color m-0">No Items Found</h3>
+              <p class="text-surface-600 m-0">No inventory items match your current filters.</p>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </p-card>
+
+  <!-- Add/Edit Item Dialog -->
+  <p-dialog
+    [(visible)]="showItemDialog"
+    [modal]="true"
+    [style]="{ width: '600px' }"
+    [header]="isEditMode ? 'Edit Item' : 'Add New Item'"
+    [closable]="true">
+
+    <form [formGroup]="itemForm" (ngSubmit)="saveItem()">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="flex flex-col gap-2">
+          <label for="itemName" class="text-color font-semibold">Item Name *</label>
+          <input
+            pInputText
+            id="itemName"
+            formControlName="itemName"
+            placeholder="Enter item name"
+            class="w-full">
+        </div>
+
+        <div class="flex flex-col gap-2">
+          <label for="sku" class="text-color font-semibold">SKU *</label>
+          <input
+            pInputText
+            id="sku"
+            formControlName="sku"
+            placeholder="Enter SKU"
+            class="w-full">
+        </div>
+
+        <div class="flex flex-col gap-2">
+          <label for="category" class="text-color font-semibold">Category *</label>
+          <p-select
+            formControlName="category"
+            [options]="categoryOptions"
+            placeholder="Select category"
+            class="w-full">
+          </p-select>
+        </div>
+
+        <div class="flex flex-col gap-2">
+          <label for="unit" class="text-color font-semibold">Unit *</label>
+          <input
+            pInputText
+            id="unit"
+            formControlName="unit"
+            placeholder="e.g., kg, pieces, liters"
+            class="w-full">
+        </div>
+
+        <div class="flex flex-col gap-2">
+          <label for="currentStock" class="text-color font-semibold">Current Stock *</label>
+          <p-inputNumber
+            formControlName="currentStock"
+            [min]="0"
+            mode="decimal"
+            class="w-full">
+          </p-inputNumber>
+        </div>
+
+        <div class="flex flex-col gap-2">
+          <label for="minimumStock" class="text-color font-semibold">Minimum Stock *</label>
+          <p-inputNumber
+            formControlName="minimumStock"
+            [min]="0"
+            mode="decimal"
+            class="w-full">
+          </p-inputNumber>
+        </div>
+
+        <div class="flex flex-col gap-2">
+          <label for="maximumStock" class="text-color font-semibold">Maximum Stock</label>
+          <p-inputNumber
+            formControlName="maximumStock"
+            [min]="0"
+            mode="decimal"
+            class="w-full">
+          </p-inputNumber>
+        </div>
+
+        <div class="flex flex-col gap-2">
+          <label for="unitCost" class="text-color font-semibold">Unit Cost *</label>
+          <p-inputNumber
+            formControlName="unitCost"
+            mode="currency"
+            currency="USD"
+            locale="en-US"
+            class="w-full">
+          </p-inputNumber>
+        </div>
+
+        <div class="flex flex-col gap-2 md:col-span-2">
+          <label for="description" class="text-color font-semibold">Description</label>
+          <input
+            pInputText
+            id="description"
+            formControlName="description"
+            placeholder="Item description"
+            class="w-full">
+        </div>
+
+        <div class="flex flex-col gap-2">
+          <label for="supplier" class="text-color font-semibold">Supplier</label>
+          <input
+            pInputText
+            id="supplier"
+            formControlName="supplier"
+            placeholder="Supplier name"
+            class="w-full">
+        </div>
+
+        <div class="flex flex-col gap-2">
+          <label for="expiryDate" class="text-color font-semibold">Expiry Date</label>
+          <p-datepicker
+            formControlName="expiryDate"
+            [showIcon]="true"
+            placeholder="Select date"
+            class="w-full">
+          </p-datepicker>
+        </div>
+      </div>
+    </form>
+
+    <ng-template pTemplate="footer">
+      <p-button
+        label="Cancel"
+        icon="pi pi-times"
+        [text]="true"
+        (click)="showItemDialog = false">
+      </p-button>
+      <p-button
+        [label]="isEditMode ? 'Update' : 'Create'"
+        icon="pi pi-check"
+        (click)="saveItem()"
+        [disabled]="itemForm.invalid">
+      </p-button>
+    </ng-template>
+  </p-dialog>
+
+  <!-- Stock Adjustment Dialog -->
+  <p-dialog
+    [(visible)]="showStockDialog"
+    [modal]="true"
+    [style]="{ width: '400px' }"
+    header="Adjust Stock"
+    [closable]="true">
+
+    @if (selectedItem) {
+      <div class="flex flex-col gap-4">
+        <div class="p-4 rounded-lg bg-surface-50 border border-surface-border">
+          <h4 class="text-lg font-semibold text-color m-0 mb-2">{{ selectedItem.itemName }}</h4>
+          <p class="text-surface-600 m-0">Current Stock: <strong class="text-color">{{ selectedItem.currentStock }} {{ selectedItem.unit }}</strong></p>
+        </div>
+        <div class="flex flex-col gap-4">
+          <div class="flex flex-col gap-2">
+            <label for="quantity" class="text-color font-semibold">Quantity</label>
+            <p-inputNumber
+              [(ngModel)]="adjustmentQuantity"
+              [min]="1"
+              mode="decimal"
+              class="w-full"
+              placeholder="Enter quantity">
+            </p-inputNumber>
+          </div>
+          <div class="flex flex-col gap-2">
+            <label for="reason" class="text-color font-semibold">Reason</label>
+            <p-select
+              [(ngModel)]="adjustmentReason"
+              [options]="adjustmentReasons"
+              placeholder="Select reason"
+              class="w-full">
+            </p-select>
+          </div>
+          <div class="flex flex-col gap-2">
+            <label for="notes" class="text-color font-semibold">Notes (Optional)</label>
+            <input
+              pInputText
+              [(ngModel)]="adjustmentNotes"
+              placeholder="Additional notes"
+              class="w-full">
+          </div>
+        </div>
+      </div>
+    }
+
+    <ng-template pTemplate="footer">
+      <p-button
+        label="Cancel"
+        icon="pi pi-times"
+        [text]="true"
+        (click)="showStockDialog = false">
+      </p-button>
+      <p-button
+        [label]="adjustmentType === 'ADD' ? 'Add Stock' : 'Remove Stock'"
+        [icon]="adjustmentType === 'ADD' ? 'pi pi-plus' : 'pi pi-minus'"
+        (click)="confirmStockAdjustment()">
+      </p-button>
+    </ng-template>
+  </p-dialog>
+
+  <!-- Import Dialog -->
+  <p-dialog
+    [(visible)]="showImportDialog"
+    [modal]="true"
+    [style]="{ width: '500px' }"
+    header="Import Inventory"
+    [closable]="true">
+
+    <div class="flex flex-col gap-4">
+      <p class="text-surface-600 m-0">Upload a CSV file with your inventory items. The file should include columns for SKU, Item Name, Category, Current Stock, Minimum Stock, Unit Cost, and Unit.</p>
+
+      <p-fileUpload
+        mode="basic"
+        name="inventory"
+        accept=".csv"
+        [maxFileSize]="1000000"
+        (onSelect)="onFileSelect($event)"
+        chooseLabel="Choose CSV File">
+      </p-fileUpload>
+
+      <p-button
+        label="Download Template"
+        icon="pi pi-download"
+        [text]="true"
+        (click)="downloadTemplate()">
+      </p-button>
+    </div>
+
+    <ng-template pTemplate="footer">
+      <p-button
+        label="Cancel"
+        icon="pi pi-times"
+        [text]="true"
+        (click)="showImportDialog = false">
+      </p-button>
+      <p-button
+        label="Import"
+        icon="pi pi-upload"
+        (click)="importInventory()"
+        [disabled]="!selectedFile">
+      </p-button>
+    </ng-template>
+  </p-dialog>
+</div>
+
+<!-- Toast Messages -->
+<p-toast position="top-right"></p-toast>
+
+<!-- Confirmation Dialog -->
+<p-confirmDialog
+  header="Confirmation"
+  icon="pi pi-exclamation-triangle">
+</p-confirmDialog>

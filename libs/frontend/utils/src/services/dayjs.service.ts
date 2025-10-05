@@ -7,10 +7,10 @@ import relativeTime from 'dayjs/plugin/relativeTime';
 import calendar from 'dayjs/plugin/calendar';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
 
-import { 
-  DayjsInput, 
-  DayjsFormat, 
-  DayjsLocale, 
+import {
+  DayjsInput,
+  DayjsFormat,
+  DayjsLocale,
   DayjsTimeZone,
   DayjsManipulateType,
   DayjsOpUnitType,
@@ -74,7 +74,7 @@ export class DayjsService {
     }
 
     const calendarDate = date.locale(this.localeService.getLocale());
-    
+
     if (reference) {
       return calendarDate.calendar(dayjs(reference));
     }

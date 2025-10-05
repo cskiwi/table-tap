@@ -1,0 +1,234 @@
+<div class="min-h-screen bg-surface py-8 px-4">
+  @if (receipt(); as receiptData) {
+    <div class="max-w-4xl mx-auto">
+      <!-- Receipt Content -->
+      <div class="surface-card rounded-xl p-8 mb-6 shadow-2" #receiptElement>
+        <!-- Receipt Header -->
+        <div class="text-center mb-8 pb-6 border-bottom-1 surface-border">
+          <div class="mb-4">
+            <h1 class="text-3xl font-bold text-color mb-2">{{ receiptData.restaurantInfo.name }}</h1>
+            <div class="text-muted-color">
+              <div>{{ receiptData.restaurantInfo.address.street }}</div>
+              <div>{{ receiptData.restaurantInfo.address.city }}, {{ receiptData.restaurantInfo.address.state }} {{ receiptData.restaurantInfo.address.zipCode }}</div>
+            </div>
+            <div class="mt-2 text-color-secondary">
+              <div>Phone: {{ receiptData.restaurantInfo.phone }}</div>
+              @if (receiptData.restaurantInfo.website) {
+                <div>{{ receiptData.restaurantInfo.website }}</div>
+              }
+            </div>
+            @if (receiptData.restaurantInfo.taxId) {
+              <div class="text-sm text-muted-color mt-2">Tax ID: {{ receiptData.restaurantInfo.taxId }}</div>
+            }
+          </div>
+
+          <div class="text-color font-medium">
+            <div class="text-xl font-bold mb-1">Receipt #{{ receiptData.number }}</div>
+            <div class="text-sm">{{ formatDate(receiptData.date) }}</div>
+            <div class="text-sm text-primary mt-1">Order #{{ receiptData.orderId }}</div>
+          </div>
+        </div>
+
+        <!-- Customer Information -->
+        <div class="mb-6 pb-6 border-bottom-1 surface-border">
+          <h3 class="text-lg font-semibold text-color mb-3">Customer Information</h3>
+          <div class="text-color-secondary space-y-1">
+            <div>{{ receiptData.customerInfo.firstName }} {{ receiptData.customerInfo.lastName }}</div>
+            <div>{{ receiptData.customerInfo.email }}</div>
+            <div>{{ receiptData.customerInfo.phone }}</div>
+            @if (receiptData.customerInfo.tableNumber) {
+              <div>Table: {{ receiptData.customerInfo.tableNumber }}</div>
+            }
+          </div>
+        </div>
+
+        <!-- Order Items -->
+        <div class="mb-6 pb-6 border-bottom-1 surface-border">
+          <h3 class="text-lg font-semibold text-color mb-4">Order Items</h3>
+          <div class="space-y-3">
+            @for (item of receiptData.items; track $index) {
+              <div>
+                <div class="flex justify-between items-start gap-4 mb-1">
+                  <div class="flex-1">
+                    <span class="font-medium text-color">{{ item.name }}</span>
+                    @if (item.customizations && item.customizations.length > 0) {
+                      <div class="mt-1 space-y-0.5">
+                        @for (customization of item.customizations; track $index) {
+                          <div class="text-sm text-muted-color ml-4">{{ customization }}</div>
+                        }
+                      </div>
+                    }
+                  </div>
+                  <div class="flex items-center gap-4 text-color">
+                    <span class="w-8 text-center">{{ item.quantity }}</span>
+                    <span class="w-16 text-right">{{ '$' + item.unitPrice.toFixed(2) }}</span>
+                    <span class="w-20 text-right font-semibold">{{ '$' + item.totalPrice.toFixed(2) }}</span>
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+
+        <!-- Order Summary -->
+        <div class="mb-6">
+          <div class="space-y-2">
+            <div class="flex justify-between items-center text-color">
+              <span>Subtotal:</span>
+              <span>{{ '$' + receiptData.subtotal.toFixed(2) }}</span>
+            </div>
+
+            <div class="flex justify-between items-center text-color">
+              <span>Tax:</span>
+              <span>{{ '$' + receiptData.tax.toFixed(2) }}</span>
+            </div>
+
+            @if (receiptData.tip > 0) {
+              <div class="flex justify-between items-center text-color">
+                <span>Tip:</span>
+                <span>{{ '$' + receiptData.tip.toFixed(2) }}</span>
+              </div>
+            }
+
+            @if (receiptData.discount > 0) {
+              <div class="flex justify-between items-center text-green-600">
+                <span>Discount:</span>
+                <span>{{ '-$' + receiptData.discount.toFixed(2) }}</span>
+              </div>
+            }
+
+            <div class="h-px bg-surface-border my-3"></div>
+
+            <div class="flex justify-between items-center text-2xl font-bold text-color">
+              <span>Total:</span>
+              <span>{{ '$' + receiptData.total.toFixed(2) }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="mb-6 pb-6 border-bottom-1 surface-border">
+          <!-- Payment Information -->
+          <h3 class="text-lg font-semibold text-color mb-3">Payment Method</h3>
+          <div class="flex items-center gap-3 text-color">
+            <i [class]="getPaymentIcon(receiptData.paymentMethod.type)" class="text-2xl"></i>
+            <span class="font-medium">{{ receiptData.paymentMethod.name }}</span>
+            @if (receiptData.paymentMethod.last4) {
+              <span class="text-muted-color">•••• {{ receiptData.paymentMethod.last4 }}</span>
+            }
+          </div>
+          <div class="mt-2 text-color-secondary">Amount Charged: {{ '$' + receiptData.total.toFixed(2) }}</div>
+        </div>
+
+        @if (receiptData.qrCode) {
+          <div class="mb-6 pb-6 border-bottom-1 surface-border">
+            <!-- QR Code -->
+            <div class="flex flex-col items-center gap-3">
+              <img [src]="receiptData.qrCode" alt="Receipt QR Code" class="w-32 h-32" />
+              <div class="text-sm text-muted-color">Scan for digital receipt</div>
+            </div>
+          </div>
+        }
+
+        <!-- Receipt Footer -->
+        <div class="text-center text-color">
+          <div class="text-xl font-bold mb-2">Thank you for your order!</div>
+          <div class="text-muted-color space-y-1">
+            <div>Please save this receipt for your records.</div>
+            <div>Visit us again soon!</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex flex-wrap gap-4 justify-center">
+        <button
+          type="button"
+          class="px-6 py-3 rounded-lg font-semibold transition-all border-0 bg-primary text-primary-contrast hover:bg-primary-600 flex items-center gap-2 disabled:opacity-60"
+          (click)="printReceipt()"
+          [disabled]="isPrinting()"
+        >
+          @if (isPrinting()) {
+            <span class="w-4 h-4 border-2 border-transparent border-t-current rounded-full animate-spin"></span>
+            Printing...
+          } @else {
+            <i class="icon-printer"></i>
+            Print Receipt
+          }
+        </button>
+
+        <button
+          type="button"
+          class="px-6 py-3 rounded-lg font-semibold transition-all border-1 surface-border bg-transparent text-color hover:surface-100 flex items-center gap-2 disabled:opacity-60"
+          (click)="downloadReceipt()"
+          [disabled]="isDownloading()"
+        >
+          @if (isDownloading()) {
+            <span class="w-4 h-4 border-2 border-transparent border-t-current rounded-full animate-spin"></span>
+            Downloading...
+          } @else {
+            <i class="icon-download"></i>
+            Download PDF
+          }
+        </button>
+
+        <button
+          type="button"
+          class="px-6 py-3 rounded-lg font-semibold transition-all border-1 surface-border bg-transparent text-color hover:surface-100 flex items-center gap-2 disabled:opacity-60"
+          (click)="emailReceipt()"
+          [disabled]="isEmailing()"
+        >
+          @if (isEmailing()) {
+            <span class="w-4 h-4 border-2 border-transparent border-t-current rounded-full animate-spin"></span>
+            Sending...
+          } @else {
+            <i class="icon-mail"></i>
+            Email Receipt
+          }
+        </button>
+
+        <button
+          type="button"
+          class="px-6 py-3 rounded-lg font-semibold transition-all border-1 surface-border bg-transparent text-color hover:surface-100 flex items-center gap-2"
+          (click)="shareReceipt()"
+        >
+          <i class="icon-share"></i>
+          Share
+        </button>
+      </div>
+
+      <!-- Success Messages -->
+      @if (successMessage()) {
+        <div class="mt-6 bg-green-50 border-1 border-green-300 rounded-lg p-4">
+          <div class="flex items-center gap-3 text-green-800">
+            <i class="icon-check-circle text-xl"></i>
+            <span>{{ successMessage() }}</span>
+          </div>
+        </div>
+      }
+    </div>
+  } @else if (isLoading()) {
+    <div class="max-w-2xl mx-auto">
+      <div class="surface-card rounded-xl p-12 text-center shadow-2">
+        <div class="w-12 h-12 border-4 border-transparent border-t-primary rounded-full animate-spin mx-auto mb-4"></div>
+        <h2 class="text-2xl font-bold text-color mb-2">Generating Receipt...</h2>
+        <p class="text-muted-color">Please wait while we prepare your receipt.</p>
+      </div>
+    </div>
+  } @else if (error()) {
+    <div class="max-w-2xl mx-auto">
+      <div class="surface-card rounded-xl p-12 text-center shadow-2">
+        <i class="icon-alert-circle text-6xl text-red-600 mb-4"></i>
+        <h2 class="text-2xl font-bold text-color mb-2">Unable to Load Receipt</h2>
+        <p class="text-muted-color mb-6">{{ error()?.message || 'There was a problem generating your receipt.' }}</p>
+        <div class="flex gap-4 justify-center">
+          <button type="button" class="px-6 py-3 rounded-lg font-semibold bg-primary text-primary-contrast hover:bg-primary-600" (click)="retryGenerateReceipt()">
+            Try Again
+          </button>
+          <button type="button" class="px-6 py-3 rounded-lg font-semibold border-1 surface-border bg-transparent text-color hover:surface-100" (click)="goBackToOrder()">
+            Back to Order
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

@@ -16,7 +16,7 @@ export class TranslateController {
     @Param() param: { lang: languages },
     @Res() res: Response,
   ) {
-    const translated = this.i18nService.getTranslations();
+    const translated = this.i18nService.getTranslations()
 
     res.send(translated[param.lang]);
   }

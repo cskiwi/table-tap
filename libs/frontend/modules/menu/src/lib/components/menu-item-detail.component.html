@@ -1,0 +1,395 @@
+<p-dialog
+  [visible]="visible()"
+  [modal]="true"
+  [closable]="true"
+  [draggable]="false"
+  [resizable]="false"
+  [style]="{ width: '90vw', maxWidth: '800px', maxHeight: '90vh' }"
+  styleClass="menu-item-dialog"
+  (onHide)="onClose()"
+  [attr.aria-label]="'Details for ' + (menuItem()?.name || 'menu item')"
+>
+  <ng-template pTemplate="header">
+    <div class="flex justify-between items-center gap-4 w-full">
+      <h2 class="m-0 text-2xl font-semibold text-color flex-1">{{ menuItem()?.name }}</h2>
+      @if (menuItem() && menuItem()?.status && menuItem()?.status !== 'AVAILABLE') {
+        <p-tag
+          [value]="getStatusLabel(menuItem()!.status)"
+          [severity]="getStatusSeverity(menuItem()!.status)"
+        ></p-tag>
+      }
+    </div>
+  </ng-template>
+
+  @if (loading()) {
+    <div class="flex flex-col items-center justify-center p-12 gap-4 text-color-secondary" role="status" aria-label="Loading menu item details">
+      <p-progressSpinner></p-progressSpinner>
+      <p>Loading item details...</p>
+    </div>
+  } @else if (menuItem()) {
+    <div class="flex flex-col h-full">
+      <!-- Main Content Tabs -->
+      <p-tabs [value]="activeTabIndex()" orientation="horizontal">
+        <!-- Overview Tab -->
+        <p-tab value="0" header="Overview" leftIcon="pi pi-info-circle">
+          <div class="flex flex-col gap-6">
+            @if (menuItem()?.imageUrl) {
+              <div>
+                <p-image
+                  [src]="menuItem()!.imageUrl"
+                  [alt]="menuItem()!.name"
+                  width="100%"
+                  [preview]="true"
+                  class="w-full max-w-md mx-auto rounded-lg overflow-hidden shadow-md"
+                ></p-image>
+              </div>
+            }
+
+            <div>
+              @if (menuItem()?.description) {
+                <div class="mb-6">
+                  <h3 class="m-0 mb-3 text-lg font-semibold text-color">Description</h3>
+                  <p class="m-0 leading-relaxed text-color-secondary">{{ menuItem()!.description }}</p>
+                </div>
+              }
+
+              <div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                  <div class="flex flex-col gap-1 p-4 bg-surface-50 rounded-md border border-surface-border">
+                    <label class="text-xs font-medium text-color-secondary uppercase tracking-wide">Price</label>
+                    <span class="text-xl font-bold text-primary" [attr.aria-label]="'Price: ' + menuItem()?.price + ' dollars'">
+                      {{ menuItem()?.price | currency }}
+                    </span>
+                  </div>
+
+                  @if (menuItem()?.preparationTime) {
+                    <div class="flex flex-col gap-1 p-4 bg-surface-50 rounded-md border border-surface-border">
+                      <label class="text-xs font-medium text-color-secondary uppercase tracking-wide">Prep Time</label>
+                      <span class="text-base font-semibold text-color flex items-center gap-2" [attr.aria-label]="'Preparation time: ' + menuItem()?.preparationTime + ' minutes'">
+                        <i class="pi pi-clock text-sm text-color-secondary" aria-hidden="true"></i>
+                        {{ menuItem()?.preparationTime }} min
+                      </span>
+                    </div>
+                  }
+
+                  <div class="flex flex-col gap-1 p-4 bg-surface-50 rounded-md border border-surface-border">
+                    <label class="text-xs font-medium text-color-secondary uppercase tracking-wide">Status</label>
+                    <p-tag
+                      [value]="getStatusLabel(menuItem()?.status!)"
+                      [severity]="getStatusSeverity(menuItem()?.status!)"
+                    ></p-tag>
+                  </div>
+
+                  @if (menuItem()?.category) {
+                    <div class="flex flex-col gap-1 p-4 bg-surface-50 rounded-md border border-surface-border">
+                      <label class="text-xs font-medium text-color-secondary uppercase tracking-wide">Category</label>
+                      <span class="text-base font-semibold text-color">{{ menuItem()?.category?.name }}</span>
+                    </div>
+                  }
+                </div>
+              </div>
+
+              @if (menuItem()?.allergens?.length) {
+                <div>
+                  <h3 class="m-0 mb-3 text-lg font-semibold text-color">Allergen Information</h3>
+                  <p-message
+                    severity="warn"
+                    text="This item contains or may contain the following allergens:"
+                    [closable]="false"
+                  ></p-message>
+                  <div class="flex flex-wrap gap-2 mt-4" [attr.aria-label]="'Contains allergens: ' + menuItem()?.allergens?.join(', ')">
+                    @for (allergen of menuItem()?.allergens ?? []; track allergen) {
+                      <p-chip [label]="allergen" icon="pi pi-exclamation-triangle"></p-chip>
+                    }
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+        </p-tab>
+
+        <!-- Nutrition Tab -->
+        @if (menuItem()?.nutritionalInfo && displayOptions().showNutrition) {
+          <p-tab value="1" header="Nutrition" leftIcon="pi pi-chart-bar">
+            <div>
+              <h3 class="m-0 mb-4 text-lg font-semibold text-color">Nutritional Information</h3>
+              @if (nutritionalInfo()) {
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
+                  @if (nutritionalInfo()?.servingSize) {
+                    <div class="col-span-full flex justify-between items-center p-3 bg-primary-50 rounded-md border border-primary-200">
+                      <span class="text-sm font-medium text-primary-700">Serving Size</span>
+                      <span class="font-semibold text-primary-800">{{ nutritionalInfo()?.servingSize }}</span>
+                    </div>
+                  }
+
+                  @if (nutritionalInfo()?.calories) {
+                    <div class="col-span-full flex justify-between items-center p-3 bg-green-50 rounded-md border border-green-200">
+                      <span class="text-base font-semibold text-green-700">Calories</span>
+                      <span class="text-lg font-bold text-green-800">{{ nutritionalInfo()?.calories }}</span>
+                    </div>
+                  }
+
+                  @if (nutritionalInfo()?.protein) {
+                    <div class="flex justify-between items-center p-3 bg-surface-50 rounded-md border border-surface-border">
+                      <span class="text-sm font-medium text-color-secondary">Protein</span>
+                      <span class="font-semibold text-color">{{ nutritionalInfo()?.protein }}g</span>
+                    </div>
+                  }
+
+                  @if (nutritionalInfo()?.carbohydrates) {
+                    <div class="flex justify-between items-center p-3 bg-surface-50 rounded-md border border-surface-border">
+                      <span class="text-sm font-medium text-color-secondary">Carbohydrates</span>
+                      <span class="font-semibold text-color">{{ nutritionalInfo()?.carbohydrates }}g</span>
+                    </div>
+                  }
+
+                  @if (nutritionalInfo()?.fat) {
+                    <div class="flex justify-between items-center p-3 bg-surface-50 rounded-md border border-surface-border">
+                      <span class="text-sm font-medium text-color-secondary">Fat</span>
+                      <span class="font-semibold text-color">{{ nutritionalInfo()?.fat }}g</span>
+                    </div>
+                  }
+
+                  @if (nutritionalInfo()?.fiber) {
+                    <div class="flex justify-between items-center p-3 bg-surface-50 rounded-md border border-surface-border">
+                      <span class="text-sm font-medium text-color-secondary">Fiber</span>
+                      <span class="font-semibold text-color">{{ nutritionalInfo()?.fiber }}g</span>
+                    </div>
+                  }
+
+                  @if (nutritionalInfo()?.sodium) {
+                    <div class="flex justify-between items-center p-3 bg-surface-50 rounded-md border border-surface-border">
+                      <span class="text-sm font-medium text-color-secondary">Sodium</span>
+                      <span class="font-semibold text-color">{{ nutritionalInfo()?.sodium }}mg</span>
+                    </div>
+                  }
+
+                  @if (nutritionalInfo()?.sugar) {
+                    <div class="flex justify-between items-center p-3 bg-surface-50 rounded-md border border-surface-border">
+                      <span class="text-sm font-medium text-color-secondary">Sugar</span>
+                      <span class="font-semibold text-color">{{ nutritionalInfo()?.sugar }}g</span>
+                    </div>
+                  }
+                </div>
+              } @else {
+                <p-message
+                  severity="info"
+                  text="Nutritional information is not available for this item."
+                  [closable]="false"
+                ></p-message>
+              }
+            </div>
+          </p-tab>
+        }
+
+        <!-- Customization Tab -->
+        @if (displayOptions().showCustomizations && customizationOptions().length > 0) {
+          <p-tab value="2" header="Customize" leftIcon="pi pi-cog">
+            <div>
+              <h3 class="m-0 mb-4 text-lg font-semibold text-color">Customize Your Order</h3>
+              <form [formGroup]="customizationForm" class="flex flex-col gap-6">
+                @for (option of customizationOptions(); track option.id) {
+                  <div>
+                    <label class="block mb-3 font-semibold text-color text-sm">
+                      {{ option.name }}
+                      @if (option.required) {
+                        <span class="text-red-500 ml-1" aria-label="Required">*</span>
+                      }
+                      @if (option.price) {
+                        <span class="text-primary font-medium ml-2">({{ option.price | currency:'+' }})</span>
+                      }
+                    </label>
+
+                    @switch (option.type) {
+                      @case ('radio') {
+                        <div class="flex flex-col gap-3" role="radiogroup" [attr.aria-label]="option.name">
+                          @for (choice of option.options; track choice.value) {
+                            <div class="flex items-center gap-3 p-3 bg-surface-50 rounded-md border border-surface-border transition-all hover:bg-surface-100 hover:border-primary">
+                              <p-radioButton
+                                [inputId]="option.id + '_' + choice.value"
+                                [name]="option.id"
+                                [value]="choice.value"
+                                [formControlName]="option.id"
+                              ></p-radioButton>
+                              <label [for]="option.id + '_' + choice.value" class="flex-1 cursor-pointer text-color font-medium">
+                                {{ choice.label }}
+                                @if (choice.price) {
+                                  <span class="text-primary font-medium ml-2">({{ choice.price | currency:'+' }})</span>
+                                }
+                              </label>
+                            </div>
+                          }
+                        </div>
+                      }
+
+                      @case ('checkbox') {
+                        <div class="flex flex-col gap-3">
+                          @for (choice of option.options; track choice.value) {
+                            <div class="flex items-center gap-3 p-3 bg-surface-50 rounded-md border border-surface-border transition-all hover:bg-surface-100 hover:border-primary">
+                              <p-checkbox
+                                [inputId]="option.id + '_' + choice.value"
+                                [name]="option.id"
+                                [value]="choice.value"
+                                [formControlName]="option.id"
+                              ></p-checkbox>
+                              <label [for]="option.id + '_' + choice.value" class="flex-1 cursor-pointer text-color font-medium">
+                                {{ choice.label }}
+                                @if (choice.price) {
+                                  <span class="text-primary font-medium ml-2">({{ choice.price | currency:'+' }})</span>
+                                }
+                              </label>
+                            </div>
+                          }
+                        </div>
+                      }
+
+                      @case ('dropdown') {
+                        <p-select
+                          [options]="option.options || []"
+                          [formControlName]="option.id"
+                          optionLabel="label"
+                          optionValue="value"
+                          placeholder="Select an option"
+                          [showClear]="!option.required"
+                          class="w-full"
+                        ></p-select>
+                      }
+
+                      @case ('text') {
+                        <textarea
+                          pTextarea
+                          [formControlName]="option.id"
+                          [placeholder]="'Enter ' + option.name.toLowerCase()"
+                          [maxlength]="option.maxLength || 200"
+                          rows="3"
+                          class="w-full"
+                        ></textarea>
+                        @if (option.maxLength) {
+                          <small class="block text-right mt-1 text-xs text-color-secondary">
+                            {{ getCharacterCount(option.id) }}/{{ option.maxLength }}
+                          </small>
+                        }
+                      }
+                    }
+                  </div>
+                }
+              </form>
+            </div>
+          </p-tab>
+        }
+      </p-tabs>
+
+      <p-divider></p-divider>
+
+      <!-- Order Section -->
+      @if (menuItem()?.status === 'AVAILABLE') {
+        <div class="p-6 bg-surface-50 border-t border-surface-border flex flex-col gap-4" role="group" aria-label="Order options">
+          <div class="flex flex-col md:flex-row items-stretch md:items-center gap-4">
+            <label for="quantity" class="font-semibold text-color md:min-w-[80px]">Quantity</label>
+            <div class="flex items-center gap-2 justify-center md:justify-start">
+              <button
+                pButton
+                type="button"
+                icon="pi pi-minus"
+                class="p-button-outlined p-button-sm"
+                (click)="decreaseQuantity()"
+                [disabled]="quantity() <= 1"
+                [attr.aria-label]="'Decrease quantity'"
+              ></button>
+              <p-inputNumber
+                id="quantity"
+                [(ngModel)]="quantityValue"
+                [min]="1"
+                [max]="10"
+                [showButtons]="false"
+                inputStyleClass="text-center"
+                style="width: 80px"
+                class="text-center"
+                [attr.aria-label]="'Quantity'"
+                (onInput)="onQuantityChange(+($event.value ?? 1))"
+              ></p-inputNumber>
+              <button
+                pButton
+                type="button"
+                icon="pi pi-plus"
+                class="p-button-outlined p-button-sm"
+                (click)="increaseQuantity()"
+                [disabled]="quantity() >= 10"
+                [attr.aria-label]="'Increase quantity'"
+              ></button>
+            </div>
+          </div>
+
+          @if (enableSpecialRequests()) {
+            <div>
+              <label for="specialRequests" class="block mb-2 font-semibold text-color text-sm">Special Requests</label>
+              <textarea
+                id="specialRequests"
+                pTextarea
+                [(ngModel)]="specialRequests"
+                placeholder="Any special instructions or modifications..."
+                maxlength="200"
+                rows="2"
+                class="w-full"
+                [attr.aria-label]="'Special requests for this item'"
+              ></textarea>
+              <small class="block text-right mt-1 text-xs text-color-secondary">{{ specialRequests.length }}/200</small>
+            </div>
+          }
+
+          <div class="flex flex-col items-end gap-1 pt-4 border-t border-surface-border">
+            <div class="flex items-center gap-4">
+              <span class="text-lg font-semibold text-color">Total:</span>
+              <span class="text-2xl font-bold text-primary" [attr.aria-label]="'Total price: ' + calculateTotal() + ' dollars'">
+                {{ calculateTotal() | currency }}
+              </span>
+            </div>
+            @if (quantity() > 1) {
+              <small class="text-sm text-color-secondary">
+                {{ getUnitPrice() | currency }} each
+              </small>
+            }
+          </div>
+        </div>
+      } @else {
+        <div class="p-6 bg-surface-50 border-t border-surface-border" role="alert">
+          @if (menuItem()?.status) {
+            <p-message
+              [severity]="getUnavailableSeverity(menuItem()!.status)"
+              [text]="getUnavailableMessage(menuItem()!.status)"
+              [closable]="false"
+            ></p-message>
+          }
+        </div>
+      }
+    </div>
+  }
+
+  <ng-template pTemplate="footer">
+    <div class="flex flex-col md:flex-row justify-end gap-4 w-full">
+      <button
+        pButton
+        type="button"
+        label="Close"
+        icon="pi pi-times"
+        class="p-button-outlined md:min-w-[120px]"
+        (click)="onClose()"
+        [attr.aria-label]="'Close dialog'"
+      ></button>
+      @if (menuItem()?.status === 'AVAILABLE') {
+        <button
+          pButton
+          type="button"
+          label="Add to Order"
+          icon="pi pi-shopping-cart"
+          class="p-button md:min-w-[120px]"
+          (click)="onAddToOrder()"
+          [disabled]="!isValidCustomization()"
+          [attr.aria-label]="'Add ' + quantity() + ' ' + (menuItem()?.name || 'item') + ' to order'"
+        >
+          Add to Order ({{ quantity() }})
+        </button>
+      }
+    </div>
+  </ng-template>
+</p-dialog>

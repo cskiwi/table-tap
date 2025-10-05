@@ -11,36 +11,34 @@ import {
   Order,
   Counter,
   Employee,
-  Inventory,
-  CreateCafeInput,
-  UpdateCafeInput,
-  PaginationInput,
-  SortInput
-} from '@app/models/restaurant';
-import { CafeService } from '../services/cafe.service';
-import { DataLoader } from '../../dataloaders';
+  Stock
+} from '@app/models';
+import { CafeService } from '@app/backend-services';
+import { DataLoaderService } from '../../dataloaders';
+import { CreateCafeInput, UpdateCafeInput } from '../../inputs';
+import { CafeArgs } from '../../args';
 
 @Injectable()
 @Resolver(() => Cafe)
 export class CafeResolver {
-  private pubSub = new PubSub();
+  private pubSub = new PubSub()
 
   constructor(
     @InjectRepository(Cafe)
     private readonly cafeRepository: Repository<Cafe>,
     private readonly cafeService: CafeService,
-    private readonly dataLoader: DataLoader,
+    private readonly dataLoader: DataLoaderService,
   ) {}
 
   // Queries
   @Query(() => [Cafe])
   @UseGuards(PermGuard)
   async cafes(
-    @Args('pagination', { nullable: true }) pagination?: PaginationInput,
-    @Args('sort', { nullable: true }) sort?: SortInput,
+    @Args() args: typeof CafeArgs,
     @ReqUser() user?: User,
   ): Promise<Cafe[]> {
-    return this.cafeService.findAll({ pagination, sort, user });
+    const options = CafeArgs.toFindManyOptions(args);
+    return this.cafeRepository.find(options);
   }
 
   @Query(() => Cafe, { nullable: true })
@@ -63,7 +61,7 @@ export class CafeResolver {
   @UseGuards(PermGuard)
   async createCafe(
     @Args('input') input: CreateCafeInput,
-    @ReqUser() user: User,
+    @ReqUser() user?: User,
   ): Promise<Cafe> {
     const cafe = await this.cafeService.create(input, user);
 
@@ -78,7 +76,7 @@ export class CafeResolver {
   async updateCafe(
     @Args('id') id: string,
     @Args('input') input: UpdateCafeInput,
-    @ReqUser() user: User,
+    @ReqUser() user?: User,
   ): Promise<Cafe> {
     const cafe = await this.cafeService.update(id, input, user);
 
@@ -123,8 +121,8 @@ export class CafeResolver {
     return this.dataLoader.employeesByCafeId.load(cafe.id);
   }
 
-  @ResolveField(() => [Inventory])
-  async inventory(@Parent() cafe: Cafe): Promise<Inventory[]> {
+  @ResolveField(() => [Stock])
+  async inventory(@Parent() cafe: Cafe): Promise<Stock[]> {
     return this.dataLoader.inventoryByCafeId.load(cafe.id);
   }
 

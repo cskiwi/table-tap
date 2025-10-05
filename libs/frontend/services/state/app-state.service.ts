@@ -92,12 +92,12 @@ export class AppStateService {
   );
 
   // Individual state observables
-  public readonly authState$ = this.authStateSubject.asObservable();
-  public readonly orderState$ = this.orderStateSubject.asObservable();
-  public readonly productState$ = this.productStateSubject.asObservable();
-  public readonly inventoryState$ = this.inventoryStateSubject.asObservable();
-  public readonly uiState$ = this.uiStateSubject.asObservable();
-  public readonly offlineState$ = this.offlineStateSubject.asObservable();
+  public readonly authState$ = this.authStateSubject.asObservable()
+  public readonly orderState$ = this.orderStateSubject.asObservable()
+  public readonly productState$ = this.productStateSubject.asObservable()
+  public readonly inventoryState$ = this.inventoryStateSubject.asObservable()
+  public readonly uiState$ = this.uiStateSubject.asObservable()
+  public readonly offlineState$ = this.offlineStateSubject.asObservable()
 
   // Derived observables
   public readonly isAuthenticated$ = this.authState$.pipe(
@@ -157,10 +157,10 @@ export class AppStateService {
 
   constructor() {
     // Listen for online/offline events
-    this.setupOnlineStatusListener();
+    this.setupOnlineStatusListener()
 
     // Setup state persistence
-    this.setupStatePersistence();
+    this.setupStatePersistence()
   }
 
   // Auth State Methods
@@ -349,7 +349,7 @@ export class AppStateService {
 
     if (isOnline) {
       // Trigger sync when coming back online
-      this.syncPendingActions();
+      this.syncPendingActions()
     }
   }
 
@@ -428,7 +428,7 @@ export class AppStateService {
       inventory: this.inventoryStateSubject.value,
       ui: this.uiStateSubject.value,
       offline: this.offlineStateSubject.value
-    };
+    }
   }
 
   // Private Methods
@@ -460,7 +460,7 @@ export class AppStateService {
     });
 
     // Restore state on initialization
-    this.restorePersistedState();
+    this.restorePersistedState()
   }
 
   private restorePersistedState(): void {
@@ -486,7 +486,7 @@ export class AppStateService {
       // Here you would implement the actual sync logic
       // For now, just clear pending actions after a delay
       setTimeout(() => {
-        this.clearPendingActions();
+        this.clearPendingActions()
         this.setLastSyncTime(new Date());
       }, 2000);
     }
@@ -497,7 +497,7 @@ export class AppStateService {
     return {
       timestamp: new Date(),
       state: this.getCurrentState()
-    };
+    }
   }
 
   logStateSnapshot(): void {

@@ -1,0 +1,164 @@
+{
+  "name": "TableTap Kitchen Mobile",
+  "short_name": "Kitchen",
+  "description": "Mobile-optimized kitchen management for TableTap restaurant system",
+  "theme_color": "#ff6b35",
+  "background_color": "#ffffff",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "scope": "/kitchen/",
+  "start_url": "/kitchen/dashboard",
+  "id": "tabletap-kitchen-mobile",
+  "categories": ["food", "business", "productivity"],
+  "lang": "en-US",
+  "dir": "ltr",
+
+  "icons": [
+    {
+      "src": "/assets/icons/kitchen-icon-72x72.png",
+      "sizes": "72x72",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/assets/icons/kitchen-icon-96x96.png",
+      "sizes": "96x96",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/assets/icons/kitchen-icon-128x128.png",
+      "sizes": "128x128",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/assets/icons/kitchen-icon-144x144.png",
+      "sizes": "144x144",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/assets/icons/kitchen-icon-152x152.png",
+      "sizes": "152x152",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/assets/icons/kitchen-icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/assets/icons/kitchen-icon-384x384.png",
+      "sizes": "384x384",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/assets/icons/kitchen-icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable any"
+    }
+  ],
+
+  "screenshots": [
+    {
+      "src": "/assets/screenshots/kitchen-dashboard-mobile.png",
+      "sizes": "390x844",
+      "type": "image/png",
+      "platform": "narrow",
+      "label": "Kitchen Dashboard on Mobile"
+    },
+    {
+      "src": "/assets/screenshots/kitchen-dashboard-tablet.png",
+      "sizes": "768x1024",
+      "type": "image/png",
+      "platform": "wide",
+      "label": "Kitchen Dashboard on Tablet"
+    }
+  ],
+
+  "shortcuts": [
+    {
+      "name": "New Order",
+      "short_name": "New Order",
+      "description": "Create a new kitchen order",
+      "url": "/kitchen/orders/new",
+      "icons": [
+        {
+          "src": "/assets/icons/new-order-96x96.png",
+          "sizes": "96x96",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Timers",
+      "short_name": "Timers",
+      "description": "View active cooking timers",
+      "url": "/kitchen/timers",
+      "icons": [
+        {
+          "src": "/assets/icons/timer-96x96.png",
+          "sizes": "96x96",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Inventory",
+      "short_name": "Inventory",
+      "description": "Check inventory levels",
+      "url": "/kitchen/inventory",
+      "icons": [
+        {
+          "src": "/assets/icons/inventory-96x96.png",
+          "sizes": "96x96",
+          "type": "image/png"
+        }
+      ]
+    }
+  ],
+
+  "related_applications": [
+    {
+      "platform": "play",
+      "url": "https://play.google.com/store/apps/details?id=com.tabletap.kitchen",
+      "id": "com.tabletap.kitchen"
+    }
+  ],
+
+  "prefer_related_applications": false,
+
+  "edge_side_panel": {
+    "preferred_width": 400
+  },
+
+  "launch_handler": {
+    "client_mode": "focus-existing"
+  },
+
+  "handle_links": "preferred",
+
+  "capture_links": "new-client",
+
+  "file_handlers": [
+    {
+      "action": "/kitchen/import",
+      "accept": {
+        "application/json": [".json"],
+        "text/csv": [".csv"]
+      }
+    }
+  ],
+
+  "protocol_handlers": [
+    {
+      "protocol": "web+tabletap",
+      "url": "/kitchen/handle?url=%s"
+    }
+  ]
+}

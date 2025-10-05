@@ -1,0 +1,1392 @@
+import { Injectable, Logger, BadRequestException, NotFoundException, ForbiddenException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository, DataSource, EntityManager, Like, LessThanOrEqual, Between, MoreThan, LessThan } from 'typeorm';
+import { RedisPubSubService, RedisCacheService } from './lib/redis-placeholder.service'; // Using placeholder services
+import { User } from '@app/models';
+import {
+  Inventory,
+  Cafe,
+  Order,
+  OrderItem,
+  CreateInventoryItemInput,
+  UpdateInventoryItemInput,
+  UpdateInventoryStockInput,
+  PaginationInput,
+  SortInput,
+  PaginatedInventoryResponse,
+  InventoryStatus,
+  OrderStatus
+} from '@app/models/restaurant';
+
+export interface InventoryServiceOptions {
+  pagination?: PaginationInput;
+  sort?: SortInput;
+  user?: User;
+}
+
+export interface StockAlert {
+  type: 'LOW_STOCK' | 'OUT_OF_STOCK' | 'EXPIRING_SOON' | 'REORDER_POINT' | 'OVERSTOCK';
+  item: Inventory;
+  severity: 'HIGH' | 'MEDIUM' | 'LOW';
+  message: string;
+  recommendedAction?: string;
+  estimatedCost?: number;
+}
+
+export interface SupplierInfo {
+  id: string;
+  name: string;
+  contactInfo?: {
+    email?: string;
+    phone?: string;
+    address?: string;
+  }
+  leadTime: number; // days
+  minimumOrderValue?: number;
+  items: string[]; // inventory item IDs
+  performanceRating?: number;
+  lastOrderDate?: Date;
+}
+
+export interface ForecastData {
+  itemId: string;
+  predictedDemand: number;
+  timeHorizon: number; // days
+  confidence: number; // 0-1
+  seasonalFactor: number;
+  trendFactor: number;
+}
+
+export interface ReorderSuggestion {
+  itemId: string;
+  currentStock: number;
+  reorderPoint: number;
+  reorderQuantity: number;
+  supplierId?: string;
+  estimatedCost: number;
+  priority: 'HIGH' | 'MEDIUM' | 'LOW';
+  justification: string;
+}
+
+export interface CostAnalytics {
+  totalInventoryValue: number;
+  averageCostPerUnit: number;
+  costByCategory: Record<string, number>;
+  costTrends: Array<{
+    date: Date;
+    totalValue: number;
+    categoryBreakdown: Record<string, number>;
+  }>;
+  mostExpensiveItems: Array<{
+    itemId: string;
+    name: string;
+    unitCost: number;
+    totalValue: number;
+  }>;
+  wasteAnalysis: {
+    expiredItems: number;
+    expiredValue: number;
+    wastePercentage: number;
+  }
+}
+
+export interface InventoryMetrics {
+  turnoverRate: number;
+  stockoutFrequency: number;
+  carryCost: number;
+  serviceLevel: number;
+  accuracy: number;
+  shrinkage: number;
+}
+
+export interface StockMovement {
+  id: string;
+  itemId: string;
+  type: 'INBOUND' | 'OUTBOUND' | 'ADJUSTMENT' | 'TRANSFER' | 'WASTE';
+  quantity: number;
+  unitCost?: number;
+  reason: string;
+  orderId?: string;
+  supplierId?: string;
+  userId: string;
+  timestamp: Date;
+  metadata?: Record<string, any>;
+}
+
+export interface BatchStockUpdate {
+  itemId: string;
+  quantity: number;
+  operation: 'ADD' | 'SUBTRACT' | 'SET';
+  reason?: string;
+}
+
+@Injectable()
+export class InventoryService {
+  private readonly logger = new Logger(InventoryService.name);
+
+  constructor(
+    @InjectRepository(Inventory)
+    private readonly inventoryRepository: Repository<Inventory>,
+    @InjectRepository(Cafe)
+    private readonly cafeRepository: Repository<Cafe>,
+    @InjectRepository(Order)
+    private readonly orderRepository: Repository<Order>,
+    @InjectRepository(OrderItem)
+    private readonly orderItemRepository: Repository<OrderItem>,
+    private readonly dataSource: DataSource,
+    private readonly pubsub: RedisPubSubService,
+    private readonly cache: RedisCacheService,
+  ) {}
+
+  // Supplier Management
+  private suppliers: Map<string, SupplierInfo> = new Map()
+  private stockMovements: StockMovement[] = []
+
+  /**
+   * Create new inventory item with validation
+   */
+  async createItem(input: CreateInventoryItemInput, user: User): Promise<Inventory> {
+    return this.dataSource.transaction(async (manager: EntityManager) => {
+      try {
+        this.logger.log(`Creating inventory item ${input.itemName} for cafe ${input.cafeId}`);
+
+        // Validate cafe exists
+        const cafe = await manager.findOne(Cafe, {
+          where: { id: input.cafeId } as any,
+          select: ['id', 'name'],
+        });
+
+        if (!cafe) {
+          throw new NotFoundException(`Cafe with ID ${input.cafeId} not found`);
+        }
+
+        // Check for duplicate SKU
+        const existingItem = await manager.findOne(Inventory, {
+          where: { sku: input.sku, cafeId: input.cafeId }
+        });
+
+        if (existingItem) {
+          throw new BadRequestException(`Item with SKU ${input.sku} already exists`);
+        }
+
+        // Validate minimum stock is reasonable
+        if (input.minimumStock < 0) {
+          throw new BadRequestException('Minimum stock cannot be negative');
+        }
+
+        if (input.maximumStock && input.maximumStock < input.minimumStock) {
+          throw new BadRequestException('Maximum stock cannot be less than minimum stock');
+        }
+
+        const inventoryItem = manager.create(Inventory, {
+          ...input,
+          status: InventoryStatus.ACTIVE,
+          lastRestocked: new Date(),
+        });
+
+        const savedItem = await manager.save(Inventory, inventoryItem);
+
+        // Check for immediate alerts
+        const alerts = this.generateStockAlerts([savedItem]);
+        if (alerts.length > 0) {
+          this.logger.warn(`Stock alerts for new item ${savedItem.itemName}:`, alerts);
+        }
+
+        this.logger.log(`Inventory item ${savedItem.itemName} created successfully`);
+        return savedItem;
+
+      } catch (error) {
+      const err = error as Error;
+        const err = error as Error;
+        this.logger.error(`Failed to create inventory item: ${err.message}`, err.stack);
+        throw error;
+      }
+    });
+  }
+
+  /**
+   * Update inventory item details
+   */
+  async updateItem(id: string, input: UpdateInventoryItemInput, user: User): Promise<Inventory> {
+    return this.dataSource.transaction(async (manager: EntityManager) => {
+      const item = await manager.findOne(Inventory, { where: { id } });
+
+      if (!item) {
+        throw new NotFoundException(`Inventory item with ID ${id} not found`);
+      }
+
+      // Validate SKU uniqueness if changed
+      if (input.sku && input.sku !== item.sku) {
+        const existingItem = await manager.findOne(Inventory, {
+          where: { sku: input.sku, cafeId: item.cafeId }
+        });
+
+        if (existingItem) {
+          throw new BadRequestException(`Item with SKU ${input.sku} already exists`);
+        }
+      }
+
+      // Validate stock constraints
+      if (input.minimumStock !== undefined && input.minimumStock < 0) {
+        throw new BadRequestException('Minimum stock cannot be negative');
+      }
+
+      if (input.maximumStock && input.minimumStock && input.maximumStock < input.minimumStock) {
+        throw new BadRequestException('Maximum stock cannot be less than minimum stock');
+      }
+
+      await manager.update(Inventory, id, input);
+
+      const updatedItem = await manager.findOne(Inventory, { where: { id } });
+
+      this.logger.log(`Inventory item ${item.itemName} updated successfully`);
+      return updatedItem!;
+    });
+  }
+
+  /**
+   * Update stock levels with automatic alerts
+   */
+  async updateStock(id: string, input: UpdateInventoryStockInput, user: User): Promise<Inventory> {
+    return this.dataSource.transaction(async (manager: EntityManager) => {
+      const item = await manager.findOne(Inventory, { where: { id } });
+
+      if (!item) {
+        throw new NotFoundException(`Inventory item with ID ${id} not found`);
+      }
+
+      let newStock: number;
+
+      switch (input.operation) {
+        case 'ADD':
+          newStock = item.currentStock + input.quantity;
+          break;
+        case 'SUBTRACT':
+          newStock = Math.max(0, item.currentStock - input.quantity);
+          if (item.currentStock - input.quantity < 0) {
+            this.logger.warn(`Stock deduction would result in negative stock for ${item.itemName}. Setting to 0.`);
+          }
+          break;
+        case 'SET':
+          newStock = Math.max(0, input.quantity);
+          break;
+        default:
+          throw new BadRequestException(`Invalid operation: ${input.operation}`);
+      }
+
+      const updates: Partial<Inventory> = {
+        currentStock: newStock,
+      }
+
+      // Update last restocked if adding stock
+      if (input.operation === 'ADD' && input.quantity > 0) {
+        updates.lastRestocked = new Date()
+      }
+
+      await manager.update(Inventory, id, updates);
+
+      const updatedItem = await manager.findOne(Inventory, { where: { id } });
+
+      // Generate stock alerts
+      const alerts = this.generateStockAlerts([updatedItem!]);
+      if (alerts.length > 0) {
+        this.logger.warn(`Stock alerts for ${item.itemName}:`, alerts);
+        // Here you could emit events for real-time notifications
+      }
+
+      this.logger.log(`Stock updated for ${item.itemName}: ${item.currentStock} -> ${newStock} (${input.operation} ${input.quantity})`);
+      return updatedItem!;
+    });
+  }
+
+  /**
+   * Batch update multiple inventory items
+   */
+  async batchUpdateStock(updates: BatchStockUpdate[], user: User): Promise<Inventory[]> {
+    return this.dataSource.transaction(async (manager: EntityManager) => {
+      const results: Inventory[] = []
+      const alertItems: Inventory[] = []
+
+      for (const update of updates) {
+        const item = await manager.findOne(Inventory, { where: { id: update.itemId } });
+
+        if (!item) {
+          this.logger.warn(`Skipping update for non-existent item: ${update.itemId}`);
+          continue;
+        }
+
+        let newStock: number;
+
+        switch (update.operation) {
+          case 'ADD':
+            newStock = item.currentStock + update.quantity;
+            break;
+          case 'SUBTRACT':
+            newStock = Math.max(0, item.currentStock - update.quantity);
+            break;
+          case 'SET':
+            newStock = Math.max(0, update.quantity);
+            break;
+        }
+
+        const stockUpdates: Partial<Inventory> = { currentStock: newStock }
+
+        if (update.operation === 'ADD' && update.quantity > 0) {
+          stockUpdates.lastRestocked = new Date()
+        }
+
+        await manager.update(Inventory, update.itemId, stockUpdates);
+
+        const updatedItem = await manager.findOne(Inventory, { where: { id: update.itemId } });
+        if (updatedItem) {
+          results.push(updatedItem);
+          alertItems.push(updatedItem);
+        }
+      }
+
+      // Generate batch alerts
+      const alerts = this.generateStockAlerts(alertItems);
+      if (alerts.length > 0) {
+        this.logger.warn(`Batch stock update generated ${alerts.length} alerts`);
+      }
+
+      this.logger.log(`Batch updated ${results.length} inventory items`);
+      return results;
+    });
+  }
+
+  /**
+   * Delete inventory item
+   */
+  async deleteItem(id: string, user: User): Promise<Inventory> {
+    const item = await this.inventoryRepository.findOne({ where: { id } });
+
+    if (!item) {
+      throw new NotFoundException(`Inventory item with ID ${id} not found`);
+    }
+
+    await this.inventoryRepository.remove(item);
+
+    this.logger.log(`Inventory item ${item.itemName} deleted successfully`);
+    return item;
+  }
+
+  /**
+   * Find inventory by cafe with pagination
+   */
+  async findByCafe(cafeId: string, options: InventoryServiceOptions): Promise<PaginatedInventoryResponse> {
+    const { pagination, sort } = options;
+
+    const queryBuilder = this.inventoryRepository
+      .createQueryBuilder('inventory')
+      .where('inventory.cafeId = :cafeId', { cafeId });
+
+    // Apply sorting
+    if (sort?.field && sort?.direction) {
+      queryBuilder.orderBy(`inventory.${sort.field}`, sort.direction);
+    } else {
+      queryBuilder.orderBy('inventory.itemName', 'ASC');
+    }
+
+    // Apply pagination
+    const page = pagination?.page || 1;
+    const limit = pagination?.limit || 50;
+    const offset = (page - 1) * limit;
+
+    queryBuilder.skip(offset).take(limit);
+
+    const [items, total] = await queryBuilder.getManyAndCount()
+
+    return {
+      data: items,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    }
+  }
+
+  /**
+   * Find low stock items
+   */
+  async findLowStockItems(cafeId: string, user: User): Promise<Inventory[]> {
+    return this.inventoryRepository
+      .createQueryBuilder('inventory')
+      .where('inventory.cafeId = :cafeId', { cafeId })
+      .andWhere('inventory.currentStock <= inventory.minimumStock')
+      .andWhere('inventory.currentStock > 0')
+      .andWhere('inventory.status = :status', { status: InventoryStatus.ACTIVE })
+      .orderBy('inventory.currentStock', 'ASC')
+      .getMany()
+  }
+
+  /**
+   * Find out of stock items
+   */
+  async findOutOfStockItems(cafeId: string, user: User): Promise<Inventory[]> {
+    return this.inventoryRepository
+      .createQueryBuilder('inventory')
+      .where('inventory.cafeId = :cafeId', { cafeId })
+      .andWhere('inventory.currentStock = 0')
+      .andWhere('inventory.status = :status', { status: InventoryStatus.ACTIVE })
+      .orderBy('inventory.itemName', 'ASC')
+      .getMany()
+  }
+
+  /**
+   * Find items expiring within specified days
+   */
+  async findExpiringItems(cafeId: string, days: number, user: User): Promise<Inventory[]> {
+    const futureDate = new Date()
+    futureDate.setDate(futureDate.getDate() + days);
+
+    return this.inventoryRepository
+      .createQueryBuilder('inventory')
+      .where('inventory.cafeId = :cafeId', { cafeId })
+      .andWhere('inventory.expiryDate IS NOT NULL')
+      .andWhere('inventory.expiryDate <= :futureDate', { futureDate })
+      .andWhere('inventory.status = :status', { status: InventoryStatus.ACTIVE })
+      .orderBy('inventory.expiryDate', 'ASC')
+      .getMany()
+  }
+
+  /**
+   * Search inventory items
+   */
+  async search(cafeId: string, query: string, options: InventoryServiceOptions): Promise<Inventory[]> {
+    const { pagination } = options;
+
+    const queryBuilder = this.inventoryRepository
+      .createQueryBuilder('inventory')
+      .where('inventory.cafeId = :cafeId', { cafeId })
+      .andWhere(
+        '(inventory.itemName ILIKE :query OR inventory.sku ILIKE :query OR inventory.description ILIKE :query)',
+        { query: `%${query}%` }
+      );
+
+    if (pagination?.limit) {
+      queryBuilder.take(pagination.limit);
+    }
+
+    return queryBuilder.getMany()
+  }
+
+  async findById(id: string, user?: User): Promise<Inventory | null> {
+    return this.inventoryRepository.findOne({ where: { id } });
+  }
+
+  /**
+   * Generate comprehensive inventory report
+   */
+  async generateInventoryReport(cafeId: string, user: User): Promise<{
+    totalItems: number;
+    totalValue: number;
+    lowStockCount: number;
+    outOfStockCount: number;
+    expiringCount: number;
+    alerts: StockAlert[]
+  }> {
+    const [allItems, lowStock, outOfStock, expiring] = await Promise.all([
+      this.inventoryRepository.find({ where: { cafeId, status: InventoryStatus.ACTIVE } }),
+      this.findLowStockItems(cafeId, user),
+      this.findOutOfStockItems(cafeId, user),
+      this.findExpiringItems(cafeId, 7, user)
+    ]);
+
+    const totalValue = allItems.reduce((sum, item) => {
+      return sum + (item.currentStock * (item.unitCost || 0));
+    }, 0);
+
+    const alerts = this.generateStockAlerts([...lowStock, ...outOfStock, ...expiring]);
+
+    return {
+      totalItems: allItems.length,
+      totalValue,
+      lowStockCount: lowStock.length,
+      outOfStockCount: outOfStock.length,
+      expiringCount: expiring.length,
+      alerts,
+    }
+  }
+
+  /**
+   * Enhanced stock deduction with movement tracking
+   */
+  async deductStockForOrder(deductions: { itemId: string; quantity: number; orderId?: string }[], userId: string): Promise<void> {
+    await this.dataSource.transaction(async (manager: EntityManager) => {
+      for (const deduction of deductions) {
+        const item = await manager.findOne(Inventory, { where: { id: deduction.itemId } });
+
+        if (!item) {
+          this.logger.warn(`Inventory item ${deduction.itemId} not found for deduction`);
+          continue;
+        }
+
+        if (item.currentStock >= deduction.quantity) {
+          await manager.update(Inventory, deduction.itemId, {
+            currentStock: item.currentStock - deduction.quantity
+          });
+
+          // Record stock movement
+          await this.recordStockMovement({
+            itemId: deduction.itemId,
+            type: 'OUTBOUND',
+            quantity: deduction.quantity,
+            reason: 'Order fulfillment',
+            orderId: deduction.orderId,
+            userId,
+            timestamp: new Date()
+          });
+
+          // Check for alerts after deduction
+          const updatedItem = await manager.findOne(Inventory, { where: { id: deduction.itemId } });
+          if (updatedItem) {
+            const alerts = this.generateStockAlerts([updatedItem]);
+            if (alerts.length > 0) {
+              await this.publishStockAlerts(alerts);
+            }
+          }
+        } else {
+          this.logger.warn(`Insufficient stock for ${item.itemName}. Available: ${item.currentStock}, Required: ${deduction.quantity}`);
+
+          // Generate critical alert for stockout
+          await this.publishStockAlerts([{
+            type: 'OUT_OF_STOCK',
+            item,
+            severity: 'HIGH',
+            message: `Critical: Cannot fulfill order for ${item.itemName}. Available: ${item.currentStock}, Required: ${deduction.quantity}`,
+            recommendedAction: 'Immediate restocking required',
+          }]);
+        }
+      }
+    });
+  }
+
+  /**
+   * SUPPLIER MANAGEMENT METHODS
+   */
+
+  /**
+   * Add or update supplier information
+   */
+  async manageSupplier(supplierInfo: Omit<SupplierInfo, 'id'> & { id?: string }): Promise<SupplierInfo> {
+    const supplierId = supplierInfo.id || this.generateSupplierId()
+
+    const supplier: SupplierInfo = {
+      ...supplierInfo,
+      id: supplierId,
+    }
+
+    this.suppliers.set(supplierId, supplier);
+
+    // Cache supplier data
+    await this.cache.set(`supplier:${supplierId}`, supplier, 86400); // 24 hours
+
+    this.logger.log(`Supplier ${supplier.name} managed successfully`);
+    return supplier;
+  }
+
+  /**
+   * Get supplier by ID
+   */
+  async getSupplier(supplierId: string): Promise<SupplierInfo | null> {
+    // Try cache first
+    const cached = await this.cache.get(`supplier:${supplierId}`);
+    if (cached) return cached;
+
+    const supplier = this.suppliers.get(supplierId);
+    if (supplier) {
+      await this.cache.set(`supplier:${supplierId}`, supplier, 86400);
+    }
+
+    return supplier || null;
+  }
+
+  /**
+   * Get all suppliers for a cafe
+   */
+  async getSuppliersForCafe(cafeId: string): Promise<SupplierInfo[]> {
+    const cacheKey = `suppliers:cafe:${cafeId}`;
+    const cached = await this.cache.get(cacheKey);
+    if (cached) return cached;
+
+    // Get all inventory items for cafe to find associated suppliers
+    const inventoryItems = await this.inventoryRepository.find({
+      where: { cafeId, status: InventoryStatus.ACTIVE },
+      select: ['supplier'],
+    });
+
+    const supplierNames = [...new Set(inventoryItems.map(item => item.supplier).filter(Boolean))];
+    const suppliers = Array.from(this.suppliers.values()).filter(supplier =>
+      supplierNames.includes(supplier.name)
+    );
+
+    await this.cache.set(cacheKey, suppliers, 3600); // 1 hour
+    return suppliers;
+  }
+
+  /**
+   * INVENTORY FORECASTING METHODS
+   */
+
+  /**
+   * Generate demand forecast for inventory items
+   */
+  async generateInventoryForecast(cafeId: string, itemIds?: string[], timeHorizon: number = 30): Promise<ForecastData[]> {
+    try {
+      const items = itemIds
+        ? await this.inventoryRepository.findByIds(itemIds)
+        : await this.inventoryRepository.find({ where: { cafeId, status: InventoryStatus.ACTIVE } });
+
+      const forecasts: ForecastData[] = []
+
+      for (const item of items) {
+        const historicalData = await this.getHistoricalUsageData(item.id, 90); // 90 days
+        const forecast = this.calculateDemandForecast(historicalData, timeHorizon);
+
+        forecasts.push({
+          itemId: item.id,
+          predictedDemand: forecast.demand,
+          timeHorizon,
+          confidence: forecast.confidence,
+          seasonalFactor: forecast.seasonalFactor,
+          trendFactor: forecast.trendFactor,
+        });
+      }
+
+      // Cache forecasts
+      await this.cache.set(`forecast:${cafeId}`, forecasts, 3600); // 1 hour
+
+      this.logger.log(`Generated forecasts for ${forecasts.length} items in cafe ${cafeId}`);
+      return forecasts;
+
+    } catch (error) {
+      const err = error as Error;
+      this.logger.error(`Failed to generate inventory forecast: ${err.message}`, err.stack);
+      throw error;
+    }
+  }
+
+  /**
+   * Calculate reorder points based on demand patterns
+   */
+  async calculateReorderPoints(cafeId: string): Promise<ReorderSuggestion[]> {
+    try {
+      const items = await this.inventoryRepository.find({
+        where: { cafeId, status: InventoryStatus.ACTIVE }
+      });
+
+      const suggestions: ReorderSuggestion[] = []
+
+      for (const item of items) {
+        const forecast = await this.generateInventoryForecast(cafeId, [item.id], 14); // 2 weeks
+        const demand = forecast[0]?.predictedDemand || 0;
+
+        const supplier = item.supplier ? Array.from(this.suppliers.values()).find(s => s.name === item.supplier) : null;
+        const leadTime = supplier?.leadTime || 7; // default 7 days
+
+        const safetyStock = Math.ceil(demand * 0.2); // 20% safety stock
+        const reorderPoint = Math.ceil((demand / 14) * leadTime) + safetyStock;
+
+        if (item.currentStock <= reorderPoint) {
+          const reorderQuantity = Math.max(
+            item.maximumStock ? item.maximumStock - item.currentStock : demand,
+            item.minimumStock * 2
+          );
+
+          suggestions.push({
+            itemId: item.id,
+            currentStock: item.currentStock,
+            reorderPoint,
+            reorderQuantity,
+            supplierId: supplier?.id,
+            estimatedCost: (item.unitCost || 0) * reorderQuantity,
+            priority: item.currentStock === 0 ? 'HIGH' : item.currentStock <= item.minimumStock ? 'MEDIUM' : 'LOW',
+            justification: `Stock level (${item.currentStock}) is below reorder point (${reorderPoint}). Lead time: ${leadTime} days.`
+          });
+        }
+      }
+
+      this.logger.log(`Generated ${suggestions.length} reorder suggestions for cafe ${cafeId}`);
+      return suggestions;
+
+    } catch (error) {
+      const err = error as Error;
+      this.logger.error(`Failed to calculate reorder points: ${err.message}`, err.stack);
+      throw error;
+    }
+  }
+
+  /**
+   * COST TRACKING AND ANALYTICS
+   */
+
+  /**
+   * Get comprehensive cost analytics
+   */
+  async getCostAnalytics(cafeId: string, startDate?: Date, endDate?: Date): Promise<CostAnalytics> {
+    try {
+      const cacheKey = `cost_analytics:${cafeId}:${startDate?.toISOString()}:${endDate?.toISOString()}`;
+      const cached = await this.cache.get(cacheKey);
+      if (cached) return cached;
+
+      const items = await this.inventoryRepository.find({
+        where: { cafeId, status: InventoryStatus.ACTIVE }
+      });
+
+      const totalInventoryValue = items.reduce((sum, item) => {
+        return sum + (item.currentStock * (item.unitCost || 0));
+      }, 0);
+
+      const costByCategory = items.reduce((acc, item) => {
+        const category = item.category || 'Uncategorized';
+        acc[category] = (acc[category] || 0) + (item.currentStock * (item.unitCost || 0));
+        return acc;
+      }, {} as Record<string, number>);
+
+      const mostExpensiveItems = items
+        .map(item => ({
+          itemId: item.id,
+          name: item.itemName,
+          unitCost: item.unitCost || 0,
+          totalValue: item.currentStock * (item.unitCost || 0)
+        }))
+        .sort((a, b) => b.totalValue - a.totalValue)
+        .slice(0, 10);
+
+      // Calculate waste analysis
+      const expiredItems = items.filter(item =>
+        item.expiryDate && item.expiryDate <= new Date()
+      );
+
+      const expiredValue = expiredItems.reduce((sum, item) =>
+        sum + (item.currentStock * (item.unitCost || 0)), 0
+      );
+
+      const costTrends = await this.getCostTrends(cafeId, startDate, endDate);
+
+      const analytics: CostAnalytics = {
+        totalInventoryValue,
+        averageCostPerUnit: items.length > 0 ? totalInventoryValue / items.reduce((sum, item) => sum + item.currentStock, 0) : 0,
+        costByCategory,
+        costTrends,
+        mostExpensiveItems,
+        wasteAnalysis: {
+          expiredItems: expiredItems.length,
+          expiredValue,
+          wastePercentage: totalInventoryValue > 0 ? (expiredValue / totalInventoryValue) * 100 : 0,
+        }
+      }
+
+      await this.cache.set(cacheKey, analytics, 1800); // 30 minutes
+      return analytics;
+
+    } catch (error) {
+      const err = error as Error;
+      this.logger.error(`Failed to get cost analytics: ${err.message}`, err.stack);
+      throw error;
+    }
+  }
+
+  /**
+   * Get inventory performance metrics
+   */
+  async getInventoryMetrics(cafeId: string, period: number = 30): Promise<InventoryMetrics> {
+    try {
+      const startDate = new Date()
+      startDate.setDate(startDate.getDate() - period);
+
+      const items = await this.inventoryRepository.find({ where: { cafeId } });
+      const movements = this.stockMovements.filter(m =>
+        items.some(item => item.id === m.itemId) &&
+        m.timestamp >= startDate
+      );
+
+      // Calculate turnover rate
+      const outboundMovements = movements.filter(m => m.type === 'OUTBOUND');
+      const totalOutbound = outboundMovements.reduce((sum, m) => sum + m.quantity, 0);
+      const avgInventory = items.reduce((sum, item) => sum + item.currentStock, 0) / items.length;
+      const turnoverRate = avgInventory > 0 ? totalOutbound / avgInventory : 0;
+
+      // Calculate stockout frequency
+      const stockouts = items.filter(item => item.currentStock === 0).length;
+      const stockoutFrequency = items.length > 0 ? (stockouts / items.length) * 100 : 0;
+
+      // Estimate carrying cost (2% of inventory value per month)
+      const inventoryValue = items.reduce((sum, item) => sum + (item.currentStock * (item.unitCost || 0)), 0);
+      const carryCost = inventoryValue * 0.02 * (period / 30);
+
+      // Calculate service level (orders fulfilled without stockouts)
+      const totalOrders = await this.orderRepository.count({
+        where: {
+          cafeId,
+          createdAt: MoreThan(startDate)
+        }
+      });
+      const stockoutOrders = 0; // Would need order fulfillment tracking
+      const serviceLevel = totalOrders > 0 ? ((totalOrders - stockoutOrders) / totalOrders) * 100 : 100;
+
+      return {
+        turnoverRate,
+        stockoutFrequency,
+        carryCost,
+        serviceLevel,
+        accuracy: 98.5, // Would calculate from cycle counts
+        shrinkage: 1.2,  // Would calculate from adjustments
+      }
+
+    } catch (error) {
+      const err = error as Error;
+      this.logger.error(`Failed to get inventory metrics: ${err.message}`, err.stack);
+      throw error;
+    }
+  }
+
+  /**
+   * BATCH OPERATIONS
+   */
+
+  /**
+   * Import inventory from CSV/Excel data
+   */
+  async bulkImportInventory(
+    cafeId: string,
+    inventoryData: Partial<Inventory>[],
+    user: User,
+    options: { upsert?: boolean; validateOnly?: boolean } = {}
+  ): Promise<{
+    success: number;
+    failed: number;
+    errors: string[]
+    created?: Inventory[]
+    updated?: Inventory[]
+  }> {
+    const results = {
+      success: 0,
+      failed: 0,
+      errors: [] as string[],
+      created: [] as Inventory[],
+      updated: [] as Inventory[]
+    }
+
+    if (options.validateOnly) {
+      // Validation-only mode
+      for (const data of inventoryData) {
+        try {
+          await this.validateInventoryData(data, cafeId);
+          results.success++;
+        } catch (error) {
+      const err = error as Error;
+          results.failed++;
+          results.errors.push(`Row ${results.success + results.failed}: ${err.message}`);
+        }
+      }
+      return results;
+    }
+
+    return this.dataSource.transaction(async (manager: EntityManager) => {
+      for (const data of inventoryData) {
+        try {
+          if (options.upsert && data.sku) {
+            // Check if item exists
+            const existingItem = await manager.findOne(Inventory, {
+              where: { sku: data.sku, cafeId }
+            });
+
+            if (existingItem) {
+              await manager.update(Inventory, existingItem.id, data);
+              const updated = await manager.findOne(Inventory, { where: { id: existingItem.id } });
+              if (updated) results.updated!.push(updated);
+            } else {
+              const newItem = manager.create(Inventory, { ...data, cafeId });
+              const created = await manager.save(Inventory, newItem);
+              results.created!.push(created);
+            }
+          } else {
+            const newItem = manager.create(Inventory, { ...data, cafeId });
+            const created = await manager.save(Inventory, newItem);
+            results.created!.push(created);
+          }
+
+          results.success++;
+        } catch (error) {
+      const err = error as Error;
+          results.failed++;
+          results.errors.push(`SKU ${data.sku}: ${err.message}`);
+        }
+      }
+
+      this.logger.log(`Bulk import completed: ${results.success} success, ${results.failed} failed`);
+      return results;
+    });
+  }
+
+  /**
+   * Bulk stock adjustment with audit trail
+   */
+  async bulkStockAdjustment(
+    adjustments: Array<{
+      itemId: string;
+      newStock: number;
+      reason: string;
+    }>,
+    user: User
+  ): Promise<{ success: number; failed: number; errors: string[] }> {
+    const results = { success: 0, failed: 0, errors: [] as string[] }
+
+    return this.dataSource.transaction(async (manager: EntityManager) => {
+      for (const adjustment of adjustments) {
+        try {
+          const item = await manager.findOne(Inventory, { where: { id: adjustment.itemId } });
+
+          if (!item) {
+            results.failed++;
+            results.errors.push(`Item ${adjustment.itemId} not found`);
+            continue;
+          }
+
+          const oldStock = item.currentStock;
+          const difference = adjustment.newStock - oldStock;
+
+          await manager.update(Inventory, adjustment.itemId, {
+            currentStock: adjustment.newStock
+          });
+
+          // Record movement
+          await this.recordStockMovement({
+            itemId: adjustment.itemId,
+            type: 'ADJUSTMENT',
+            quantity: Math.abs(difference),
+            reason: adjustment.reason,
+            userId: user.id,
+            timestamp: new Date(),
+            metadata: { oldStock, newStock: adjustment.newStock }
+          });
+
+          results.success++;
+
+        } catch (error) {
+      const err = error as Error;
+          results.failed++;
+          results.errors.push(`Item ${adjustment.itemId}: ${err.message}`);
+        }
+      }
+
+      this.logger.log(`Bulk adjustment completed: ${results.success} success, ${results.failed} failed`);
+      return results;
+    });
+  }
+
+  /**
+   * ADVANCED REPORTING
+   */
+
+  /**
+   * Generate comprehensive inventory report
+   */
+  async generateComprehensiveReport(cafeId: string, user: User): Promise<{
+    summary: {
+      totalItems: number;
+      totalValue: number;
+      lowStockCount: number;
+      outOfStockCount: number;
+      expiringCount: number;
+    }
+    analytics: CostAnalytics;
+    metrics: InventoryMetrics;
+    forecasts: ForecastData[]
+    reorderSuggestions: ReorderSuggestion[]
+    alerts: StockAlert[]
+    topPerformers: Array<{ itemId: string; name: string; turnover: number; revenue: number }>;
+    recommendations: string[]
+  }> {
+    try {
+      // Generate all report components in parallel
+      const [
+        basicReport,
+        analytics,
+        metrics,
+        forecasts,
+        reorderSuggestions,
+        topPerformers
+      ] = await Promise.all([
+        this.generateInventoryReport(cafeId, user),
+        this.getCostAnalytics(cafeId),
+        this.getInventoryMetrics(cafeId),
+        this.generateInventoryForecast(cafeId),
+        this.calculateReorderPoints(cafeId),
+        this.getTopPerformingItems(cafeId)
+      ]);
+
+      const recommendations = this.generateRecommendations(analytics, metrics, reorderSuggestions);
+
+      return {
+        summary: {
+          totalItems: basicReport.totalItems,
+          totalValue: basicReport.totalValue,
+          lowStockCount: basicReport.lowStockCount,
+          outOfStockCount: basicReport.outOfStockCount,
+          expiringCount: basicReport.expiringCount,
+        },
+        analytics,
+        metrics,
+        forecasts,
+        reorderSuggestions,
+        alerts: basicReport.alerts,
+        topPerformers,
+        recommendations,
+      }
+
+    } catch (error) {
+      const err = error as Error;
+      this.logger.error(`Failed to generate comprehensive report: ${err.message}`, err.stack);
+      throw error;
+    }
+  }
+
+  /**
+   * INTEGRATION WITH ORDER SYSTEM
+   */
+
+  /**
+   * Pre-validate order against inventory availability
+   */
+  async validateOrderInventory(orderItems: Array<{ menuItemId: string; quantity: number }>): Promise<{
+    canFulfill: boolean;
+    issues: Array<{
+      menuItemId: string;
+      inventoryItemId: string;
+      required: number;
+      available: number;
+      shortfall: number;
+    }>;
+    recommendations: string[]
+  }> {
+    const issues: any[] = []
+    const recommendations: string[] = []
+
+    for (const orderItem of orderItems) {
+      // Get inventory requirements for menu item (simplified - would use recipe data)
+      const inventoryItems = await this.inventoryRepository.find({
+        where: { /* menu item relationship */ }
+      });
+
+      for (const invItem of inventoryItems) {
+        const required = orderItem.quantity; // Would calculate from recipe
+        if (invItem.currentStock < required) {
+          issues.push({
+            menuItemId: orderItem.menuItemId,
+            inventoryItemId: invItem.id,
+            required,
+            available: invItem.currentStock,
+            shortfall: required - invItem.currentStock
+          });
+        }
+      }
+    }
+
+    if (issues.length > 0) {
+      recommendations.push('Consider adjusting order quantities or sourcing additional inventory');
+      recommendations.push('Review menu item availability based on current stock levels');
+    }
+
+    return {
+      canFulfill: issues.length === 0,
+      issues,
+      recommendations
+    }
+  }
+
+  // Private helper methods
+
+  private async recordStockMovement(movement: Omit<StockMovement, 'id'>): Promise<void> {
+    const movementRecord: StockMovement = {
+      ...movement,
+      id: this.generateMovementId()
+    }
+
+    this.stockMovements.push(movementRecord);
+
+    // Keep only last 10000 movements in memory
+    if (this.stockMovements.length > 10000) {
+      this.stockMovements = this.stockMovements.slice(-10000);
+    }
+
+    // Persist to database (would implement proper stock_movements table)
+    this.logger.debug(`Recorded stock movement: ${movement.type} ${movement.quantity} for item ${movement.itemId}`);
+  }
+
+  private async publishStockAlerts(alerts: StockAlert[]): Promise<void> {
+    for (const alert of alerts) {
+      await this.pubsub.publishStockAlert({
+        type: alert.type,
+        itemId: alert.item.id,
+        cafeId: alert.item.cafeId,
+        severity: alert.severity,
+        message: alert.message,
+        recommendedAction: alert.recommendedAction,
+        estimatedCost: alert.estimatedCost
+      });
+    }
+  }
+
+  private async getHistoricalUsageData(itemId: string, days: number): Promise<Array<{ date: Date; quantity: number }>> {
+    const startDate = new Date()
+    startDate.setDate(startDate.getDate() - days);
+
+    const movements = this.stockMovements.filter(m =>
+      m.itemId === itemId &&
+      m.type === 'OUTBOUND' &&
+      m.timestamp >= startDate
+    );
+
+    // Group by date
+    const dailyUsage = new Map<string, number>()
+    movements.forEach(movement => {
+      const dateKey = movement.timestamp.toISOString().split('T')[0]
+      dailyUsage.set(dateKey, (dailyUsage.get(dateKey) || 0) + movement.quantity);
+    });
+
+    return Array.from(dailyUsage.entries()).map(([date, quantity]) => ({
+      date: new Date(date),
+      quantity
+    }));
+  }
+
+  private calculateDemandForecast(historicalData: Array<{ date: Date; quantity: number }>, horizon: number): {
+    demand: number;
+    confidence: number;
+    seasonalFactor: number;
+    trendFactor: number;
+  } {
+    if (historicalData.length === 0) {
+      return { demand: 0, confidence: 0, seasonalFactor: 1, trendFactor: 1 }
+    }
+
+    // Simple moving average with trend analysis
+    const values = historicalData.map(d => d.quantity);
+    const average = values.reduce((sum, val) => sum + val, 0) / values.length;
+
+    // Calculate trend
+    const midpoint = Math.floor(values.length / 2);
+    const firstHalf = values.slice(0, midpoint).reduce((sum, val) => sum + val, 0) / midpoint;
+    const secondHalf = values.slice(midpoint).reduce((sum, val) => sum + val, 0) / (values.length - midpoint);
+    const trendFactor = secondHalf > firstHalf ? 1.1 : secondHalf < firstHalf ? 0.9 : 1.0;
+
+    // Simple seasonality (would use more sophisticated algorithms in production)
+    const seasonalFactor = 1.0;
+
+    // Confidence based on data consistency
+    const variance = values.reduce((sum, val) => sum + Math.pow(val - average, 2), 0) / values.length;
+    const confidence = Math.max(0.3, Math.min(0.95, 1 - (variance / (average * average))));
+
+    return {
+      demand: Math.round(average * (horizon / (historicalData.length > 0 ? historicalData.length : 1)) * trendFactor * seasonalFactor),
+      confidence,
+      seasonalFactor,
+      trendFactor
+    }
+  }
+
+  private async getCostTrends(cafeId: string, startDate?: Date, endDate?: Date): Promise<Array<{
+    date: Date;
+    totalValue: number;
+    categoryBreakdown: Record<string, number>;
+  }>> {
+    // Simplified implementation - would track historical cost data
+    const now = new Date()
+    const trends = []
+
+    for (let i = 6; i >= 0; i--) {
+      const date = new Date(now);
+      date.setDate(date.getDate() - (i * 7)); // Weekly intervals
+
+      // Would query historical data here
+      trends.push({
+        date,
+        totalValue: Math.random() * 10000 + 5000, // Mock data
+        categoryBreakdown: {
+          'Beverages': Math.random() * 3000 + 1000,
+          'Food': Math.random() * 4000 + 2000,
+          'Supplies': Math.random() * 1000 + 500,
+        }
+      });
+    }
+
+    return trends;
+  }
+
+  private async getTopPerformingItems(cafeId: string): Promise<Array<{
+    itemId: string;
+    name: string;
+    turnover: number;
+    revenue: number;
+  }>> {
+    const items = await this.inventoryRepository.find({
+      where: { cafeId, status: InventoryStatus.ACTIVE }
+    });
+
+    // Calculate performance metrics for each item
+    const performance = items.map(item => {
+      const movements = this.stockMovements.filter(m => m.itemId === item.id && m.type === 'OUTBOUND');
+      const totalSold = movements.reduce((sum, m) => sum + m.quantity, 0);
+      const turnover = item.currentStock > 0 ? totalSold / item.currentStock : 0;
+      const revenue = totalSold * (item.unitCost || 0) * 1.3; // Assuming 30% markup
+
+      return {
+        itemId: item.id,
+        name: item.itemName,
+        turnover,
+        revenue
+      }
+    });
+
+    return performance
+      .sort((a, b) => b.turnover - a.turnover)
+      .slice(0, 10);
+  }
+
+  private generateRecommendations(
+    analytics: CostAnalytics,
+    metrics: InventoryMetrics,
+    reorderSuggestions: ReorderSuggestion[]
+  ): string[] {
+    const recommendations: string[] = []
+
+    if (metrics.stockoutFrequency > 10) {
+      recommendations.push('High stockout frequency detected. Consider increasing safety stock levels.');
+    }
+
+    if (metrics.turnoverRate < 2) {
+      recommendations.push('Low inventory turnover rate. Review slow-moving items and consider promotions.');
+    }
+
+    if (analytics.wasteAnalysis.wastePercentage > 5) {
+      recommendations.push('High waste percentage detected. Review expiry dates and ordering patterns.');
+    }
+
+    if (reorderSuggestions.filter(s => s.priority === 'HIGH').length > 0) {
+      recommendations.push('Critical stock levels detected. Immediate reordering required.');
+    }
+
+    if (metrics.carryCost > analytics.totalInventoryValue * 0.05) {
+      recommendations.push('High carrying costs. Consider reducing inventory levels or improving turnover.');
+    }
+
+    return recommendations;
+  }
+
+  private async validateInventoryData(data: Partial<Inventory>, cafeId: string): Promise<void> {
+    if (!data.sku) throw new Error('SKU is required');
+    if (!data.itemName) throw new Error('Item name is required');
+    if (data.minimumStock !== undefined && data.minimumStock < 0) throw new Error('Minimum stock cannot be negative');
+    if (data.currentStock !== undefined && data.currentStock < 0) throw new Error('Current stock cannot be negative');
+
+    // Check for duplicate SKU
+    const existing = await this.inventoryRepository.findOne({
+      where: { sku: data.sku, cafeId }
+    });
+    if (existing) throw new Error(`SKU ${data.sku} already exists`);
+  }
+
+  private generateSupplierId(): string {
+    return `SUP_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`.toUpperCase()
+  }
+
+  private generateMovementId(): string {
+    return `MOV_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`.toUpperCase()
+  }
+
+  private generateStockAlerts(items: Inventory[]): StockAlert[] {
+    const alerts: StockAlert[] = []
+    const now = new Date()
+
+    for (const item of items) {
+      // Out of stock alert
+      if (item.currentStock === 0) {
+        alerts.push({
+          type: 'OUT_OF_STOCK',
+          item,
+          severity: 'HIGH',
+          message: `${item.itemName} is completely out of stock`,
+          recommendedAction: 'Immediate restocking required',
+          estimatedCost: (item.unitCost || 0) * (item.minimumStock * 2)
+        });
+      }
+      // Low stock alert
+      else if (item.currentStock <= item.minimumStock) {
+        alerts.push({
+          type: 'LOW_STOCK',
+          item,
+          severity: 'MEDIUM',
+          message: `${item.itemName} is running low (${item.currentStock} remaining, minimum: ${item.minimumStock})`,
+          recommendedAction: `Reorder ${item.minimumStock * 2} units`,
+          estimatedCost: (item.unitCost || 0) * (item.minimumStock * 2)
+        });
+      }
+
+      // Reorder point alert (more sophisticated than just minimum stock)
+      if (item.maximumStock && item.currentStock > item.minimumStock) {
+        const reorderPoint = Math.ceil((item.minimumStock + item.maximumStock) * 0.3); // 30% of range above minimum
+        if (item.currentStock <= reorderPoint) {
+          alerts.push({
+            type: 'REORDER_POINT',
+            item,
+            severity: 'LOW',
+            message: `${item.itemName} has reached reorder point (${item.currentStock}/${reorderPoint})`,
+            recommendedAction: `Plan to reorder ${item.maximumStock - item.currentStock} units`,
+            estimatedCost: (item.unitCost || 0) * (item.maximumStock - item.currentStock)
+          });
+        }
+      }
+
+      // Overstock alert
+      if (item.maximumStock && item.currentStock > item.maximumStock * 1.2) { // 20% over maximum
+        alerts.push({
+          type: 'OVERSTOCK',
+          item,
+          severity: 'LOW',
+          message: `${item.itemName} is overstocked (${item.currentStock}/${item.maximumStock} maximum)`,
+          recommendedAction: 'Consider promotional activities or review ordering patterns',
+          estimatedCost: (item.unitCost || 0) * (item.currentStock - item.maximumStock)
+        });
+      }
+
+      // Expiring soon alert
+      if (item.expiryDate) {
+        const daysUntilExpiry = Math.ceil((item.expiryDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+
+        if (daysUntilExpiry <= 0) {
+          alerts.push({
+            type: 'EXPIRING_SOON',
+            item,
+            severity: 'HIGH',
+            message: `${item.itemName} has expired`,
+            recommendedAction: 'Remove from inventory immediately',
+            estimatedCost: (item.unitCost || 0) * item.currentStock
+          });
+        } else if (daysUntilExpiry <= 3) {
+          alerts.push({
+            type: 'EXPIRING_SOON',
+            item,
+            severity: 'MEDIUM',
+            message: `${item.itemName} expires in ${daysUntilExpiry} day(s)`,
+            recommendedAction: 'Use immediately or offer discounts',
+            estimatedCost: (item.unitCost || 0) * item.currentStock * 0.5 // Potential 50% loss
+          });
+        } else if (daysUntilExpiry <= 7) {
+          alerts.push({
+            type: 'EXPIRING_SOON',
+            item,
+            severity: 'LOW',
+            message: `${item.itemName} expires in ${daysUntilExpiry} days`,
+            recommendedAction: 'Monitor closely and prioritize usage',
+            estimatedCost: (item.unitCost || 0) * item.currentStock * 0.1 // Potential 10% loss
+          });
+        }
+      }
+    }
+
+    return alerts;
+  }
+}

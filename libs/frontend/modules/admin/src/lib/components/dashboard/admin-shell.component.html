@@ -1,0 +1,258 @@
+<div class="flex flex-col h-screen">
+  <!-- Top Toolbar -->
+  <p-toolbar class="border-b border-solid surface-border">
+    <div class="p-toolbar-group-start flex items-center gap-3">
+      <p-button
+        icon="pi pi-bars"
+        [text]="true"
+        (click)="toggleSidebar()"
+        class="text-color">
+      </p-button>
+      <h2 class="text-2xl font-bold m-0 text-color">TableTap Admin</h2>
+    </div>
+
+    <div class="p-toolbar-group-end flex items-center gap-3">
+      <!-- Notifications -->
+      <p-button
+        icon="pi pi-bell"
+        [text]="true"
+        [badge]="unreadNotificationsCount().toString()"
+        badgeClass="p-badge-danger"
+        (click)="notificationPanel.toggle($event)"
+        class="text-color">
+      </p-button>
+
+      <!-- User Menu -->
+      <p-avatar
+        [image]="currentUser()?.profileImage"
+        [label]="currentUser()?.name?.charAt(0)"
+        shape="circle"
+        class="cursor-pointer"
+        (click)="userMenu.toggle($event)">
+      </p-avatar>
+    </div>
+  </p-toolbar>
+
+  <!-- Sidebar Navigation -->
+  <p-drawer
+    [(visible)]="sidebarVisible"
+    position="left"
+    [modal]="false"
+    [showCloseIcon]="false"
+    styleClass="surface-ground border-r border-solid surface-border"
+    [style]="{ width: '280px' }">
+
+    <div class="flex flex-col h-full">
+      <!-- Cafe Info -->
+      <div class="p-4 border-b border-solid surface-border">
+        <h3 class="text-xl font-semibold m-0 mb-1 text-color">{{ currentCafe()?.name || 'TableTap Café' }}</h3>
+        <p class="m-0 text-sm text-color-secondary">{{ currentUser()?.role }}</p>
+      </div>
+
+      <p-divider class="my-0"></p-divider>
+
+      <!-- Navigation Menu -->
+      <nav class="flex-1 overflow-y-auto p-3">
+        <ul class="list-none p-0 m-0">
+          @for (item of navigationItems(); track item) {
+            <li
+              class="mb-1"
+              [class.border-l-4]="isActiveRoute(item.route)"
+              [class.border-primary]="isActiveRoute(item.route)">
+              <a [routerLink]="item.route"
+                class="flex items-center gap-3 px-3 py-2 rounded-md cursor-pointer no-underline transition-colors"
+                [class.surface-hover]="!isActiveRoute(item.route)"
+                [class.bg-primary-reverse]="isActiveRoute(item.route)"
+                [class.text-primary]="isActiveRoute(item.route)"
+                [class.text-color]="!isActiveRoute(item.route)"
+                (click)="navigateToRoute(item.route)">
+                <i [class]="'pi ' + item.icon" class="text-base"></i>
+                <span class="flex-1 font-medium">{{ item.label }}</span>
+                @if (item.badge && item.badge > 0) {
+                  <p-badge
+                    [value]="item.badge"
+                    severity="danger"
+                    class="ml-auto">
+                  </p-badge>
+                }
+              </a>
+              <!-- Sub Menu -->
+              @if (item.children && item.children.length > 0) {
+                <ul class="list-none pl-8 pr-0 py-1 m-0">
+                  @for (child of item.children; track child) {
+                    <li
+                      class="mb-1"
+                      [class.border-l-2]="isActiveRoute(child.route)"
+                      [class.border-primary]="isActiveRoute(child.route)">
+                      <a [routerLink]="child.route"
+                        class="flex items-center gap-2 px-3 py-2 rounded-md cursor-pointer no-underline text-sm transition-colors"
+                        [class.surface-hover]="!isActiveRoute(child.route)"
+                        [class.bg-primary-reverse]="isActiveRoute(child.route)"
+                        [class.text-primary]="isActiveRoute(child.route)"
+                        [class.text-color-secondary]="!isActiveRoute(child.route)">
+                        <i [class]="'pi ' + child.icon" class="text-xs"></i>
+                        <span class="flex-1">{{ child.label }}</span>
+                        @if (child.badge && child.badge > 0) {
+                          <p-badge
+                            [value]="child.badge"
+                            severity="warn"
+                            class="ml-auto">
+                          </p-badge>
+                        }
+                      </a>
+                    </li>
+                  }
+                </ul>
+              }
+            </li>
+          }
+        </ul>
+      </nav>
+
+      <!-- Bottom Actions -->
+      <div class="border-t border-solid surface-border p-3">
+        <p-divider class="my-0 mb-2"></p-divider>
+        <p-button
+          label="Refresh Data"
+          icon="pi pi-refresh"
+          [text]="true"
+          (click)="refreshData()"
+          class="w-full">
+        </p-button>
+      </div>
+    </div>
+  </p-drawer>
+
+  <!-- Main Content Area -->
+  <div class="flex-1 overflow-auto transition-all" [class.ml-0]="!sidebarVisible" [class.ml-[280px]]="sidebarVisible">
+    <div class="p-4">
+      <router-outlet></router-outlet>
+    </div>
+  </div>
+
+  <!-- Notifications Panel -->
+  <p-popover #notificationPanel [style]="{ width: '400px' }">
+    <div class="surface-card">
+      <div class="flex items-center justify-between p-4 border-b border-solid surface-border">
+        <h4 class="m-0 text-lg font-semibold text-color">Notifications</h4>
+        @if (unreadNotificationsCount() > 0) {
+          <p-button
+            label="Mark All Read"
+            [text]="true"
+            size="small"
+            (click)="markAllNotificationsRead()">
+          </p-button>
+        }
+      </div>
+
+      @if (notifications().length > 0) {
+        <div class="max-h-[500px] overflow-y-auto">
+          @for (notification of notifications(); track notification) {
+            <div
+              class="flex gap-3 p-4 border-b border-solid surface-border transition-colors hover:surface-hover"
+              [class.bg-primary-reverse]="!notification.read"
+              [class.border-l-4]="!notification.read"
+              [class.border-primary]="!notification.read && notification.type === 'INFO'"
+              [class.border-orange-500]="!notification.read && notification.type === 'WARNING'"
+              [class.border-red-500]="!notification.read && notification.type === 'ERROR'"
+              [class.border-green-500]="!notification.read && notification.type === 'SUCCESS'">
+              <div class="flex-1">
+                <div class="flex items-start justify-between mb-2">
+                  <span class="font-semibold text-color">{{ notification.title }}</span>
+                  <span class="text-xs text-color-secondary">{{ notification.timestamp | date:'short' }}</span>
+                </div>
+                <p class="m-0 text-sm text-color-secondary">{{ notification.message }}</p>
+                @if (notification.actionUrl) {
+                  <div class="mt-2">
+                    <p-button
+                      [label]="notification.actionLabel || 'View'"
+                      size="small"
+                      [text]="true"
+                      (click)="navigateToNotificationAction(notification)">
+                    </p-button>
+                  </div>
+                }
+              </div>
+              <p-button
+                icon="pi pi-times"
+                [text]="true"
+                size="small"
+                (click)="markNotificationRead(notification.id)"
+                class="text-color-secondary">
+              </p-button>
+            </div>
+          }
+        </div>
+      } @else {
+        <div class="flex flex-col items-center justify-center p-8 gap-3">
+          <i class="pi pi-bell-slash text-4xl text-color-secondary"></i>
+          <p class="m-0 text-color-secondary">No notifications</p>
+        </div>
+      }
+
+    </div>
+  </p-popover>
+
+  <!-- User Menu Panel -->
+  <p-popover #userMenu [style]="{ width: '250px' }">
+    <div class="surface-card">
+      <div class="flex items-center gap-3 p-4 border-b border-solid surface-border">
+        <p-avatar
+          [image]="currentUser()?.profileImage"
+          [label]="currentUser()?.name?.charAt(0)"
+          size="large"
+          shape="circle">
+        </p-avatar>
+        <div class="flex-1 min-w-0">
+          <h4 class="m-0 mb-1 text-base font-semibold text-color truncate">{{ currentUser()?.name }}</h4>
+          <p class="m-0 mb-1 text-xs text-color-secondary truncate">{{ currentUser()?.email }}</p>
+          <p class="m-0 text-xs font-medium text-primary">{{ currentUser()?.role }}</p>
+        </div>
+      </div>
+
+      <p-divider class="my-0"></p-divider>
+
+      <div class="p-2">
+        <p-button
+          label="Profile Settings"
+          icon="pi pi-user"
+          [text]="true"
+          class="w-full justify-content-start"
+          (click)="navigateToProfile()">
+        </p-button>
+        <p-button
+          label="Preferences"
+          icon="pi pi-cog"
+          [text]="true"
+          class="w-full justify-content-start"
+          (click)="navigateToPreferences()">
+        </p-button>
+        <p-button
+          label="Help & Support"
+          icon="pi pi-question-circle"
+          [text]="true"
+          class="w-full justify-content-start"
+          (click)="openHelp()">
+        </p-button>
+        <p-divider class="my-2"></p-divider>
+        <p-button
+          label="Logout"
+          icon="pi pi-sign-out"
+          [text]="true"
+          severity="danger"
+          class="w-full justify-content-start"
+          (click)="logout()">
+        </p-button>
+      </div>
+    </div>
+  </p-popover>
+</div>
+
+<!-- Toast for notifications -->
+<p-toast position="top-right"></p-toast>
+
+<!-- Confirm dialog -->
+<p-confirmDialog
+  header="Confirmation"
+  icon="pi pi-exclamation-triangle">
+</p-confirmDialog>

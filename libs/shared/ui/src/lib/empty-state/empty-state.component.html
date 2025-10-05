@@ -1,0 +1,48 @@
+<div class="flex items-center justify-center p-12 px-4 min-h-[300px] text-center" [class]="cssClass" role="region" [attr.aria-label]="ariaLabel">
+  <div class="max-w-md w-full animate-fade-in-up">
+    <!-- Icon -->
+    <div class="mb-6" *ngIf="icon">
+      <i [class]="icon + ' text-6xl text-color-secondary opacity-70'" [attr.aria-hidden]="true"></i>
+    </div>
+
+    <!-- Custom Icon Content -->
+    <div class="flex justify-center items-center mb-6" *ngIf="!icon && hasCustomIcon">
+      <ng-content select="[slot=icon]"></ng-content>
+    </div>
+
+    <!-- Title -->
+    <h3 class="m-0 mb-4 text-2xl font-semibold text-color leading-tight" *ngIf="title">{{ title }}</h3>
+
+    <!-- Subtitle -->
+    <p class="m-0 mb-4 text-lg text-color-secondary leading-normal" *ngIf="subtitle">{{ subtitle }}</p>
+
+    <!-- Description -->
+    <div class="mb-8" *ngIf="description">
+      <p class="m-0 text-color-secondary leading-relaxed">{{ description }}</p>
+    </div>
+
+    <!-- Custom Content -->
+    <div class="mb-8" *ngIf="hasCustomContent">
+      <ng-content></ng-content>
+    </div>
+
+    <!-- Action Button -->
+    <div class="flex justify-center gap-3" *ngIf="showAction && actionLabel">
+      <p-button
+        [label]="actionLabel"
+        [icon]="actionIcon"
+        [severity]="actionSeverity"
+        [outlined]="actionOutlined"
+        [size]="actionSize"
+        [disabled]="actionDisabled"
+        (onClick)="onActionClick()"
+        [attr.aria-label]="actionAriaLabel || actionLabel">
+      </p-button>
+    </div>
+
+    <!-- Multiple Actions -->
+    <div class="flex justify-center gap-3 flex-wrap" *ngIf="hasMultipleActions">
+      <ng-content select="[slot=actions]"></ng-content>
+    </div>
+  </div>
+</div>

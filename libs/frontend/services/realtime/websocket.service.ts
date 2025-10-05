@@ -14,13 +14,13 @@ import {
 export interface ConnectionConfig {
   url: string;
   options?: {
-    transports?: string[];
+    transports?: string[]
     autoConnect?: boolean;
     reconnection?: boolean;
     reconnectionDelay?: number;
     reconnectionAttempts?: number;
     timeout?: number;
-  };
+  }
 }
 
 export interface SocketEvent {
@@ -38,7 +38,7 @@ export interface SocketEvent {
 })
 export class WebSocketService implements OnDestroy {
   private socket: Socket | null = null;
-  private destroy$ = new Subject<void>();
+  private destroy$ = new Subject<void>()
 
   // Connection state
   private isConnectedSubject = new BehaviorSubject<boolean>(false);
@@ -46,20 +46,20 @@ export class WebSocketService implements OnDestroy {
   private reconnectAttemptsSubject = new BehaviorSubject<number>(0);
 
   // Message streams
-  private messageSubject = new Subject<WebSocketMessage>();
-  private orderUpdateSubject = new Subject<OrderUpdate>();
-  private inventoryAlertSubject = new Subject<InventoryAlert>();
-  private notificationSubject = new Subject<NotificationMessage>();
+  private messageSubject = new Subject<WebSocketMessage>()
+  private orderUpdateSubject = new Subject<OrderUpdate>()
+  private inventoryAlertSubject = new Subject<InventoryAlert>()
+  private notificationSubject = new Subject<NotificationMessage>()
 
   // Observables
-  public readonly isConnected$ = this.isConnectedSubject.asObservable();
-  public readonly connectionError$ = this.connectionErrorSubject.asObservable();
-  public readonly reconnectAttempts$ = this.reconnectAttemptsSubject.asObservable();
+  public readonly isConnected$ = this.isConnectedSubject.asObservable()
+  public readonly connectionError$ = this.connectionErrorSubject.asObservable()
+  public readonly reconnectAttempts$ = this.reconnectAttemptsSubject.asObservable()
 
-  public readonly messages$ = this.messageSubject.asObservable();
-  public readonly orderUpdates$ = this.orderUpdateSubject.asObservable();
-  public readonly inventoryAlerts$ = this.inventoryAlertSubject.asObservable();
-  public readonly notifications$ = this.notificationSubject.asObservable();
+  public readonly messages$ = this.messageSubject.asObservable()
+  public readonly orderUpdates$ = this.orderUpdateSubject.asObservable()
+  public readonly inventoryAlerts$ = this.inventoryAlertSubject.asObservable()
+  public readonly notifications$ = this.notificationSubject.asObservable()
 
   // Configuration
   private config: ConnectionConfig = {
@@ -72,7 +72,7 @@ export class WebSocketService implements OnDestroy {
       reconnectionAttempts: 5,
       timeout: 20000
     }
-  };
+  }
 
   // User context
   private userId: string | null = null;
@@ -91,7 +91,7 @@ export class WebSocketService implements OnDestroy {
         delay(this.config.options?.reconnectionDelay || 1000)
       )),
       takeUntil(this.destroy$)
-    ).subscribe();
+    ).subscribe()
   }
 
   /**
@@ -105,13 +105,13 @@ export class WebSocketService implements OnDestroy {
     if (this.socket && this.socket.connected) {
       return new Observable(observer => {
         observer.next(true);
-        observer.complete();
+        observer.complete()
       });
     }
 
     // Update configuration
     if (config) {
-      this.config = { ...this.config, ...config };
+      this.config = { ...this.config, ...config }
     }
 
     // Store user context
@@ -124,7 +124,7 @@ export class WebSocketService implements OnDestroy {
     // Create socket connection
     this.socket = io(this.config.url, this.config.options);
 
-    this.setupEventListeners();
+    this.setupEventListeners()
 
     return new Observable(observer => {
       const onConnect = () => {
@@ -134,30 +134,30 @@ export class WebSocketService implements OnDestroy {
 
         // Join user-specific rooms
         if (this.userId && this.cafeId) {
-          this.joinRooms();
+          this.joinRooms()
         }
 
         observer.next(true);
-        observer.complete();
-      };
+        observer.complete()
+      }
 
       const onError = (error: any) => {
         this.isConnectedSubject.next(false);
         this.connectionErrorSubject.next(error.message || 'Connection failed');
         observer.error(error);
-      };
+      }
 
       this.socket!.on('connect', onConnect);
       this.socket!.on('connect_error', onError);
 
       // Connect to server
-      this.socket!.connect();
+      this.socket!.connect()
 
       // Cleanup on unsubscribe
       return () => {
         this.socket?.off('connect', onConnect);
         this.socket?.off('connect_error', onError);
-      };
+      }
     });
   }
 
@@ -166,7 +166,7 @@ export class WebSocketService implements OnDestroy {
    */
   disconnect(): void {
     if (this.socket) {
-      this.socket.disconnect();
+      this.socket.disconnect()
       this.socket = null;
       this.isConnectedSubject.next(false);
     }
@@ -204,7 +204,7 @@ export class WebSocketService implements OnDestroy {
       // Cleanup on unsubscribe
       return () => {
         this.socket?.off(event, handler);
-      };
+      }
     }).pipe(takeUntil(this.destroy$));
   }
 
@@ -333,7 +333,7 @@ export class WebSocketService implements OnDestroy {
       connectionError: this.connectionErrorSubject.value,
       reconnectAttempts: this.reconnectAttemptsSubject.value,
       socketId: this.socket?.id || null
-    };
+    }
   }
 
   /**
@@ -444,7 +444,7 @@ export class WebSocketService implements OnDestroy {
 
     // Rejoin rooms if connected
     if (wasConnected && this.socket?.connected) {
-      this.joinRooms();
+      this.joinRooms()
     }
   }
 
@@ -452,9 +452,9 @@ export class WebSocketService implements OnDestroy {
    * Cleanup on service destruction
    */
   ngOnDestroy(): void {
-    this.destroy$.next();
-    this.destroy$.complete();
-    this.disconnect();
+    this.destroy$.next()
+    this.destroy$.complete()
+    this.disconnect()
   }
 
   /**
@@ -464,20 +464,20 @@ export class WebSocketService implements OnDestroy {
     return new Observable(observer => {
       if (!this.socket || !this.socket.connected) {
         observer.next(false);
-        observer.complete();
+        observer.complete()
         return;
       }
 
       const timeout = setTimeout(() => {
         observer.next(false);
-        observer.complete();
+        observer.complete()
       }, 5000);
 
       this.socket.emit('ping', { timestamp: Date.now() });
       this.socket.once('pong', () => {
         clearTimeout(timeout);
         observer.next(true);
-        observer.complete();
+        observer.complete()
       });
     });
   }
@@ -492,13 +492,13 @@ export class WebSocketService implements OnDestroy {
         return;
       }
 
-      const start = Date.now();
+      const start = Date.now()
 
       this.socket.emit('ping', { timestamp: start });
       this.socket.once('pong', () => {
         const latency = Date.now() - start;
         observer.next(latency);
-        observer.complete();
+        observer.complete()
       });
 
       // Timeout after 10 seconds

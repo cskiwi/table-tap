@@ -1,0 +1,20 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "module": "commonjs",
+    "outDir": "../../../dist/out-tsc",
+    "declaration": false,
+    "types": ["node"],
+    "skipLibCheck": true,
+    "noEmit": true
+  },
+  "exclude": [
+    "jest.config.ts",
+    "src/**/*.spec.ts",
+    "src/**/*.test.ts",
+    "**/*.spec.ts",
+    "**/*.test.ts"
+  ],
+  "include": ["src/**/*.ts"],
+  "files": []
+}

@@ -1,0 +1,507 @@
+,
+    @if (challenge()) {
+      <div class="challenge-detail">
+        <!-- Header Section -->
+        <div class="challenge-header">
+          <button class="back-btn" (click)="onBack()">
+            <i class="fas fa-arrow-left"></i>
+            Back to Challenges
+          </button>
+          <div class="challenge-hero">
+            <div class="challenge-icon-large" [style.background-color]="challenge()?.color">
+              <i [class]="challenge()?.icon || getChallengeIcon(challenge()?.type!)"></i>
+            </div>
+            <div class="challenge-info">
+              <div class="challenge-badges">
+                <span class="badge type-badge">{{ challenge()?.displayType }}</span>
+                <span class="badge difficulty-badge" [style.background-color]="challenge()?.difficultyColor">
+                  {{ getDifficultyText(challenge()?.difficulty!) }}
+                  <div class="difficulty-stars">
+                    @for (star of getDifficultyStars(challenge()?.difficultyStars!); track star) {
+                      <i
+                      class="fas fa-star"></i>
+                    }
+                  </div>
+                </span>
+                @if (challenge()?.isFeatured) {
+                  <span class="badge featured-badge">
+                    <i class="fas fa-star"></i>
+                    Featured
+                  </span>
+                }
+                <span class="badge status-badge"
+                  [class.active]="isActive"
+                  [class.completed]="isCompleted"
+                  [class.expired]="challenge()?.isExpired">
+                  {{ getStatusText() }}
+                </span>
+              </div>
+              <h1 class="challenge-name">{{ challenge()?.name }}</h1>
+              <p class="challenge-description">{{ challenge()?.description }}</p>
+              <div class="challenge-meta">
+                <div class="meta-item">
+                  <i class="fas fa-users"></i>
+                  <span>{{ challenge()?.participantCount | number:'1.0-0' }} participants</span>
+                </div>
+                @if ((challenge()?.completionRate ?? 0) > 0) {
+                  <div class="meta-item">
+                    <i class="fas fa-chart-line"></i>
+                    <span>{{ challenge()?.completionRate | number:'1.1-1' }}% completion rate</span>
+                  </div>
+                }
+                @if (timeRemaining) {
+                  <div class="meta-item">
+                    <i class="fas fa-clock"></i>
+                    <span class="time-remaining" [class.ending-soon]="isEndingSoon">{{ timeRemaining }}</span>
+                  </div>
+                }
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Progress Section (for active challenges) -->
+        @if (isActive && challengeProgress) {
+          <div class="progress-section">
+            <div class="progress-card">
+              <div class="progress-header">
+                <h3>
+                  <i class="fas fa-chart-line"></i>
+                  Your Progress
+                </h3>
+                <div class="progress-percentage" [style.color]="challenge()?.color">
+                  {{ challengeProgress.percentage | number:'1.0-0' }}%
+                </div>
+              </div>
+              <div class="main-progress">
+                <div class="progress-bar-container">
+                  <div class="progress-bar">
+                    <div class="progress-fill"
+                      [style.width.%]="challengeProgress.percentage"
+                      [style.background-color]="challenge()?.color">
+                      <div class="progress-shine"></div>
+                    </div>
+                  </div>
+                  <!-- Progress milestones -->
+                  @if (challenge()?.milestones?.length) {
+                    <div class="progress-milestones">
+                      @for (milestone of challenge()?.milestones; track milestone) {
+                        <div class="milestone"
+                          [style.left.%]="milestone.percentage"
+                          [class.completed]="challengeProgress.percentage >= milestone.percentage"
+                          [class.current]="isCurrentMilestone(milestone)"
+                          (click)="showMilestoneDetails(milestone)">
+                          <div class="milestone-marker">
+                            <i class="fas fa-flag"></i>
+                          </div>
+                          <div class="milestone-tooltip">
+                            <div class="tooltip-title">{{ milestone.title }}</div>
+                            <div class="tooltip-description">{{ milestone.description }}</div>
+                            @if (milestone.reward) {
+                              <div class="tooltip-reward">
+                                <i class="fas fa-gift"></i>
+                                {{ getMilestoneRewardText(milestone.reward) }}
+                              </div>
+                            }
+                          </div>
+                        </div>
+                      }
+                    </div>
+                  }
+                </div>
+                <div class="progress-details">
+                  <div class="current-progress">
+                    <span class="current-value">{{ challengeProgress.current | number:'1.0-0' }}</span>
+                    <span class="separator"> / </span>
+                    <span class="target-value">{{ challengeProgress.target | number:'1.0-0' }}</span>
+                    <span class="unit">{{ getChallengeUnit(challenge()?.type!) }}</span>
+                  </div>
+                  <div class="remaining-progress">
+                    <span class="remaining-label">Remaining:</span>
+                    <span class="remaining-value">{{ challengeProgress.target - challengeProgress.current | number:'1.0-0' }}</span>
+                    <span class="unit">{{ getChallengeUnit(challenge()?.type!) }}</span>
+                  </div>
+                </div>
+              </div>
+              <!-- Recent Activity -->
+              @if (recentActivity?.length) {
+                <div class="recent-activity">
+                  <h4>Recent Activity</h4>
+                  <div class="activity-list">
+                    @for (activity of recentActivity; track activity) {
+                      <div class="activity-item">
+                        <div class="activity-icon">
+                          <i class="fas fa-plus"></i>
+                        </div>
+                        <div class="activity-content">
+                          <span class="activity-description">{{ activity.description }}</span>
+                          <span class="activity-value">+{{ activity.progress }} {{ getChallengeUnit(challenge()?.type!) }}</span>
+                        </div>
+                        <div class="activity-time">{{ activity.createdAt | date:'short' }}</div>
+                      </div>
+                    }
+                  </div>
+                </div>
+              }
+              <!-- Quick Tips -->
+              @if (isActive) {
+                <div class="progress-tips">
+                  <h4>💡 Tips to Complete Faster</h4>
+                  <ul class="tips-list">
+                    @for (tip of getChallengeCompletionTips(); track tip) {
+                      <li>{{ tip }}</li>
+                    }
+                  </ul>
+                </div>
+              }
+            </div>
+          </div>
+        }
+        <!-- Goal Details Section -->
+        <div class="goal-section">
+          <div class="section-card">
+            <h3>
+              <i class="fas fa-bullseye"></i>
+              Challenge Goal
+            </h3>
+            <div class="goal-description">
+              <p class="goal-text">{{ getChallengeGoalText() }}</p>
+              <!-- Detailed requirements -->
+              @if (hasDetailedRequirements()) {
+                <div class="goal-requirements">
+                  <h4>Requirements:</h4>
+                  <ul class="requirements-list">
+                    @if (challenge()?.goals?.minimumOrderValue) {
+                      <li>
+                        Minimum order value: \${{ challenge()?.goals?.minimumOrderValue }}
+                      </li>
+                    }
+                    @if (challenge()?.goals?.requiredProductIds?.length) {
+                      <li>
+                        Must include specific products ({{ challenge()?.goals?.requiredProductIds?.length }} items)
+                      </li>
+                    }
+                    @if (challenge()?.goals?.requiredCategoryIds?.length) {
+                      <li>
+                        Must order from {{ challenge()?.goals?.requiredCategoryIds?.length }} specific categories
+                      </li>
+                    }
+                    @if (challenge()?.goals?.consecutiveDays) {
+                      <li>
+                        Must be completed on {{ challenge()?.goals?.consecutiveDays }} consecutive days
+                      </li>
+                    }
+                  </ul>
+                </div>
+              }
+              <!-- Tracking rules -->
+              @if (hasTrackingRules()) {
+                <div class="tracking-rules">
+                  <h4>Tracking Rules:</h4>
+                  <ul class="rules-list">
+                    @if (challenge()?.trackingRules?.countOnlyCompletedOrders) {
+                      <li>
+                        ✓ Only completed orders count
+                      </li>
+                    }
+                    @if (challenge()?.trackingRules?.countOnlyPaidOrders) {
+                      <li>
+                        ✓ Only paid orders count
+                      </li>
+                    }
+                    @if (challenge()?.trackingRules?.minimumOrderValue) {
+                      <li>
+                        ✓ Minimum order value: \${{ challenge()?.trackingRules?.minimumOrderValue }}
+                      </li>
+                    }
+                    @if (challenge()?.trackingRules?.excludeRefunds) {
+                      <li>
+                        ✓ Refunded orders excluded
+                      </li>
+                    }
+                    @if (challenge()?.trackingRules?.resetOnFailedDay) {
+                      <li>
+                        ⚠️ Progress resets if you miss a day
+                      </li>
+                    }
+                  </ul>
+                </div>
+              }
+            </div>
+          </div>
+        </div>
+        <!-- Rewards Section -->
+        <div class="rewards-section">
+          <div class="section-card">
+            <h3>
+              <i class="fas fa-gift"></i>
+              Rewards
+            </h3>
+            <div class="rewards-grid">
+              <!-- Completion Rewards -->
+              @if (challenge()?.rewards?.completionPoints) {
+                <div class="reward-card completion-reward">
+                  <div class="reward-icon">
+                    <i class="fas fa-coins"></i>
+                  </div>
+                  <div class="reward-content">
+                    <div class="reward-title">Completion Bonus</div>
+                    <div class="reward-value">{{ challenge()?.rewards?.completionPoints | number:'1.0-0' }} points</div>
+                    <div class="reward-description">Earned upon challenge completion</div>
+                  </div>
+                </div>
+              }
+              <!-- Badge Reward -->
+              @if (challenge()?.rewards?.badgeName) {
+                <div class="reward-card badge-reward">
+                  <div class="reward-icon">
+                    <i class="fas fa-medal"></i>
+                  </div>
+                  <div class="reward-content">
+                    <div class="reward-title">Exclusive Badge</div>
+                    <div class="reward-value">{{ challenge()?.rewards?.badgeName }}</div>
+                    <div class="reward-description">Show off your achievement</div>
+                  </div>
+                </div>
+              }
+              <!-- Free Item Reward -->
+              @if (challenge()?.rewards?.freeItemId) {
+                <div class="reward-card item-reward">
+                  <div class="reward-icon">
+                    <i class="fas fa-gift"></i>
+                  </div>
+                  <div class="reward-content">
+                    <div class="reward-title">Free Item</div>
+                    <div class="reward-value">Special Menu Item</div>
+                    <div class="reward-description">Redeem your free reward</div>
+                  </div>
+                </div>
+              }
+              <!-- Discount Reward -->
+              @if (challenge()?.rewards?.discountPercentage) {
+                <div class="reward-card discount-reward">
+                  <div class="reward-icon">
+                    <i class="fas fa-percentage"></i>
+                  </div>
+                  <div class="reward-content">
+                    <div class="reward-title">Discount Coupon</div>
+                    <div class="reward-value">{{ challenge()?.rewards?.discountPercentage }}% OFF</div>
+                    <div class="reward-description">Use on your next order</div>
+                  </div>
+                </div>
+              }
+              <!-- Tier Upgrade -->
+              @if (challenge()?.rewards?.temporaryTierUpgrade) {
+                <div class="reward-card tier-reward">
+                  <div class="reward-icon">
+                    <i class="fas fa-crown"></i>
+                  </div>
+                  <div class="reward-content">
+                    <div class="reward-title">Tier Upgrade</div>
+                    <div class="reward-value">{{ challenge()?.rewards?.temporaryTierDays }} days</div>
+                    <div class="reward-description">Temporary VIP status</div>
+                  </div>
+                </div>
+              }
+            </div>
+            <!-- Milestone Rewards -->
+            @if (challenge()?.milestones?.length) {
+              <div class="milestone-rewards">
+                <h4>Milestone Rewards</h4>
+                <div class="milestones-list">
+                  @for (milestone of challenge()?.milestones; track milestone) {
+                    <div class="milestone-reward"
+                      [class.completed]="challengeProgress && challengeProgress.percentage >= milestone.percentage">
+                      <div class="milestone-progress">{{ milestone.percentage }}%</div>
+                      <div class="milestone-info">
+                        <div class="milestone-name">{{ milestone.title }}</div>
+                        @if (milestone.reward) {
+                          <div class="milestone-reward-text">
+                            {{ getMilestoneRewardText(milestone.reward) }}
+                          </div>
+                        }
+                      </div>
+                      <div class="milestone-status">
+                        <i class="fas"
+                          [class.fa-check-circle]="challengeProgress && challengeProgress.percentage >= milestone.percentage"
+                          [class.fa-circle]="!challengeProgress || challengeProgress.percentage < milestone.percentage">
+                        </i>
+                      </div>
+                    </div>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+        <!-- Leaderboard Section -->
+        @if (leaderboard?.length) {
+          <div class="leaderboard-section">
+            <div class="section-card">
+              <h3>
+                <i class="fas fa-trophy"></i>
+                Leaderboard
+                <button class="view-full-btn" (click)="viewFullLeaderboard()">
+                  View Full Leaderboard
+                </button>
+              </h3>
+              <div class="leaderboard-list">
+                @for (entry of leaderboard; track entry; let i = $index) {
+                  <div class="leaderboard-item"
+                    [class.current-user]="entry.isCurrentUser">
+                    <div class="rank" [class]="getRankClass(i)">
+                      @if (i >= 3) {
+                        <span class="rank-number">{{ i + 1 }}</span>
+                      }
+                      @if (i < 3) {
+                        <i class="fas fa-trophy" [class]="getTrophyClass(i)"></i>
+                      }
+                    </div>
+                    <div class="user-info">
+                      <div class="user-avatar">
+                        <img [src]="entry.avatar || '/assets/default-avatar.png'" [alt]="entry.name">
+                        <div class="tier-indicator" [style.background-color]="entry.tierColor"></div>
+                      </div>
+                      <div class="user-details">
+                        <div class="user-name">
+                          {{ entry.name }}
+                          @if (entry.isCurrentUser) {
+                            <span class="you-indicator">(You)</span>
+                          }
+                        </div>
+                        <div class="user-tier">{{ entry.tierName }}</div>
+                      </div>
+                    </div>
+                    <div class="user-progress">
+                      <div class="progress-value">{{ entry.progress | number:'1.0-0' }}</div>
+                      <div class="progress-percentage">{{ entry.progressPercentage | number:'1.0-0' }}%</div>
+                    </div>
+                  </div>
+                }
+              </div>
+              <!-- Current User Ranking (if not in top 10) -->
+              @if (currentUserRank && currentUserRank > 10) {
+                <div class="current-user-rank">
+                  <div class="rank-separator">...</div>
+                  <div class="leaderboard-item current-user">
+                    <div class="rank">{{ currentUserRank }}</div>
+                    <div class="user-info">
+                      <div class="user-avatar">
+                        <img [src]="userAvatar || '/assets/default-avatar.png'" alt="You">
+                      </div>
+                      <div class="user-details">
+                        <div class="user-name">You</div>
+                        <div class="user-tier">{{ userTierName }}</div>
+                      </div>
+                    </div>
+                    <div class="user-progress">
+                      <div class="progress-value">{{ challengeProgress?.current | number:'1.0-0' }}</div>
+                      <div class="progress-percentage">{{ challengeProgress?.percentage | number:'1.0-0' }}%</div>
+                    </div>
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+        }
+        <!-- Action Section -->
+        <div class="action-section">
+          <div class="action-buttons">
+            @if (!isActive && !isCompleted && !challenge()?.isExpired) {
+              <button
+                class="action-btn primary large",
+                (click)="joinChallenge()"
+                [disabled]="isJoining">
+                <i class="fas fa-play-circle"></i>
+                {{ isJoining ? 'Joining...' : 'Join Challenge' }}
+              </button>
+            }
+            @if (isActive) {
+              <button
+                class="action-btn secondary large",
+                (click)="leaveChallenge()"
+                [disabled]="isLeaving">
+                <i class="fas fa-times"></i>
+                {{ isLeaving ? 'Leaving...' : 'Leave Challenge' }}
+              </button>
+            }
+            @if (isCompleted) {
+              <button
+                class="action-btn success large",
+                disabled>
+                <i class="fas fa-check-circle"></i>
+                Challenge Completed!
+              </button>
+            }
+            <button
+              class="action-btn outline large",
+              (click)="shareChallenge()">
+              <i class="fas fa-share-alt"></i>
+              Share Challenge
+            </button>
+            <button
+              class="action-btn outline large",
+              (click)="viewSimilarChallenges()">
+              <i class="fas fa-search"></i>
+              Similar Challenges
+            </button>
+          </div>
+          <!-- Challenge Rules/Guidelines -->
+          <div class="challenge-guidelines">
+            <h4>
+              <i class="fas fa-info-circle"></i>
+              Challenge Guidelines
+            </h4>
+            <ul class="guidelines-list">
+              <li>Progress is tracked automatically with each qualifying order</li>
+              <li>You can view your progress in real-time on this page</li>
+              <li>Rewards are credited immediately upon completion</li>
+              @if (challenge()?.trackingRules?.resetOnFailedDay) {
+                <li>
+                  Missing a day will reset your consecutive day progress
+                </li>
+              }
+              <li>Contact support if you notice any tracking issues</li>
+            </ul>
+          </div>
+        </div>
+        <!-- Completion Celebration Modal -->
+        @if (showCelebration) {
+          <div class="celebration-modal"
+            (click)="closeCelebration()">
+            <div class="celebration-content" (click)="$event.stopPropagation()">
+              <div class="celebration-animation">
+                <div class="confetti"></div>
+                <div class="trophy-animation">
+                  <i class="fas fa-trophy"></i>
+                </div>
+              </div>
+              <div class="celebration-text">
+                <h2>🎉 Challenge Complete!</h2>
+                <p>Congratulations on completing <strong>{{ challenge()?.name }}</strong>!</p>
+                <div class="earned-rewards">
+                  <h3>You Earned:</h3>
+                  <div class="reward-items">
+                    @if (challenge()?.rewards?.completionPoints) {
+                      <div class="earned-item">
+                        <i class="fas fa-coins"></i>
+                        {{ challenge()?.rewards?.completionPoints }} points
+                      </div>
+                    }
+                    @if (challenge()?.rewards?.badgeName) {
+                      <div class="earned-item">
+                        <i class="fas fa-medal"></i>
+                        {{ challenge()?.rewards?.badgeName }} badge
+                      </div>
+                    }
+                  </div>
+                </div>
+                <button class="celebration-close-btn" (click)="closeCelebration()">
+                  <i class="fas fa-times"></i>
+                  Continue
+                </button>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    }

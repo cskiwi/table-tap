@@ -1,0 +1,281 @@
+<div class="flex flex-col min-h-screen bg-surface-ground">
+  <div class="max-w-4xl mx-auto w-full p-6">
+    <!-- Header -->
+    <div class="mb-8">
+      <div class="flex items-center justify-between gap-4 mb-6">
+        <div class="flex items-center gap-4 flex-1">
+          <div class="flex items-center gap-2">
+            <div class="flex items-center gap-1" [class.text-primary]="isStepCompleted(OrderWorkflowStep.CUSTOMER_INFO)">
+              <span class="w-8 h-8 rounded-full flex items-center justify-center bg-surface-card border-2 border-surface-border text-sm font-medium">1</span>
+              <span class="text-sm font-medium">Customer Info</span>
+            </div>
+            <div class="w-12 h-0.5 bg-surface-border"></div>
+            <div class="flex items-center gap-1" [class.text-primary]="currentStep() === OrderWorkflowStep.ORDER_REVIEW || isStepCompleted(OrderWorkflowStep.ORDER_REVIEW)">
+              <span class="w-8 h-8 rounded-full flex items-center justify-center bg-surface-card border-2 border-surface-border text-sm font-medium">2</span>
+              <span class="text-sm font-medium">Review Order</span>
+            </div>
+            <div class="w-12 h-0.5 bg-surface-border"></div>
+            <div class="flex items-center gap-1" [class.text-primary]="currentStep() === 'PAYMENT_PROCESSING'">
+              <span class="w-8 h-8 rounded-full flex items-center justify-center bg-surface-card border-2 border-surface-border text-sm font-medium">3</span>
+              <span class="text-sm font-medium">Payment</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <h1 class="text-3xl font-bold text-color mb-2">Review Your Order</h1>
+      <p class="text-color-secondary">Please review your order details before completing your purchase</p>
+    </div>
+
+    <!-- Price Change Alerts -->
+    @if (priceChanges().length > 0) {
+      <div class="mb-6">
+        <div class="bg-orange-50 border-l-4 border-orange-500 p-4 rounded">
+          <div class="flex gap-3">
+            <i class="icon-warning text-orange-500"></i>
+            <div class="flex-1">
+              <h3 class="text-lg font-semibold text-orange-900 mb-2">Price Updates</h3>
+              <p class="text-orange-800 mb-3">Some items in your order have updated pricing:</p>
+              <ul class="space-y-2">
+                @for (change of priceChanges(); track change.itemId) {
+                  <li class="text-orange-800">
+                    {{ getItemName(change.itemId) }}:
+                    <span class="font-medium">
+                      {{ '$' + change.oldPrice.toFixed(2) }} → {{ '$' + change.newPrice.toFixed(2) }}
+                    </span>
+                    <small class="text-orange-600">({{ change.reason }})</small>
+                  </li>
+                }
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    }
+
+    <div class="space-y-6">
+      <!-- Customer Information Summary -->
+      <div class="bg-surface-card border border-surface-border rounded-lg p-6">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-xl font-semibold text-color">Customer Information</h2>
+          <button type="button" class="text-primary hover:text-primary-emphasis font-medium flex items-center gap-2" (click)="editCustomerInfo()">
+            <i class="icon-edit"></i>
+            Edit
+          </button>
+        </div>
+
+        @if (customerInfo(); as info) {
+          <div class="space-y-3">
+            <div class="flex items-center justify-between py-2 border-b border-surface-border">
+              <span class="text-color-secondary font-medium">Name:</span>
+              <span class="text-color">{{ info.firstName }} {{ info.lastName }}</span>
+            </div>
+            <div class="flex items-center justify-between py-2 border-b border-surface-border">
+              <span class="text-color-secondary font-medium">Email:</span>
+              <span class="text-color">{{ info.email }}</span>
+            </div>
+            <div class="flex items-center justify-between py-2 border-b border-surface-border">
+              <span class="text-color-secondary font-medium">Phone:</span>
+              <span class="text-color">{{ info.phone }}</span>
+            </div>
+            @if (info.tableNumber) {
+              <div class="flex items-center justify-between py-2 border-b border-surface-border">
+                <span class="text-color-secondary font-medium">Table:</span>
+                <span class="text-color">{{ info.tableNumber }}</span>
+              </div>
+            }
+            @if (info.specialRequests) {
+              <div class="flex items-start justify-between py-2">
+                <span class="text-color-secondary font-medium">Special Requests:</span>
+                <span class="text-color text-right max-w-md">{{ info.specialRequests }}</span>
+              </div>
+            }
+          </div>
+        }
+      </div>
+
+      <!-- Order Items -->
+      <div class="bg-surface-card border border-surface-border rounded-lg p-6">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-xl font-semibold text-color">Order Items</h2>
+          <button type="button" class="text-primary hover:text-primary-emphasis font-medium flex items-center gap-2" (click)="editItems()">
+            <i class="icon-edit"></i>
+            Edit Cart
+          </button>
+        </div>
+
+        @if (orderSummary(); as summary) {
+          <div class="space-y-4">
+            @for (item of summary.items; track item.id) {
+              <div class="border-b border-surface-border pb-4 last:border-b-0 last:pb-0">
+                <div class="flex items-start justify-between gap-4">
+                  <div class="flex-1">
+                    <div class="flex items-center justify-between mb-2">
+                      <span class="font-medium text-color">{{ item.name }}</span>
+                      <div class="flex items-center gap-3">
+                        <span class="text-color-secondary">× {{ item.quantity }}</span>
+                        <span class="font-semibold text-color">{{ '$' + (item.price * item.quantity).toFixed(2) }}</span>
+                      </div>
+                    </div>
+
+                    @if (item.customizations && item.customizations.length > 0) {
+                      <div class="flex flex-wrap gap-2 mb-2">
+                        @for (customization of item.customizations; track customization.id) {
+                          <span class="inline-flex items-center gap-1 px-2 py-1 bg-surface-50 text-color-secondary text-xs rounded">
+                            {{ customization.name }}
+                            @if (customization.price > 0) {
+                              <span class="text-primary">{{ '+$' + customization.price.toFixed(2) }}</span>
+                            }
+                          </span>
+                        }
+                      </div>
+                    }
+
+                    @if (item.specialInstructions) {
+                      <div class="mt-2 p-2 bg-surface-50 rounded">
+                        <small class="text-color-secondary"><strong class="text-color">Note:</strong> {{ item.specialInstructions }}</small>
+                      </div>
+                    }
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </div>
+
+      <!-- Payment Method -->
+      <div class="bg-surface-card border border-surface-border rounded-lg p-6">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-xl font-semibold text-color">Payment Method</h2>
+          <button type="button" class="text-primary hover:text-primary-emphasis font-medium flex items-center gap-2" (click)="editPaymentMethod()">
+            <i class="icon-edit"></i>
+            Change
+          </button>
+        </div>
+
+        @if (selectedPaymentMethod(); as payment) {
+          <div class="flex items-center gap-4 p-4 bg-surface-50 rounded-lg">
+            <i class="text-2xl text-primary" [class]="getPaymentIcon(payment.type)"></i>
+            <div class="flex-1">
+              <div class="font-medium text-color">{{ payment.name }}</div>
+              @if (payment.last4) {
+                <div class="text-sm text-color-secondary">•••• •••• •••• {{ payment.last4 }}</div>
+              }
+            </div>
+          </div>
+        }
+      </div>
+
+      <!-- Order Summary -->
+      <div class="bg-surface-card border border-surface-border rounded-lg p-6">
+        <h2 class="text-xl font-semibold text-color mb-4">Order Summary</h2>
+        @if (orderSummary(); as summary) {
+          <div class="space-y-3">
+            <div class="flex items-center justify-between py-2 text-color">
+              <span>Subtotal ({{ getTotalItemCount() }} items)</span>
+              <span>{{ '$' + summary.subtotal.toFixed(2) }}</span>
+            </div>
+            <div class="flex items-center justify-between py-2 text-color">
+              <span>Tax</span>
+              <span>{{ '$' + summary.tax.toFixed(2) }}</span>
+            </div>
+            @if (summary.tip > 0) {
+              <div class="flex items-center justify-between py-2 text-color">
+                <span>Tip</span>
+                <span>{{ '$' + summary.tip.toFixed(2) }}</span>
+              </div>
+            }
+            @if (summary.discount > 0) {
+              <div class="flex items-center justify-between py-2 text-green-600">
+                <span>Discount</span>
+                <span>{{ '-$' + summary.discount.toFixed(2) }}</span>
+              </div>
+            }
+            <div class="flex items-center justify-between pt-4 border-t-2 border-surface-border">
+              <span class="text-xl font-semibold text-color">Total</span>
+              <span class="text-2xl font-bold text-primary">{{ '$' + summary.total.toFixed(2) }}</span>
+            </div>
+          </div>
+
+          @if (summary.estimatedTime) {
+            <div class="flex items-center gap-2 mt-4 p-3 bg-surface-50 rounded-lg text-color-secondary">
+              <i class="icon-clock"></i>
+              <span>Estimated preparation time: {{ summary.estimatedTime }} minutes</span>
+            </div>
+          }
+        }
+      </div>
+    </div>
+
+    <!-- Validation Errors -->
+    @if (validationErrors().length > 0) {
+      <div class="mt-6">
+        <div class="bg-red-50 border-l-4 border-red-500 p-4 rounded">
+          <div class="flex gap-3">
+            <i class="icon-error text-red-500"></i>
+            <div class="flex-1">
+              <h3 class="text-lg font-semibold text-red-900 mb-2">Please fix the following issues:</h3>
+              <ul class="space-y-1 list-disc list-inside text-red-800">
+                @for (error of validationErrors(); track error.code) {
+                  <li>{{ error.message }}</li>
+                }
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- Error Display -->
+    @if (orderService.error(); as error) {
+      <div class="mt-6 bg-red-50 border border-red-200 rounded-lg p-4">
+        <div class="flex items-center justify-between gap-4">
+          <div class="flex items-center gap-3">
+            <i class="icon-warning text-red-500"></i>
+            <span class="text-red-800">{{ error.message }}</span>
+          </div>
+          @if (error.retryable) {
+            <button type="button" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded font-medium" (click)="retryOperation()">
+              Retry
+            </button>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- Action Buttons -->
+    <div class="flex items-center justify-between gap-4 mt-8">
+      <button
+        type="button"
+        class="px-6 py-3 border-2 border-surface-border bg-surface-card text-color hover:bg-surface-hover rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+        (click)="goBack()"
+        [disabled]="orderService.isLoading()"
+      >
+        Back to Checkout
+      </button>
+
+      <button
+        type="button"
+        class="px-8 py-3 bg-primary hover:bg-primary-emphasis text-primary-contrast rounded-lg font-semibold text-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+        (click)="placeOrder()"
+        [disabled]="!canPlaceOrder() || orderService.isLoading()"
+      >
+        @if (orderService.isLoading()) {
+          <span class="inline-block w-5 h-5 border-2 border-primary-contrast border-t-transparent rounded-full animate-spin"></span>
+          @switch (orderService.orderStatus()) {
+            @case ('PENDING_PAYMENT') { Validating Order... }
+            @case ('PAYMENT_PROCESSING') { Processing Payment... }
+            @default { Placing Order... }
+          }
+        } @else {
+          @if (selectedPaymentMethod()?.type === 'CASH') {
+            Place Order - Pay at Restaurant
+          } @else {
+            Pay {{ '$' + (orderSummary()?.total?.toFixed(2) || '0.00') }} & Place Order
+          }
+        }
+      </button>
+    </div>
+  </div>
+</div>

@@ -12,7 +12,7 @@ export const queryFixer: (input: any) => unknown = (input: any) => {
 
   for (const key in input) {
     if (input[key] === null || input[key] === undefined) {
-      delete input[key];
+      delete input[key]
       continue;
     } else if (typeof input[key] === 'object' && key !== '$between') {
       // Recursively apply queryFixer to nested objects
@@ -21,7 +21,7 @@ export const queryFixer: (input: any) => unknown = (input: any) => {
 
     if (typeof input[key] === 'string' && input[key].startsWith('$')) {
       if (input[key] === '$null') {
-        input[key] = IsNull();
+        input[key] = IsNull()
       } else if (input[key] === '$nNull') {
         input[key] = Not(IsNull());
       }
@@ -55,4 +55,4 @@ export const queryFixer: (input: any) => unknown = (input: any) => {
   }
 
   return input as unknown;
-};
+}

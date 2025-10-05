@@ -1,0 +1,33 @@
+<div class="flex flex-col items-center justify-center gap-4" [class]="containerClass" role="status" [attr.aria-label]="ariaLabel">
+  <!-- PrimeNG Spinner -->
+  <p-progressSpinner
+    *ngIf="type === 'spinner'"
+    [style]="spinnerStyle"
+    [strokeWidth]="strokeWidth"
+    [fill]="fill"
+    [animationDuration]="animationDuration">
+  </p-progressSpinner>
+
+  <!-- Custom CSS Spinner -->
+  <div *ngIf="type === 'dots'" class="flex gap-1" [style.color]="color">
+    <div class="dot"></div>
+    <div class="dot"></div>
+    <div class="dot"></div>
+  </div>
+
+  <!-- Pulse Spinner -->
+  <div *ngIf="type === 'pulse'" class="pulse-spinner" [style.background-color]="color"></div>
+
+  <!-- Ring Spinner -->
+  <div *ngIf="type === 'ring'" class="ring-spinner surface-border" [style.border-top-color]="color"></div>
+
+  <!-- Loading Text -->
+  <div class="text-center" *ngIf="showText && text">
+    <span class="text-color-secondary text-sm font-medium">{{ text }}</span>
+  </div>
+
+  <!-- Custom Content -->
+  <div class="text-center" *ngIf="hasCustomContent">
+    <ng-content></ng-content>
+  </div>
+</div>

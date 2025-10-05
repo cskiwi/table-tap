@@ -1,0 +1,472 @@
+<div class="admin-settings p-4">
+  <!-- Header -->
+  <div class="flex justify-between items-center mb-6">
+    <div>
+      <h1 class="text-3xl font-bold text-gray-900 mb-2">Settings & Configuration</h1>
+      <p class="text-gray-600">Manage your restaurant's system settings</p>
+    </div>
+
+    <div class="flex gap-3">
+      <p-button
+        icon="pi pi-refresh"
+        label="Reset to Defaults"
+        [outlined]="true"
+        severity="secondary"
+        (click)="resetToDefaults()">
+      </p-button>
+
+      <p-button
+        icon="pi pi-check"
+        label="Save All Changes"
+        (click)="saveAllSettings()"
+        [loading]="saving()">
+      </p-button>
+    </div>
+  </div>
+
+  <!-- Settings Tabs -->
+  <p-tabs>
+    <!-- General Settings -->
+    <p-tabPanel header="General" leftIcon="pi pi-cog">
+      <form [formGroup]="generalForm" class="space-y-6">
+        <p-card>
+          <ng-template pTemplate="header">
+            <h3 class="text-xl font-semibold p-4">Restaurant Information</h3>
+          </ng-template>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 p-4">
+            <div class="flex flex-col gap-2">
+              <label for="cafeName" class="font-medium">Restaurant Name *</label>
+              <input
+                pInputText
+                id="cafeName"
+                formControlName="cafeName"
+                placeholder="Enter restaurant name"
+                class="w-full">
+            </div>
+
+            <div class="flex flex-col gap-2">
+              <label for="timezone" class="font-medium">Timezone *</label>
+              <p-select
+                formControlName="timezone"
+                [options]="timezoneOptions"
+                placeholder="Select timezone"
+                class="w-full">
+              </p-select>
+            </div>
+
+            <div class="flex flex-col gap-2">
+              <label for="currency" class="font-medium">Currency *</label>
+              <p-select
+                formControlName="currency"
+                [options]="currencyOptions"
+                placeholder="Select currency"
+                class="w-full">
+              </p-select>
+            </div>
+
+            <div class="flex flex-col gap-2">
+              <label for="language" class="font-medium">Default Language</label>
+              <p-select
+                formControlName="language"
+                [options]="languageOptions"
+                placeholder="Select language"
+                class="w-full">
+              </p-select>
+            </div>
+          </div>
+        </p-card>
+
+        <p-card>
+          <ng-template pTemplate="header">
+            <h3 class="text-xl font-semibold p-4">Financial Settings</h3>
+          </ng-template>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 p-4">
+            <div class="flex flex-col gap-2">
+              <label for="taxRate" class="font-medium">Tax Rate (%)</label>
+              <p-inputNumber
+                formControlName="taxRate"
+                [min]="0"
+                [max]="100"
+                mode="decimal"
+                [minFractionDigits]="2"
+                suffix="%"
+                class="w-full">
+              </p-inputNumber>
+            </div>
+
+            <div class="flex flex-col gap-2">
+              <label for="serviceCharge" class="font-medium">Service Charge (%)</label>
+              <p-inputNumber
+                formControlName="serviceCharge"
+                [min]="0"
+                [max]="100"
+                mode="decimal"
+                [minFractionDigits]="2"
+                suffix="%"
+                class="w-full">
+              </p-inputNumber>
+            </div>
+
+            <div class="flex flex-col gap-2">
+              <label for="tipSuggestions" class="font-medium">Tip Suggestions (%)</label>
+              <input
+                pInputText
+                formControlName="tipSuggestions"
+                placeholder="e.g., 15,18,20"
+                class="w-full">
+            </div>
+          </div>
+        </p-card>
+      </form>
+    </p-tabPanel>
+
+    <!-- Operations Settings -->
+    <p-tabPanel header="Operations" leftIcon="pi pi-clock">
+      <form [formGroup]="operationsForm" class="space-y-6">
+        <p-card>
+          <ng-template pTemplate="header">
+            <h3 class="text-xl font-semibold p-4">Order Management</h3>
+          </ng-template>
+
+          <div class="p-4">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+              <div class="flex flex-col gap-2">
+                <label for="orderTimeout" class="font-medium">Order Timeout (minutes)</label>
+                <p-inputNumber
+                  formControlName="orderTimeout"
+                  [min]="5"
+                  [max]="120"
+                  mode="decimal"
+                  class="w-full">
+                </p-inputNumber>
+              </div>
+
+              <div class="flex flex-col gap-2">
+                <label for="maxOrdersPerCustomer" class="font-medium">Max Orders per Customer</label>
+                <p-inputNumber
+                  formControlName="maxOrdersPerCustomer"
+                  [min]="1"
+                  [max]="20"
+                  mode="decimal"
+                  class="w-full">
+                </p-inputNumber>
+              </div>
+
+              <div class="flex flex-col gap-2">
+                <label for="preparationBuffer" class="font-medium">Preparation Buffer (minutes)</label>
+                <p-inputNumber
+                  formControlName="preparationBuffer"
+                  [min]="0"
+                  [max]="60"
+                  mode="decimal"
+                  class="w-full">
+                </p-inputNumber>
+              </div>
+            </div>
+
+            <p-divider></p-divider>
+
+            <div class="space-y-4 mt-4">
+              <div class="flex justify-between items-center p-3 bg-surface-50 rounded-lg">
+                <div>
+                  <h4 class="font-semibold text-gray-900">Auto-assign Orders</h4>
+                  <p class="text-sm text-gray-600">Automatically assign new orders to available employees</p>
+                </div>
+                <p-toggleSwitch formControlName="autoAssignOrders"></p-toggleSwitch>
+              </div>
+
+              <div class="flex justify-between items-center p-3 bg-surface-50 rounded-lg">
+                <div>
+                  <h4 class="font-semibold text-gray-900">Require Payment Confirmation</h4>
+                  <p class="text-sm text-gray-600">Require manual confirmation for payment processing</p>
+                </div>
+                <p-toggleSwitch formControlName="requirePaymentConfirmation"></p-toggleSwitch>
+              </div>
+
+              <div class="flex justify-between items-center p-3 bg-surface-50 rounded-lg">
+                <div>
+                  <h4 class="font-semibold text-gray-900">Allow Cancellations</h4>
+                  <p class="text-sm text-gray-600">Allow customers to cancel their orders</p>
+                </div>
+                <p-toggleSwitch formControlName="allowCancellations"></p-toggleSwitch>
+              </div>
+
+              <div class="flex justify-between items-center p-3 bg-surface-50 rounded-lg">
+                <div>
+                  <h4 class="font-semibold text-gray-900">Print Receipts Automatically</h4>
+                  <p class="text-sm text-gray-600">Automatically print receipts when orders are completed</p>
+                </div>
+                <p-toggleSwitch formControlName="autoPrintReceipts"></p-toggleSwitch>
+              </div>
+            </div>
+          </div>
+        </p-card>
+
+        <p-card>
+          <ng-template pTemplate="header">
+            <h3 class="text-xl font-semibold p-4">Business Hours</h3>
+          </ng-template>
+
+          <div class="space-y-3 p-4">
+            @for (day of weekDays; track day) {
+              <div class="border border-gray-200 rounded-lg p-4">
+                <div class="flex justify-between items-center mb-2">
+                  <span class="font-medium text-gray-900">{{ day.name }}</span>
+                  <p-toggleSwitch
+                    [(ngModel)]="day.isOpen"
+                    [ngModelOptions]="{standalone: true}"
+                    (onChange)="updateBusinessHours()">
+                  </p-toggleSwitch>
+                </div>
+                @if (day.isOpen) {
+                  <div class="grid grid-cols-2 gap-3 mt-3">
+                    <div class="flex flex-col gap-1">
+                      <label class="text-sm text-gray-600">Open</label>
+                      <input
+                        pInputText
+                        [(ngModel)]="day.openTime"
+                        [ngModelOptions]="{standalone: true}"
+                        placeholder="09:00"
+                        class="w-full">
+                    </div>
+                    <div class="flex flex-col gap-1">
+                      <label class="text-sm text-gray-600">Close</label>
+                      <input
+                        pInputText
+                        [(ngModel)]="day.closeTime"
+                        [ngModelOptions]="{standalone: true}"
+                        placeholder="17:00"
+                        class="w-full">
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        </p-card>
+      </form>
+    </p-tabPanel>
+
+    <!-- Notifications Settings -->
+    <p-tabPanel header="Notifications" leftIcon="pi pi-bell">
+      <form [formGroup]="notificationsForm" class="space-y-6">
+        <p-card>
+          <ng-template pTemplate="header">
+            <h3 class="text-xl font-semibold p-4">Notification Preferences</h3>
+          </ng-template>
+
+          <div class="p-4">
+            <div class="space-y-4 mb-4">
+              <div class="flex justify-between items-center p-3 bg-surface-50 rounded-lg">
+                <div>
+                  <h4 class="font-semibold text-gray-900">Email Notifications</h4>
+                  <p class="text-sm text-gray-600">Receive notifications via email</p>
+                </div>
+                <p-toggleSwitch formControlName="emailNotifications"></p-toggleSwitch>
+              </div>
+
+              <div class="flex justify-between items-center p-3 bg-surface-50 rounded-lg">
+                <div>
+                  <h4 class="font-semibold text-gray-900">SMS Notifications</h4>
+                  <p class="text-sm text-gray-600">Receive notifications via SMS</p>
+                </div>
+                <p-toggleSwitch formControlName="smsNotifications"></p-toggleSwitch>
+              </div>
+
+              <div class="flex justify-between items-center p-3 bg-surface-50 rounded-lg">
+                <div>
+                  <h4 class="font-semibold text-gray-900">Push Notifications</h4>
+                  <p class="text-sm text-gray-600">Receive browser push notifications</p>
+                </div>
+                <p-toggleSwitch formControlName="pushNotifications"></p-toggleSwitch>
+              </div>
+
+              <div class="flex justify-between items-center p-3 bg-surface-50 rounded-lg">
+                <div>
+                  <h4 class="font-semibold text-gray-900">Order Notifications</h4>
+                  <p class="text-sm text-gray-600">Get notified of new orders and status changes</p>
+                </div>
+                <p-toggleSwitch formControlName="orderNotifications"></p-toggleSwitch>
+              </div>
+
+              <div class="flex justify-between items-center p-3 bg-surface-50 rounded-lg">
+                <div>
+                  <h4 class="font-semibold text-gray-900">Inventory Alerts</h4>
+                  <p class="text-sm text-gray-600">Get notified about low stock and inventory issues</p>
+                </div>
+                <p-toggleSwitch formControlName="inventoryAlerts"></p-toggleSwitch>
+              </div>
+            </div>
+
+            <p-divider></p-divider>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+              <div class="flex flex-col gap-2">
+                <label for="lowStockThreshold" class="font-medium">Low Stock Threshold</label>
+                <p-inputNumber
+                  formControlName="lowStockThreshold"
+                  [min]="1"
+                  [max]="100"
+                  mode="decimal"
+                  class="w-full">
+                </p-inputNumber>
+              </div>
+
+              <div class="flex flex-col gap-2">
+                <label for="orderDelayThreshold" class="font-medium">Order Delay Threshold (minutes)</label>
+                <p-inputNumber
+                  formControlName="orderDelayThreshold"
+                  [min]="5"
+                  [max]="60"
+                  mode="decimal"
+                  class="w-full">
+                </p-inputNumber>
+              </div>
+            </div>
+          </div>
+        </p-card>
+      </form>
+    </p-tabPanel>
+
+    <!-- Integrations Settings -->
+    <p-tabPanel header="Integrations" leftIcon="pi pi-link">
+      <form [formGroup]="integrationsForm" class="space-y-6">
+        <p-card>
+          <ng-template pTemplate="header">
+            <h3 class="text-xl font-semibold p-4">Payment Integration</h3>
+          </ng-template>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 p-4">
+            <div class="flex flex-col gap-2">
+              <label for="paymentGateway" class="font-medium">Payment Gateway</label>
+              <p-select
+                formControlName="paymentGateway"
+                [options]="paymentGatewayOptions"
+                placeholder="Select payment gateway"
+                class="w-full">
+              </p-select>
+            </div>
+
+            <div class="flex flex-col gap-2">
+              <label for="merchantId" class="font-medium">Merchant ID</label>
+              <input
+                pInputText
+                formControlName="merchantId"
+                placeholder="Enter merchant ID"
+                class="w-full">
+            </div>
+
+            <div class="flex flex-col gap-2">
+              <label for="apiKey" class="font-medium">API Key</label>
+              <p-password
+                formControlName="apiKey"
+                [feedback]="false"
+                [toggleMask]="true"
+                placeholder="Enter API key"
+                class="w-full">
+              </p-password>
+            </div>
+          </div>
+        </p-card>
+
+        <p-card>
+          <ng-template pTemplate="header">
+            <h3 class="text-xl font-semibold p-4">Third-Party Services</h3>
+          </ng-template>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 p-4">
+            <div class="flex flex-col gap-2">
+              <label for="posSystem" class="font-medium">POS System</label>
+              <p-select
+                formControlName="posSystem"
+                [options]="posSystemOptions"
+                placeholder="Select POS system"
+                class="w-full">
+              </p-select>
+            </div>
+
+            <div class="flex flex-col gap-2">
+              <label for="accountingSystem" class="font-medium">Accounting System</label>
+              <p-select
+                formControlName="accountingSystem"
+                [options]="accountingSystemOptions"
+                placeholder="Select accounting system"
+                class="w-full">
+              </p-select>
+            </div>
+
+            <div class="flex flex-col gap-2">
+              <label for="inventorySystem" class="font-medium">Inventory System</label>
+              <p-select
+                formControlName="inventorySystem"
+                [options]="inventorySystemOptions"
+                placeholder="Select inventory system"
+                class="w-full">
+              </p-select>
+            </div>
+          </div>
+        </p-card>
+      </form>
+    </p-tabPanel>
+
+    <!-- Appearance Settings -->
+    <p-tabPanel header="Appearance" leftIcon="pi pi-palette">
+      <div class="space-y-6">
+        <p-card>
+          <ng-template pTemplate="header">
+            <h3 class="text-xl font-semibold p-4">Theme & Branding</h3>
+          </ng-template>
+
+          <div class="p-4 space-y-6">
+            <div class="flex flex-col gap-2">
+              <label for="primaryColor" class="font-medium">Primary Color</label>
+              <p-colorPicker
+                [(ngModel)]="primaryColor"
+                [ngModelOptions]="{standalone: true}"
+                format="hex">
+              </p-colorPicker>
+            </div>
+
+            <div class="flex flex-col gap-2">
+              <label for="logo" class="font-medium">Restaurant Logo</label>
+              <p-fileUpload
+                mode="basic"
+                name="logo"
+                accept="image/*"
+                [maxFileSize]="1000000"
+                chooseLabel="Upload Logo">
+              </p-fileUpload>
+            </div>
+
+            <div>
+              <h4 class="font-semibold text-gray-900 mb-3">Theme Options</h4>
+              <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                @for (theme of themeOptions; track theme) {
+                  <div
+                    class="cursor-pointer border-2 rounded-lg p-3 transition-all"
+                    [class.border-primary]="selectedTheme === theme.value"
+                    [class.border-gray-200]="selectedTheme !== theme.value"
+                    (click)="selectTheme(theme.value)">
+                    <div class="h-20 rounded mb-2" [style.background]="theme.preview"></div>
+                    <span class="text-sm font-medium text-center block">{{ theme.label }}</span>
+                  </div>
+                }
+              </div>
+            </div>
+          </div>
+        </p-card>
+      </div>
+    </p-tabPanel>
+  </p-tabs>
+</div>
+
+<!-- Toast Messages -->
+<p-toast position="top-right"></p-toast>
+
+<!-- Confirmation Dialog -->
+<p-confirmDialog
+  header="Confirmation"
+  icon="pi pi-exclamation-triangle">
+</p-confirmDialog>

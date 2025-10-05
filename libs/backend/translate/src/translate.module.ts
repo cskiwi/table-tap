@@ -38,7 +38,7 @@ import { TranslateController } from './controllers';
             // watch: true,
           },
           typesOutputPath: file,
-        };
+        }
       },
     }),
   ],

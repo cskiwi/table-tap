@@ -136,9 +136,9 @@ export class PaymentService extends BaseService {
   private qrPaymentsSubject = new BehaviorSubject<QRCodePayment[]>([]);
 
   // Observables
-  public readonly payments$ = this.paymentsSubject.asObservable();
-  public readonly currentPayment$ = this.currentPaymentSubject.asObservable();
-  public readonly qrPayments$ = this.qrPaymentsSubject.asObservable();
+  public readonly payments$ = this.paymentsSubject.asObservable()
+  public readonly currentPayment$ = this.currentPaymentSubject.asObservable()
+  public readonly qrPayments$ = this.qrPaymentsSubject.asObservable()
 
   // Loading states
   public readonly isProcessingPayment$ = this.getLoading('processPayment');
@@ -151,10 +151,10 @@ export class PaymentService extends BaseService {
     googlePay: true,
     payPal: true,
     venmo: false
-  };
+  }
 
   constructor() {
-    super();
+    super()
   }
 
   /**
@@ -374,15 +374,15 @@ export class PaymentService extends BaseService {
         ApplePaySession.canMakePaymentsWithActiveCard('merchant.identifier')
           .then(canMakePayments => {
             observer.next(canMakePayments);
-            observer.complete();
+            observer.complete()
           })
           .catch(() => {
             observer.next(false);
-            observer.complete();
+            observer.complete()
           });
       } else {
         observer.next(false);
-        observer.complete();
+        observer.complete()
       }
     });
   }
@@ -406,19 +406,20 @@ export class PaymentService extends BaseService {
             type: 'CARD',
             parameters: {
               allowedAuthMethods: ['PAN_ONLY', 'CRYPTOGRAM_3DS'],
-              allowedCardNetworks: ['MASTERCARD', 'VISA']
+              allowedCardNetworks: ['MASTERCARD', 'VISA'];
             }
-          }]
+  }
+  ];
         }).then(response => {
           observer.next(response.result);
-          observer.complete();
+          observer.complete()
         }).catch(() => {
           observer.next(false);
-          observer.complete();
+          observer.complete()
         });
       } else {
         observer.next(false);
-        observer.complete();
+        observer.complete()
       }
     });
   }
@@ -437,7 +438,7 @@ export class PaymentService extends BaseService {
           success: false,
           error: 'Apple Pay not available'
         });
-        observer.complete();
+        observer.complete()
         return;
       }
 
@@ -450,7 +451,7 @@ export class PaymentService extends BaseService {
           label: 'Restaurant Order',
           amount: amount.toString()
         }
-      };
+      }
 
       const session = new ApplePaySession(3, request);
 
@@ -458,7 +459,7 @@ export class PaymentService extends BaseService {
         // Validate merchant on your server
         // This is a simplified example
         session.completeMerchantValidation({});
-      };
+      }
 
       session.onpaymentauthorized = (event) => {
         // Process payment with token
@@ -475,7 +476,7 @@ export class PaymentService extends BaseService {
               session.completePayment(ApplePaySession.STATUS_FAILURE);
             }
             observer.next(result);
-            observer.complete();
+            observer.complete()
           },
           error: (error) => {
             session.completePayment(ApplePaySession.STATUS_FAILURE);
@@ -483,20 +484,20 @@ export class PaymentService extends BaseService {
               success: false,
               error: error.message
             });
-            observer.complete();
+            observer.complete()
           }
         });
-      };
+      }
 
       session.oncancel = () => {
         observer.next({
           success: false,
           error: 'Payment cancelled by user'
         });
-        observer.complete();
-      };
+        observer.complete()
+      }
 
-      session.begin();
+      session.begin()
     });
   }
 
@@ -514,7 +515,7 @@ export class PaymentService extends BaseService {
           success: false,
           error: 'Google Pay not available'
         });
-        observer.complete();
+        observer.complete()
         return;
       }
 
@@ -529,7 +530,7 @@ export class PaymentService extends BaseService {
           type: 'CARD',
           parameters: {
             allowedAuthMethods: ['PAN_ONLY', 'CRYPTOGRAM_3DS'],
-            allowedCardNetworks: ['MASTERCARD', 'VISA']
+            allowedCardNetworks: ['MASTERCARD', 'VISA'];
           },
           tokenizationSpecification: {
             type: 'PAYMENT_GATEWAY',
@@ -547,7 +548,7 @@ export class PaymentService extends BaseService {
         merchantInfo: {
           merchantName: 'Restaurant Name'
         }
-      };
+      }
 
       paymentsClient.loadPaymentData(paymentDataRequest)
         .then(paymentData => {
@@ -560,14 +561,14 @@ export class PaymentService extends BaseService {
           ).subscribe({
             next: (result) => {
               observer.next(result);
-              observer.complete();
+              observer.complete()
             },
             error: (error) => {
               observer.next({
                 success: false,
                 error: error.message
               });
-              observer.complete();
+              observer.complete()
             }
           });
         })
@@ -576,7 +577,7 @@ export class PaymentService extends BaseService {
             success: false,
             error: error.message || 'Google Pay failed'
           });
-          observer.complete();
+          observer.complete()
         });
     });
   }
@@ -586,14 +587,12 @@ export class PaymentService extends BaseService {
    */
   getAvailablePaymentMethods(): Observable<PaymentMethod[]> {
     return new Observable(observer => {
-      const methods: PaymentMethod[] = [PaymentMethod.CASH, PaymentMethod.CARD];
+      const methods: PaymentMethod[] = [PaymentMethod.CASH, PaymentMethod.CARD]
 
       // Check digital wallet availability
       const checks = [
         this.isApplePayAvailable(),
-        this.isGooglePayAvailable()
-      ];
-
+        this.isGooglePayAvailable()];
       // Add QR code if supported
       methods.push(PaymentMethod.QR_CODE);
 
@@ -602,7 +601,7 @@ export class PaymentService extends BaseService {
         if (results[1]) methods.push(PaymentMethod.DIGITAL_WALLET); // Google Pay
 
         observer.next(methods);
-        observer.complete();
+        observer.complete()
       });
     });
   }
@@ -640,14 +639,14 @@ export class PaymentService extends BaseService {
    * Update payment configuration
    */
   updateDigitalWalletConfig(config: Partial<DigitalWalletConfig>): void {
-    this.digitalWalletConfig = { ...this.digitalWalletConfig, ...config };
+    this.digitalWalletConfig = { ...this.digitalWalletConfig, ...config }
   }
 
   /**
    * Get current payment configuration
    */
   getDigitalWalletConfig(): DigitalWalletConfig {
-    return { ...this.digitalWalletConfig };
+    return { ...this.digitalWalletConfig }
   }
 
   /**
@@ -683,7 +682,7 @@ export class PaymentService extends BaseService {
           status: paymentUpdate.status,
           transactionId: paymentUpdate.transactionId || payment.transactionId,
           updatedAt: new Date()
-        };
+        }
       }
       return payment;
     });

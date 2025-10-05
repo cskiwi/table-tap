@@ -6,6 +6,6 @@ import { appConfig } from './app.config';
 
 const serverConfig: ApplicationConfig = {
   providers: [provideServerRendering(), provideNoopAnimations()],
-};
+}
 
 export const config = mergeApplicationConfig(appConfig, serverConfig);

@@ -1,0 +1,257 @@
+<div class="min-h-screen py-8">
+  <div class="max-w-3xl mx-auto px-4">
+    <div class="text-center mb-8">
+      <h1 class="text-4xl font-bold mb-2 text-color">Checkout</h1>
+      <p class="text-lg text-color-secondary m-0">Complete your order information</p>
+    </div>
+
+    <div class="flex flex-col gap-8">
+      <!-- Customer Information Form -->
+      <div class="surface-card rounded-xl p-8 shadow-2">
+        <h2 class="text-2xl font-semibold mb-6 pb-2 text-color border-bottom-1 surface-border">Customer Information</h2>
+        <form [formGroup]="customerForm" class="flex flex-col">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div class="flex flex-col">
+              <label for="firstName" class="font-medium mb-2 text-sm text-color">First Name *</label>
+              <input
+                id="firstName"
+                type="text"
+                formControlName="firstName"
+                class="surface-overlay border-1 surface-border rounded-lg p-3 text-base transition-all"
+                [class.border-red-500]="customerForm.get('firstName')?.invalid && customerForm.get('firstName')?.touched"
+                placeholder="Enter your first name"
+              />
+              @if (customerForm.get('firstName')?.invalid && customerForm.get('firstName')?.touched) {
+                <div class="text-red-500 text-sm mt-2">First name is required</div>
+              }
+            </div>
+
+            <div class="flex flex-col">
+              <label for="lastName" class="font-medium mb-2 text-sm text-color">Last Name *</label>
+              <input
+                id="lastName"
+                type="text"
+                formControlName="lastName"
+                class="surface-overlay border-1 surface-border rounded-lg p-3 text-base transition-all"
+                [class.border-red-500]="customerForm.get('lastName')?.invalid && customerForm.get('lastName')?.touched"
+                placeholder="Enter your last name"
+              />
+              @if (customerForm.get('lastName')?.invalid && customerForm.get('lastName')?.touched) {
+                <div class="text-red-500 text-sm mt-2">Last name is required</div>
+              }
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div class="flex flex-col">
+              <label for="email" class="font-medium mb-2 text-sm text-color">Email Address *</label>
+              <input
+                id="email"
+                type="email"
+                formControlName="email"
+                class="surface-overlay border-1 surface-border rounded-lg p-3 text-base transition-all"
+                [class.border-red-500]="customerForm.get('email')?.invalid && customerForm.get('email')?.touched"
+                placeholder="Enter your email address"
+              />
+              @if (customerForm.get('email')?.invalid && customerForm.get('email')?.touched) {
+                <div class="text-red-500 text-sm mt-2">
+                  @if (customerForm.get('email')?.errors?.['required']) {
+                    Email address is required
+                  } @else if (customerForm.get('email')?.errors?.['email']) {
+                    Please enter a valid email address
+                  }
+                </div>
+              }
+            </div>
+
+            <div class="flex flex-col">
+              <label for="phone" class="font-medium mb-2 text-sm text-color">Phone Number *</label>
+              <input
+                id="phone"
+                type="tel"
+                formControlName="phone"
+                class="surface-overlay border-1 surface-border rounded-lg p-3 text-base transition-all"
+                [class.border-red-500]="customerForm.get('phone')?.invalid && customerForm.get('phone')?.touched"
+                placeholder="Enter your phone number"
+              />
+              @if (customerForm.get('phone')?.invalid && customerForm.get('phone')?.touched) {
+                <div class="text-red-500 text-sm mt-2">Valid phone number is required</div>
+              }
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 gap-4 mb-4">
+            <div class="flex flex-col">
+              <label for="tableNumber" class="font-medium mb-2 text-sm text-color">Table Number</label>
+              <input
+                id="tableNumber"
+                type="number"
+                formControlName="tableNumber"
+                class="surface-overlay border-1 surface-border rounded-lg p-3 text-base transition-all"
+                placeholder="Enter table number (if applicable)"
+              />
+            </div>
+          </div>
+
+          <div class="flex flex-col">
+            <label for="specialRequests" class="font-medium mb-2 text-sm text-color">Special Requests</label>
+            <textarea
+              id="specialRequests"
+              formControlName="specialRequests"
+              class="surface-overlay border-1 surface-border rounded-lg p-3 text-base resize-y min-h-[80px]"
+              rows="3"
+              placeholder="Any special requests or dietary requirements..."
+            ></textarea>
+          </div>
+        </form>
+      </div>
+
+      <!-- Payment Method Selection -->
+      <div class="surface-card rounded-xl p-8 shadow-2">
+        <h2 class="text-2xl font-semibold mb-6 pb-2 text-color border-bottom-1 surface-border">Payment Method</h2>
+        @if (paymentMethods().length > 0) {
+          <div class="flex flex-col gap-4 mb-6">
+            @for (method of paymentMethods(); track method.id) {
+              <div
+                class="flex items-center justify-between p-4 surface-overlay border-1 surface-border rounded-lg cursor-pointer transition-all hover:shadow-1"
+                [class.border-primary]="selectedPaymentMethod()?.id === method.id"
+                [class.bg-primary-50]="selectedPaymentMethod()?.id === method.id"
+                (click)="selectPaymentMethod(method)"
+              >
+                <div class="flex flex-col gap-1">
+                  <div class="flex items-center gap-2 font-medium text-color">
+                    <i class="w-6 h-6" [class]="getPaymentIcon(method.type)"></i>
+                    <span>{{ method.name }}</span>
+                  </div>
+                  @if (method.last4) {
+                    <div class="text-sm text-color-secondary ml-8">
+                      •••• •••• •••• {{ method.last4 }}
+                    </div>
+                  }
+                  @if (method.isDefault) {
+                    <div class="inline-block text-xs px-2 py-1 rounded bg-primary text-primary-contrast font-medium ml-8 w-fit">Default</div>
+                  }
+                </div>
+                <div>
+                  @if (selectedPaymentMethod()?.id === method.id) {
+                    <i class="w-6 h-6 text-primary"></i>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        } @else {
+          <div class="text-center p-8">
+            <p class="mb-4 text-color-secondary">No saved payment methods found.</p>
+            <button type="button" class="px-8 py-3 rounded-lg font-semibold text-base cursor-pointer transition-all border-0 flex items-center justify-center gap-2 min-h-[48px] surface-100 text-color hover:surface-200" (click)="addPaymentMethod()">
+              Add Payment Method
+            </button>
+          </div>
+        }
+
+        <div class="flex justify-center">
+          <button type="button" class="px-8 py-3 rounded-lg font-semibold text-base cursor-pointer transition-all border-1 primary-border-color bg-transparent text-primary hover:bg-primary-50 flex items-center justify-center gap-2 min-h-[48px]" (click)="addPaymentMethod()">
+            Add New Payment Method
+          </button>
+        </div>
+      </div>
+
+      <!-- Order Summary -->
+      <div class="surface-card rounded-xl p-8 shadow-2">
+        <h2 class="text-2xl font-semibold mb-6 pb-2 text-color border-bottom-1 surface-border">Order Summary</h2>
+        @if (orderSummary(); as summary) {
+          <div>
+            <div class="mb-6">
+              @for (item of summary.items; track item.id) {
+                <div class="flex justify-between items-center py-3 border-bottom-1 surface-border last:border-bottom-0">
+                  <div class="flex items-center gap-2">
+                    <span class="font-medium text-color">{{ item.name }}</span>
+                    <span class="text-color-secondary text-sm">× {{ item.quantity }}</span>
+                  </div>
+                  <div class="font-semibold text-color">
+                    {{ '$' + (item.price * item.quantity).toFixed(2) }}
+                  </div>
+                </div>
+              }
+            </div>
+
+            <div class="pt-4">
+              <div class="flex justify-between items-center py-2 text-color">
+                <span>Subtotal</span>
+                <span>{{ '$' + summary.subtotal.toFixed(2) }}</span>
+              </div>
+              <div class="flex justify-between items-center py-2 text-color">
+                <span>Tax</span>
+                <span>{{ '$' + summary.tax.toFixed(2) }}</span>
+              </div>
+              @if (summary.tip > 0) {
+                <div class="flex justify-between items-center py-2 text-color">
+                  <span>Tip</span>
+                  <span>{{ '$' + summary.tip.toFixed(2) }}</span>
+                </div>
+              }
+              @if (summary.discount > 0) {
+                <div class="flex justify-between items-center py-2 text-green-600">
+                  <span>Discount</span>
+                  <span>{{ '-$' + summary.discount.toFixed(2) }}</span>
+                </div>
+              }
+              <div class="flex justify-between items-center py-2 text-xl font-bold mt-2 pt-4 border-top-1 surface-border text-color">
+                <span>Total</span>
+                <span>{{ '$' + summary.total.toFixed(2) }}</span>
+              </div>
+            </div>
+
+            @if (summary.estimatedTime) {
+              <div class="flex items-center gap-2 mt-4 p-4 rounded-lg bg-primary-50 text-primary">
+                <i class="w-5 h-5"></i>
+                <span>Estimated preparation time: {{ summary.estimatedTime }} minutes</span>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- Error Display -->
+    @if (orderService.error(); as error) {
+      <div class="bg-red-50 border-1 border-red-300 rounded-lg p-4 my-4">
+        <div class="flex items-center gap-3">
+          <i class="w-5 h-5 text-red-600 flex-shrink-0"></i>
+          <span class="flex-1 text-red-800">{{ error.message }}</span>
+          @if (error.retryable) {
+            <button type="button" class="border-0 px-4 py-2 rounded bg-red-600 text-white text-sm cursor-pointer hover:bg-red-700" (click)="retryOperation()">
+              Retry
+            </button>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- Action Buttons -->
+    <div class="flex gap-4 justify-between mt-8 flex-col md:flex-row">
+      <button
+        type="button"
+        class="px-8 py-3 rounded-lg font-semibold text-base cursor-pointer transition-all border-1 surface-border bg-transparent text-color hover:surface-100 flex items-center justify-center gap-2 min-h-[48px] disabled:opacity-60 disabled:cursor-not-allowed"
+        (click)="goBack()"
+        [disabled]="orderService.isLoading()"
+      >
+        Back to Cart
+      </button>
+
+      <button
+        type="button"
+        class="px-8 py-3 rounded-lg font-semibold text-base cursor-pointer transition-all border-0 bg-primary text-primary-contrast hover:bg-primary-600 flex items-center justify-center gap-2 min-h-[48px] disabled:opacity-60 disabled:cursor-not-allowed"
+        (click)="proceedToConfirmation()"
+        [disabled]="!canProceed() || orderService.isLoading()"
+      >
+        @if (orderService.isLoading()) {
+          <span class="w-4 h-4 border-2 border-transparent border-t-current rounded-full animate-spin"></span>
+          Processing...
+        } @else {
+          Continue to Review
+        }
+      </button>
+    </div>
+  </div>
+</div>

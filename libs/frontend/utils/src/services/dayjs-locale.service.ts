@@ -8,7 +8,7 @@ import dayjs from 'dayjs';
 })
 export class DayjsLocaleService {
   private readonly localeSubject = new BehaviorSubject<DayjsLocale>('en');
-  
+
   readonly localeChange$: Observable<DayjsLocale> = this.localeSubject.asObservable();
 
   getLocale(): DayjsLocale {
@@ -41,7 +41,7 @@ export class DayjsLocaleService {
           this.setLocale('en');
           return;
       }
-      
+
       this.setLocale(locale);
     } catch (error) {
       console.error(`Failed to load locale ${locale}:`, error);

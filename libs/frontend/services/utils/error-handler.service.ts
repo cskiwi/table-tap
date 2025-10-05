@@ -43,8 +43,8 @@ export class ErrorHandlerService implements ErrorHandler {
   private lastErrorSubject = new BehaviorSubject<ApiError | null>(null);
 
   // Observables
-  public readonly errorLogs$ = this.errorLogsSubject.asObservable();
-  public readonly lastError$ = this.lastErrorSubject.asObservable();
+  public readonly errorLogs$ = this.errorLogsSubject.asObservable()
+  public readonly lastError$ = this.lastErrorSubject.asObservable()
 
   // Configuration
   private config: ErrorHandlerConfig = {
@@ -54,7 +54,7 @@ export class ErrorHandlerService implements ErrorHandler {
     enableErrorReporting: true,
     maxErrorLogs: 100,
     autoReportCriticalErrors: true
-  };
+  }
 
   // Error patterns for classification
   private criticalErrorPatterns = [
@@ -63,8 +63,7 @@ export class ErrorHandlerService implements ErrorHandler {
     /Loading CSS chunk/,
     /Script error/,
     /Network Error/,
-    /Failed to fetch/
-  ];
+    /Failed to fetch/]
 
   private authErrorPatterns = [
     /401/,
@@ -72,8 +71,7 @@ export class ErrorHandlerService implements ErrorHandler {
     /Unauthorized/,
     /Forbidden/,
     /Invalid token/,
-    /Token expired/
-  ];
+    /Token expired/]
 
   private networkErrorPatterns = [
     /Network/,
@@ -81,15 +79,14 @@ export class ErrorHandlerService implements ErrorHandler {
     /offline/,
     /connection/,
     /ERR_NETWORK/,
-    /ERR_INTERNET_DISCONNECTED/
-  ];
+    /ERR_INTERNET_DISCONNECTED/]
 
   constructor() {
     // Setup global error listeners
-    this.setupGlobalErrorHandlers();
+    this.setupGlobalErrorHandlers()
 
     // Setup periodic cleanup
-    this.setupPeriodicCleanup();
+    this.setupPeriodicCleanup()
   }
 
   /**
@@ -127,7 +124,7 @@ export class ErrorHandlerService implements ErrorHandler {
       message,
       details,
       timestamp: new Date()
-    };
+    }
     this.processError(apiError, 'business');
   }
 
@@ -159,7 +156,7 @@ export class ErrorHandlerService implements ErrorHandler {
         } : undefined
       },
       timestamp: new Date()
-    };
+    }
 
     this.appState.addNotification(notification);
 
@@ -177,7 +174,7 @@ export class ErrorHandlerService implements ErrorHandler {
     total: number;
     byType: Record<string, number>;
     bySeverity: Record<string, number>;
-    recent: ErrorLog[];
+    recent: ErrorLog[]
   } {
     const logs = this.errorLogsSubject.value;
 
@@ -202,7 +199,7 @@ export class ErrorHandlerService implements ErrorHandler {
       byType,
       bySeverity,
       recent
-    };
+    }
   }
 
   /**
@@ -227,7 +224,7 @@ export class ErrorHandlerService implements ErrorHandler {
    * Update configuration
    */
   updateConfig(config: Partial<ErrorHandlerConfig>): void {
-    this.config = { ...this.config, ...config };
+    this.config = { ...this.config, ...config }
   }
 
   /**
@@ -250,7 +247,7 @@ export class ErrorHandlerService implements ErrorHandler {
    * Get recovery suggestions for error
    */
   getRecoverySuggestions(error: ApiError): string[] {
-    const suggestions: string[] = [];
+    const suggestions: string[] = []
 
     if (this.isNetworkError(error)) {
       suggestions.push('Check your internet connection');
@@ -299,7 +296,7 @@ export class ErrorHandlerService implements ErrorHandler {
       stackTrace: error.details?.stack,
       severity,
       resolved: false
-    };
+    }
 
     // Add to error logs
     this.addErrorLog(errorLog);
@@ -341,7 +338,7 @@ export class ErrorHandlerService implements ErrorHandler {
           name: error.name
         },
         timestamp: new Date()
-      };
+      }
     }
 
     if (typeof error === 'string') {
@@ -349,7 +346,7 @@ export class ErrorHandlerService implements ErrorHandler {
         code: 'STRING_ERROR',
         message: error,
         timestamp: new Date()
-      };
+      }
     }
 
     return {
@@ -357,7 +354,7 @@ export class ErrorHandlerService implements ErrorHandler {
       message: 'An unknown error occurred',
       details: error,
       timestamp: new Date()
-    };
+    }
   }
 
   /**
@@ -376,7 +373,7 @@ export class ErrorHandlerService implements ErrorHandler {
       timestamp: new Date(),
       path: error.url || undefined,
       statusCode: error.status
-    };
+    }
   }
 
   /**
@@ -384,7 +381,7 @@ export class ErrorHandlerService implements ErrorHandler {
    */
   private convertGraphQLErrorToApiError(error: any): ApiError {
     if (error.graphQLErrors && error.graphQLErrors.length > 0) {
-      const gqlError = error.graphQLErrors[0];
+      const gqlError = error.graphQLErrors[0]
       return {
         code: gqlError.extensions?.code || 'GRAPHQL_ERROR',
         message: gqlError.message,
@@ -395,7 +392,7 @@ export class ErrorHandlerService implements ErrorHandler {
         },
         timestamp: new Date(),
         path: gqlError.path?.join('.') || undefined
-      };
+      }
     }
 
     if (error.networkError) {
@@ -485,7 +482,7 @@ export class ErrorHandlerService implements ErrorHandler {
       console.error('Stack Trace:', errorLog.stackTrace);
     }
 
-    console.groupEnd();
+    console.groupEnd()
   }
 
   /**
@@ -558,7 +555,7 @@ export class ErrorHandlerService implements ErrorHandler {
 
     // Handle chunk loading errors (reload page)
     if (this.criticalErrorPatterns.some(pattern => pattern.test(error.message))) {
-      this.handleChunkLoadError();
+      this.handleChunkLoadError()
     }
 
     // Handle network errors
@@ -588,7 +585,7 @@ export class ErrorHandlerService implements ErrorHandler {
   private handleChunkLoadError(): void {
     // Reload the page to get fresh chunks
     setTimeout(() => {
-      window.location.reload();
+      window.location.reload()
     }, 3000);
   }
 
@@ -616,7 +613,6 @@ export class ErrorHandlerService implements ErrorHandler {
   private addErrorLog(errorLog: ErrorLog): void {
     const currentLogs = this.errorLogsSubject.value;
     const updatedLogs = [errorLog, ...currentLogs];
-
     // Limit the number of stored logs
     if (updatedLogs.length > this.config.maxErrorLogs) {
       updatedLogs.splice(this.config.maxErrorLogs);
