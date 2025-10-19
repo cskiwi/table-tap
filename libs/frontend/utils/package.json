@@ -2,11 +2,15 @@
   "name": "@app/frontend-utils",
   "version": "0.0.1",
   "peerDependencies": {
-    "@angular/core": "20.2.4",
-    "@angular/cdk": "20.2.2",
-    "@angular/common": "20.2.4",
+    "@angular/core": "^20.3.2",
+    "@angular/cdk": "^20.2.2",
+    "@angular/common": "^20.3.2",
     "rxjs": "~7.8.2",
-    "dayjs": "^1.11.13"
+    "dayjs": "^1.11.13",
+    "@eslint/eslintrc": "^3.3.1",
+    "@eslint/js": "^9.35.0",
+    "jsonc-eslint-parser": "^2.4.0",
+    "jest-preset-angular": "^14.0.0"
   },
   "sideEffects": false
 }

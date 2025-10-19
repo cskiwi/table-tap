@@ -105,6 +105,14 @@ export class Employee extends BaseEntity {
   @IsEnum(UserRole)
   declare position: UserRole;
 
+  // Alias for position
+  get role(): UserRole {
+    return this.position;
+  }
+  set role(value: UserRole) {
+    this.position = value;
+  }
+
   @Field()
   @Column('enum', { enum: EmployeeStatus, default: EmployeeStatus.ACTIVE })
   @IsEnum(EmployeeStatus)

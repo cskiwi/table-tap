@@ -22,50 +22,6 @@ import {
   Cafe
 } from '@app/models';
 
-export interface LoyaltyPointsCalculation {
-  basePoints: number;
-  bonusPoints: number;
-  totalPoints: number;
-  multiplier: number;
-  promotionalBonus: number;
-  tierBonus: number;
-}
-
-export interface LoyaltyRedemptionRequest {
-  loyaltyAccountId: string;
-  rewardId: string;
-  orderId?: string;
-  notes?: string;
-}
-
-export interface LoyaltyPromotionEligibility {
-  isEligible: boolean;
-  promotion?: LoyaltyPromotion;
-  bonusPoints?: number;
-  multiplier?: number;
-  reason?: string;
-}
-
-export interface LoyaltyChallengeProgress {
-  challenge: LoyaltyChallenge;
-  currentProgress: number;
-  targetValue: number;
-  progressPercentage: number;
-  isCompleted: boolean;
-  timeRemaining?: number;
-  nextMilestone?: { percentage: number; title: string; reward?: any }
-}
-
-export interface LoyaltyStats {
-  totalMembers: number;
-  activeMembers: number;
-  totalPointsIssued: number;
-  totalPointsRedeemed: number;
-  averageOrderValue: number;
-  topTierMembers: number;
-  redemptionRate: number;
-  engagementRate: number;
-}
 
 @Injectable()
 export class LoyaltyService {
@@ -193,7 +149,7 @@ export class LoyaltyService {
   async calculatePointsForOrder(
     order: Order,
     loyaltyAccount: LoyaltyAccount
-  ): Promise<LoyaltyPointsCalculation> {
+  ): Promise<{ basePoints: number; bonusPoints: number; totalPoints: number; multiplier: number; promotionalBonus: number; tierBonus: number }> {
     const cafe = await this.cafeRepo.findOne({ where: { id: order.cafeId } });
     if (!cafe) throw new NotFoundException('Cafe not found');
 
@@ -406,13 +362,13 @@ export class LoyaltyService {
    * Redeem a reward
    */
   async redeemReward(
-    request: LoyaltyRedemptionRequest,
+    loyaltyAccountId: string, rewardId: string, orderId?: string, notes?: string,
     entityManager?: EntityManager
   ): Promise<LoyaltyRewardRedemption> {
     const manager = entityManager || this.loyaltyRedemptionRepo.manager;
 
     const loyaltyAccount = await manager.findOne(LoyaltyAccount, {
-      where: { id: request.loyaltyAccountId },
+      where: { id: loyaltyAccountId },
       relations: ['currentTier'],
     }) as LoyaltyAccount;
 
@@ -421,7 +377,7 @@ export class LoyaltyService {
     }
 
     const reward = await manager.findOne(LoyaltyReward, {
-      where: { id: request.rewardId }
+      where: { id: rewardId }
     }) as unknown as LoyaltyReward;
 
     if (!reward) {
@@ -436,17 +392,17 @@ export class LoyaltyService {
 
     // Create redemption record
     const redemption = manager.create(LoyaltyRewardRedemption, {
-      loyaltyAccountId: request.loyaltyAccountId,
+      loyaltyAccountId: loyaltyAccountId,
       cafeId: loyaltyAccount.cafeId,
-      rewardId: request.rewardId,
-      orderId: request.orderId,
+      rewardId: rewardId,
+      orderId: orderId,
       pointsUsed: reward.pointsCost,
       discountAmount: reward.discountAmount,
       cashValue: reward.cashValue,
       redemptionCode,
       status: reward.requiresApproval ? LoyaltyRedemptionStatus.PENDING : LoyaltyRedemptionStatus.APPROVED,
       expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
-      notes: request.notes,
+      notes: notes,
       metadata: {
         rewardName: reward.name,
         rewardDescription: reward.description,
@@ -458,7 +414,7 @@ export class LoyaltyService {
 
     // Deduct points
     await this.createPointsTransaction({
-      loyaltyAccountId: request.loyaltyAccountId,
+      loyaltyAccountId: loyaltyAccountId,
       cafeId: loyaltyAccount.cafeId,
       type: LoyaltyTransactionType.REDEEMED,
       points: -reward.pointsCost,
@@ -593,7 +549,7 @@ export class LoyaltyService {
     promotion: LoyaltyPromotion,
     order: Order,
     loyaltyAccount: LoyaltyAccount
-  ): Promise<LoyaltyPromotionEligibility> {
+  ): Promise<{ isEligible: boolean; promotion?: LoyaltyPromotion; bonusPoints?: number; multiplier?: number; reason?: string }> {
     // Check tier requirements
     if (promotion.rules.eligibleTierLevels?.length) {
       const currentTierLevel = loyaltyAccount.currentTier?.level || 0;
@@ -690,7 +646,7 @@ export class LoyaltyService {
     challenge: LoyaltyChallenge,
     loyaltyAccount: LoyaltyAccount,
     order?: Order
-  ): Promise<LoyaltyChallengeProgress> {
+  ): Promise<{ challenge: LoyaltyChallenge; currentProgress: number; targetValue: number; progressPercentage: number; isCompleted: boolean; timeRemaining?: number; nextMilestone?: { percentage: number; title: string; reward?: any } }> {
     let currentProgress = 0;
     const targetValue = challenge.goals.targetValue || 1;
 
@@ -860,7 +816,7 @@ export class LoyaltyService {
   /**
    * Get loyalty program statistics
    */
-  async getLoyaltyStats(cafeId: string): Promise<LoyaltyStats> {
+  async getLoyaltyStats(cafeId: string): Promise<{ totalMembers: number; activeMembers: number; totalPointsIssued: number; totalPointsRedeemed: number; averageOrderValue: number; topTierMembers: number; redemptionRate: number; engagementRate: number }> {
     const totalMembers = await this.loyaltyAccountRepo.count({
       where: { cafeId }
     });

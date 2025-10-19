@@ -23,11 +23,9 @@ import {
 } from '@app/models';
 // import { RedisModule } from '@app/backend-redis'; // Temporarily disabled due to cross-module import issues
 
-import { OrderService } from './order.service';
-import { InventoryService } from './inventory.service';
 import { EmployeeService } from './lib/employee.service';
 import { LoyaltyService } from './lib/loyalty.service';
-import { RedisPubSubService, RedisCacheService } from './lib/redis-placeholder.service';
+import { RedisPubSubService, RedisCacheService } from '@app/backend-redis';
 
 @Module({
   imports: [
@@ -56,16 +54,12 @@ import { RedisPubSubService, RedisCacheService } from './lib/redis-placeholder.s
     // RedisModule, // Temporarily disabled due to cross-module import issues
   ],
   providers: [
-    OrderService,
-    InventoryService,
     EmployeeService,
     LoyaltyService,
     RedisPubSubService,
     RedisCacheService,
   ],
   exports: [
-    OrderService,
-    InventoryService,
     EmployeeService,
     LoyaltyService,
     RedisPubSubService,

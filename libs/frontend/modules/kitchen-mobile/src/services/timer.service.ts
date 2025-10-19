@@ -222,7 +222,7 @@ export class TimerService {
     );
   }
 
-  getTimersNearExpiry(thresholdSeconds: number = 60): Observable<TimerState[]> {
+  getTimersNearExpiry(thresholdSeconds = 60): Observable<TimerState[]> {
     const thresholdMs = thresholdSeconds * 1000;
 
     return this.timers$.pipe(

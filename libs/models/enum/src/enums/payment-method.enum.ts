@@ -4,12 +4,19 @@ export enum PaymentMethod {
   CASH = 'cash',
   CREDIT = 'credit',
   CARD = 'card',
+  CREDIT_CARD = 'credit_card',
+  DEBIT_CARD = 'debit_card',
   MOBILE = 'mobile',
-  VOUCHER = 'voucher'
+  MOBILE_PAYMENT = 'mobile_payment',
+  VOUCHER = 'voucher',
+  GIFT_CARD = 'gift_card',
+  STORE_CREDIT = 'store_credit',
+  SPLIT_PAYMENT = 'split_payment'
 }
 
 export enum PaymentStatus {
   PENDING = 'pending',
+  PROCESSING = 'processing',
   AUTHORIZED = 'authorized',
   CAPTURED = 'captured',
   COMPLETED = 'completed',

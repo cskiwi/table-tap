@@ -1,77 +1,31 @@
-import { Field, InputType } from '@nestjs/graphql';
-import { IsString, IsOptional, IsBoolean, IsObject } from 'class-validator';
+import { InputType, PartialType, OmitType } from '@nestjs/graphql';
+import { Cafe } from '@app/models';
 
 @InputType()
-export class CreateCafeInput {
-  @Field()
-  @IsString()
-  name: string;
-
-  @Field({ nullable: true })
-  @IsString()
-  @IsOptional()
-  description?: string;
-
-  @Field({ nullable: true })
-  @IsString()
-  @IsOptional()
-  address?: string;
-
-  @Field({ nullable: true })
-  @IsString()
-  @IsOptional()
-  phone?: string;
-
-  @Field({ nullable: true })
-  @IsString()
-  @IsOptional()
-  email?: string;
-
-  @Field({ nullable: true })
-  @IsBoolean()
-  @IsOptional()
-  isActive?: boolean;
-
-  @Field({ nullable: true })
-  @IsObject()
-  @IsOptional()
-  settings?: Record<string, any>;
-}
+export class CafeUpdateInput extends PartialType(
+  OmitType(Cafe, [
+    'createdAt',
+    'updatedAt',
+    'deletedAt',
+    'users',
+    'products',
+    'orders',
+    'counters',
+    'employees',
+    'configurations',
+    'loyaltyAccounts',
+    'loyaltyTiers',
+    'loyaltyTransactions',
+    'loyaltyRewards',
+    'loyaltyRedemptions',
+    'loyaltyChallenges',
+    'loyaltyPromotions',
+  ] as const),
+  InputType
+) {}
 
 @InputType()
-export class UpdateCafeInput {
-  @Field({ nullable: true })
-  @IsString()
-  @IsOptional()
-  name?: string;
-
-  @Field({ nullable: true })
-  @IsString()
-  @IsOptional()
-  description?: string;
-
-  @Field({ nullable: true })
-  @IsString()
-  @IsOptional()
-  address?: string;
-
-  @Field({ nullable: true })
-  @IsString()
-  @IsOptional()
-  phone?: string;
-
-  @Field({ nullable: true })
-  @IsString()
-  @IsOptional()
-  email?: string;
-
-  @Field({ nullable: true })
-  @IsBoolean()
-  @IsOptional()
-  isActive?: boolean;
-
-  @Field({ nullable: true })
-  @IsObject()
-  @IsOptional()
-  settings?: Record<string, any>;
-}
+export class CafeCreateInput extends PartialType(
+  OmitType(CafeUpdateInput, ['id'] as const),
+  InputType
+) {}

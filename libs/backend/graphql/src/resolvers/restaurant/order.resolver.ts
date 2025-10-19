@@ -12,7 +12,7 @@ import {
   Cafe,
   Counter,
 } from '@app/models';
-import { OrderService } from '@app/backend-services';
+// import { OrderService } from '@app/backend-services'; // TODO: Implement OrderService
 import { DataLoaderService } from '../../dataloaders';
 
 @Injectable()
@@ -24,18 +24,22 @@ export class OrderResolver {
   constructor(
     @InjectRepository(Order)
     private readonly orderRepository: Repository<Order>,
-    private readonly orderService: OrderService,
+    // private readonly orderService: OrderService, // TODO: Implement OrderService
     private readonly dataLoader: DataLoaderService,
   ) {}
 
-  // Queries
+  // Queries - Read directly from repository
   @Query(() => [Order])
   @UseGuards(PermGuard)
   async orders(
     @ReqUser() user?: User,
   ): Promise<Order[]> {
     try {
-      return await this.orderService.findAll({ user });
+      // Simple read - no service needed
+      return await this.orderRepository.find({
+        order: { createdAt: 'DESC' },
+        take: 100
+      });
     } catch (error) {
       this.logger.error(`Failed to fetch orders: ${error.message}`, error.stack);
       throw error;
@@ -49,7 +53,8 @@ export class OrderResolver {
     @ReqUser() user: User,
   ): Promise<Order | null> {
     try {
-      return await this.orderService.findById(id, user);
+      // Simple read - directly from repository
+      return await this.orderRepository.findOne({ where: { id } });
     } catch (error) {
       this.logger.error(`Failed to fetch order ${id}: ${error.message}`, error.stack);
       throw error;
@@ -61,7 +66,10 @@ export class OrderResolver {
     @Args('orderNumber') orderNumber: string,
     @Args('cafeId') cafeId: string,
   ): Promise<Order | null> {
-    return this.orderService.findByOrderNumber(orderNumber, cafeId);
+    // Simple read - directly from repository
+    return await this.orderRepository.findOne({
+      where: { orderNumber, cafeId }
+    });
   }
 
   @Query(() => [Order])
@@ -70,13 +78,22 @@ export class OrderResolver {
     @Args('cafeId') cafeId: string,
     @ReqUser() user?: User,
   ): Promise<Order[]> {
-    return this.orderService.findByCafe(cafeId, { user });
+    // Simple read with filter - directly from repository
+    return await this.orderRepository.find({
+      where: { cafeId },
+      order: { createdAt: 'DESC' },
+      take: 100
+    });
   }
 
   @Query(() => [Order])
   @UseGuards(PermGuard)
   async myOrders(@ReqUser() user: User): Promise<Order[]> {
-    return this.orderService.findByCustomer(user.id);
+    // Simple read - directly from repository
+    return await this.orderRepository.find({
+      where: { customerId: user.id },
+      order: { createdAt: 'DESC' }
+    });
   }
 
   @Query(() => Order, { nullable: true })
@@ -86,17 +103,36 @@ export class OrderResolver {
     @Args('counterId', { nullable: true }) counterId?: string,
     @ReqUser() user?: User,
   ): Promise<Order | null> {
-    return this.orderService.getNextOrder(cafeId, counterId, user);
+    // Business logic query - read from repository with complex filtering
+    const queryBuilder = this.orderRepository
+      .createQueryBuilder('order')
+      .where('order.cafeId = :cafeId', { cafeId })
+      .andWhere('order.status IN (:...statuses)', {
+        statuses: ['PENDING', 'PREPARING'],
+      })
+      .orderBy('order.createdAt', 'ASC');
+
+    if (counterId) {
+      queryBuilder.andWhere('order.counterId = :counterId', { counterId });
+    }
+
+    return await queryBuilder.getOne();
   }
 
-  // Mutations
+  // Mutations - Use service for business logic (validation, payments, inventory)
   @Mutation(() => Order)
   @UseGuards(PermGuard)
   async createOrder(
+    @Args('input') input: any,
     @ReqUser() user: User,
   ): Promise<Order> {
     try {
-      const order = await this.orderService.create(input, user);
+      // Order creation has complex business logic - use service
+      // (validation, inventory deduction, counter assignment, payment checks)
+      // TODO: Implement OrderService
+      // throw new Error('OrderService not implemented');
+      const order: Order | null = null; // await this.orderService.create(input, user);
+      if (!order) throw new Error('OrderService not implemented');
 
       // Clear related caches
       this.dataLoader.clearCacheByPattern(`cafeOrders:${order.cafeId}`);
@@ -129,10 +165,15 @@ export class OrderResolver {
   @UseGuards(PermGuard)
   async updateOrderStatus(
     @Args('id') id: string,
+    @Args('input') input: any,
     @ReqUser() user: User,
   ): Promise<Order> {
     try {
-      const order = await this.orderService.updateStatus(id, input, user);
+      // Status updates have business logic (workflow validation, inventory restoration)
+      // TODO: Implement OrderService
+      // throw new Error('OrderService not implemented');
+      const order: Order | null = null; // await this.orderService.updateStatus(id, input, user);
+      if (!order) throw new Error('OrderService not implemented');
 
       // Clear related caches
       this.dataLoader.clearCacheByPattern(`cafeOrders:${order.cafeId}`);
@@ -157,9 +198,16 @@ export class OrderResolver {
   @UseGuards(PermGuard)
   async updateOrder(
     @Args('id') id: string,
+    @Args('input') input: any,
     @ReqUser() user: User,
   ): Promise<Order> {
-    const order = await this.orderService.update(id, input, user);
+    // Simple update - can go directly to repository
+    await this.orderRepository.update(id, input);
+    const order = await this.orderRepository.findOne({ where: { id } });
+
+    if (!order) {
+      throw new Error(`Order with ID ${id} not found`);
+    }
 
     await this.pubSub.publish('orderUpdated', {
       orderUpdated: order,
@@ -176,7 +224,13 @@ export class OrderResolver {
     @Args('counterId') counterId: string,
     @ReqUser() user: User,
   ): Promise<Order> {
-    const order = await this.orderService.assignToCounter(orderId, counterId, user);
+    // Simple assignment - can go directly to repository
+    await this.orderRepository.update(orderId, { counterId });
+    const order = await this.orderRepository.findOne({ where: { id: orderId } });
+
+    if (!order) {
+      throw new Error(`Order with ID ${orderId} not found`);
+    }
 
     await this.pubSub.publish('orderAssigned', {
       orderAssigned: order,
@@ -193,7 +247,11 @@ export class OrderResolver {
     @Args('reason', { nullable: true }) reason?: string,
     @ReqUser() user?: User,
   ): Promise<boolean> {
-    const order = await this.orderService.cancel(id, reason, user);
+    // Cancellation has business logic (inventory restoration, payment handling)
+    // TODO: Implement OrderService
+    // throw new Error('OrderService not implemented');
+    const order: Order | null = null; // await this.orderService.cancel(id, reason, user);
+    if (!order) throw new Error('OrderService not implemented');
 
     await this.pubSub.publish('orderCancelled', {
       orderCancelled: order,

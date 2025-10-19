@@ -302,9 +302,8 @@ export class RoleBasedAccessGuard implements CanActivate {
 export class EmployeeContextEnhancer {
   private readonly logger = new Logger(EmployeeContextEnhancer.name);
 
-  constructor(
-    // Inject employee repository if needed
-  ) {}
+  // Constructor can be added here when employee repository is needed
+  // constructor(private readonly employeeRepository: EmployeeRepository) {}
 
   async enhanceUserContext(user: User, cafeId?: string): Promise<UserWithEmployeeInfo> {
     try {
@@ -353,8 +352,21 @@ export const ROLE_PERMISSIONS: Record<UserRole, string[]> = {
   [UserRole.KITCHEN]: [
     'view_orders', 'update_order_status', 'view_inventory', 'view_menu'
   ],
+  [UserRole.KITCHEN_STAFF]: [
+    'view_orders', 'update_order_status', 'view_inventory', 'view_menu'
+  ],
   [UserRole.WAITER]: [
     'view_orders', 'create_orders', 'update_order_status', 'view_menu'
+  ],
+  [UserRole.SERVER]: [
+    'view_orders', 'create_orders', 'update_order_status', 'view_menu'
+  ],
+  [UserRole.SUPERVISOR]: [
+    'view_all_orders', 'manage_orders', 'view_inventory', 'view_employees', 'view_reports',
+    'view_schedule', 'manage_schedule'
+  ],
+  [UserRole.CLEANER]: [
+    'view_schedule'
   ],
 }
 

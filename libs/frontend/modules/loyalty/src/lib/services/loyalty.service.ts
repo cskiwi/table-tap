@@ -677,8 +677,8 @@ export class LoyaltyService {
     return this.loyaltyAccountSubject.value;
   }
 
-  refreshLoyaltyData(userId: string, cafeId: string): Promise<void> {
-    return this.getLoyaltyAccount(userId, cafeId).then(() => {});
+  async refreshLoyaltyData(userId: string, cafeId: string): Promise<void> {
+    await this.getLoyaltyAccount(userId, cafeId);
   }
 
   clearLoyaltyData(): void {

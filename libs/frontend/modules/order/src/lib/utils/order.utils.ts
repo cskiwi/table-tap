@@ -156,7 +156,7 @@ export class OrderUtils {
   /**
    * Format currency value for display
    */
-  static formatCurrency(amount: number, currency: string = 'USD'): string {
+  static formatCurrency(amount: number, currency = 'USD'): string {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency,
@@ -335,7 +335,7 @@ export class OrderUtils {
     code: string,
     message: string,
     field?: string,
-    retryable: boolean = false
+    retryable = false
   ): OrderError {
     return {
       code,

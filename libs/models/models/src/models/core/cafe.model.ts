@@ -118,6 +118,12 @@ export class Cafe extends BaseEntity {
   declare isActive: boolean;
 
   @Field({ nullable: true })
+  @Column({ nullable: true, default: 'active' })
+  @IsString()
+  @IsOptional()
+  declare status: string;
+
+  @Field({ nullable: true })
   @Column('json', { nullable: true })
   @IsObject()
   @IsOptional()

@@ -39,32 +39,32 @@ export class ChallengeListingComponent implements OnInit, OnDestroy {
   userChallengeProgress: { [challengeId: string]: any } = {};
 
   // Filter states
-  activeTab: string = 'all';
+  activeTab = 'all';
   filters: ChallengeFilter = {};
-  searchQuery: string = '';
-  sortBy: string = 'newest';
-  showAdvancedFilters: boolean = false;
+  searchQuery = '';
+  sortBy = 'newest';
+  showAdvancedFilters = false;
 
   // Loading states
-  isLoading: boolean = false;
-  isLoadingMore: boolean = false;
-  isJoining: boolean = false;
-  hasMoreChallenges: boolean = false;
+  isLoading = false;
+  isLoadingMore = false;
+  isJoining = false;
+  hasMoreChallenges = false;
   error?: string;
 
   // Pagination
-  currentPage: number = 0;
-  pageSize: number = 20;
-  totalChallenges: number = 0;
+  currentPage = 0;
+  pageSize = 20;
+  totalChallenges = 0;
 
   // Computed counts
-  allChallengesCount: number = 0;
-  availableChallengesCount: number = 0;
-  activeChallengesCount: number = 0;
-  completedChallengesCount: number = 0;
-  featuredChallengesCount: number = 0;
-  totalPointsEarned: number = 0;
-  currentStreak: number = 0;
+  allChallengesCount = 0;
+  availableChallengesCount = 0;
+  activeChallengesCount = 0;
+  completedChallengesCount = 0;
+  featuredChallengesCount = 0;
+  totalPointsEarned = 0;
+  currentStreak = 0;
 
   private destroy$ = new Subject<void>()
   private searchSubject = new Subject<string>()

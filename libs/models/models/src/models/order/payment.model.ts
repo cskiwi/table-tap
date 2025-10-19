@@ -169,6 +169,22 @@ export class Payment extends BaseEntity {
   declare processedByEmployee: Relation<User>;
 
   @Field({ nullable: true })
+  @Column('timestamp', { nullable: true })
+  declare processedAt: Date;
+
+  @Field({ nullable: true })
+  @Column('json', { nullable: true })
+  @IsObject()
+  @IsOptional()
+  declare metadata: Record<string, any>;
+
+  @Field({ nullable: true })
+  @Column({ nullable: true })
+  @IsString()
+  @IsOptional()
+  declare processorResponse: string;
+
+  @Field({ nullable: true })
   @Column('text', { nullable: true })
   @IsString()
   @IsOptional()

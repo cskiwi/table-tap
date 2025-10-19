@@ -2,8 +2,8 @@ import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In } from 'typeorm';
 import DataLoader = require('dataloader');
-import { User } from '@app/models';
 import {
+  User,
   Order,
   OrderItem,
   Payment,
@@ -11,7 +11,23 @@ import {
   Counter,
   Stock,
   Employee,
-  TimeSheet
+  TimeSheet,
+  Configuration,
+  TimeEntry,
+  Glass,
+  GlassMovement,
+  Purchase,
+  PurchaseItem,
+  StockMovement,
+  LoyaltyAccount,
+  LoyaltyChallenge,
+  LoyaltyPromotion,
+  LoyaltyReward,
+  LoyaltyRewardRedemption,
+  LoyaltyTier,
+  LoyaltyTransaction,
+  Credit,
+  Product
 } from '@app/models';
 
 /**
@@ -34,6 +50,22 @@ export class DataLoaderService {
   public readonly counterById: DataLoader<string, Counter>;
   public readonly inventoryById: DataLoader<string, Stock>;
   public readonly employeeById: DataLoader<string, Employee>;
+  public readonly configurationById: DataLoader<string, Configuration>;
+  public readonly timeEntryById: DataLoader<string, TimeEntry>;
+  public readonly glassById: DataLoader<string, Glass>;
+  public readonly glassMovementById: DataLoader<string, GlassMovement>;
+  public readonly purchaseById: DataLoader<string, Purchase>;
+  public readonly purchaseItemById: DataLoader<string, PurchaseItem>;
+  public readonly stockMovementById: DataLoader<string, StockMovement>;
+  public readonly loyaltyAccountById: DataLoader<string, LoyaltyAccount>;
+  public readonly loyaltyChallengeById: DataLoader<string, LoyaltyChallenge>;
+  public readonly loyaltyPromotionById: DataLoader<string, LoyaltyPromotion>;
+  public readonly loyaltyRewardById: DataLoader<string, LoyaltyReward>;
+  public readonly loyaltyRewardRedemptionById: DataLoader<string, LoyaltyRewardRedemption>;
+  public readonly loyaltyTierById: DataLoader<string, LoyaltyTier>;
+  public readonly loyaltyTransactionById: DataLoader<string, LoyaltyTransaction>;
+  public readonly creditById: DataLoader<string, Credit>;
+  public readonly productById: DataLoader<string, Product>;
 
   // Stock-related loaders
   public readonly inventoryByCafeId: DataLoader<string, Stock[]>;
@@ -63,6 +95,38 @@ export class DataLoaderService {
     private readonly employeeRepository: Repository<Employee>,
     @InjectRepository(TimeSheet)
     private readonly timeSheetRepository: Repository<TimeSheet>,
+    @InjectRepository(Configuration)
+    private readonly configurationRepository: Repository<Configuration>,
+    @InjectRepository(TimeEntry)
+    private readonly timeEntryRepository: Repository<TimeEntry>,
+    @InjectRepository(Glass)
+    private readonly glassRepository: Repository<Glass>,
+    @InjectRepository(GlassMovement)
+    private readonly glassMovementRepository: Repository<GlassMovement>,
+    @InjectRepository(Purchase)
+    private readonly purchaseRepository: Repository<Purchase>,
+    @InjectRepository(PurchaseItem)
+    private readonly purchaseItemRepository: Repository<PurchaseItem>,
+    @InjectRepository(StockMovement)
+    private readonly stockMovementRepository: Repository<StockMovement>,
+    @InjectRepository(LoyaltyAccount)
+    private readonly loyaltyAccountRepository: Repository<LoyaltyAccount>,
+    @InjectRepository(LoyaltyChallenge)
+    private readonly loyaltyChallengeRepository: Repository<LoyaltyChallenge>,
+    @InjectRepository(LoyaltyPromotion)
+    private readonly loyaltyPromotionRepository: Repository<LoyaltyPromotion>,
+    @InjectRepository(LoyaltyReward)
+    private readonly loyaltyRewardRepository: Repository<LoyaltyReward>,
+    @InjectRepository(LoyaltyRewardRedemption)
+    private readonly loyaltyRewardRedemptionRepository: Repository<LoyaltyRewardRedemption>,
+    @InjectRepository(LoyaltyTier)
+    private readonly loyaltyTierRepository: Repository<LoyaltyTier>,
+    @InjectRepository(LoyaltyTransaction)
+    private readonly loyaltyTransactionRepository: Repository<LoyaltyTransaction>,
+    @InjectRepository(Credit)
+    private readonly creditRepository: Repository<Credit>,
+    @InjectRepository(Product)
+    private readonly productRepository: Repository<Product>,
   ) {
     // Order-related loaders
     this.orderItemsByOrderId = new DataLoader(this.batchOrderItems.bind(this), {
@@ -100,6 +164,70 @@ export class DataLoaderService {
 
     this.employeeById = new DataLoader(this.batchEmployees.bind(this), {
       cacheKeyFn: (key: string) => `employee:${key}`,
+    });
+
+    this.configurationById = new DataLoader(this.batchConfigurations.bind(this), {
+      cacheKeyFn: (key: string) => `configuration:${key}`,
+    });
+
+    this.timeEntryById = new DataLoader(this.batchTimeEntries.bind(this), {
+      cacheKeyFn: (key: string) => `timeEntry:${key}`,
+    });
+
+    this.glassById = new DataLoader(this.batchGlasses.bind(this), {
+      cacheKeyFn: (key: string) => `glass:${key}`,
+    });
+
+    this.glassMovementById = new DataLoader(this.batchGlassMovements.bind(this), {
+      cacheKeyFn: (key: string) => `glassMovement:${key}`,
+    });
+
+    this.purchaseById = new DataLoader(this.batchPurchases.bind(this), {
+      cacheKeyFn: (key: string) => `purchase:${key}`,
+    });
+
+    this.purchaseItemById = new DataLoader(this.batchPurchaseItems.bind(this), {
+      cacheKeyFn: (key: string) => `purchaseItem:${key}`,
+    });
+
+    this.stockMovementById = new DataLoader(this.batchStockMovements.bind(this), {
+      cacheKeyFn: (key: string) => `stockMovement:${key}`,
+    });
+
+    this.loyaltyAccountById = new DataLoader(this.batchLoyaltyAccounts.bind(this), {
+      cacheKeyFn: (key: string) => `loyaltyAccount:${key}`,
+    });
+
+    this.loyaltyChallengeById = new DataLoader(this.batchLoyaltyChallenges.bind(this), {
+      cacheKeyFn: (key: string) => `loyaltyChallenge:${key}`,
+    });
+
+    this.loyaltyPromotionById = new DataLoader(this.batchLoyaltyPromotions.bind(this), {
+      cacheKeyFn: (key: string) => `loyaltyPromotion:${key}`,
+    });
+
+    this.loyaltyRewardById = new DataLoader(this.batchLoyaltyRewards.bind(this), {
+      cacheKeyFn: (key: string) => `loyaltyReward:${key}`,
+    });
+
+    this.loyaltyRewardRedemptionById = new DataLoader(this.batchLoyaltyRewardRedemptions.bind(this), {
+      cacheKeyFn: (key: string) => `loyaltyRewardRedemption:${key}`,
+    });
+
+    this.loyaltyTierById = new DataLoader(this.batchLoyaltyTiers.bind(this), {
+      cacheKeyFn: (key: string) => `loyaltyTier:${key}`,
+    });
+
+    this.loyaltyTransactionById = new DataLoader(this.batchLoyaltyTransactions.bind(this), {
+      cacheKeyFn: (key: string) => `loyaltyTransaction:${key}`,
+    });
+
+    this.creditById = new DataLoader(this.batchCredits.bind(this), {
+      cacheKeyFn: (key: string) => `credit:${key}`,
+    });
+
+    this.productById = new DataLoader(this.batchProducts.bind(this), {
+      cacheKeyFn: (key: string) => `product:${key}`,
     });
 
     // Stock-related loaders
@@ -272,6 +400,150 @@ export class DataLoaderService {
     return employeeIds.map(id => shiftMap.get(id) || null);
   }
 
+  private async batchConfigurations(ids: readonly string[]): Promise<(Configuration | Error)[]> {
+    const configurations = await this.configurationRepository.find({
+      where: { id: In([...ids]) }
+    });
+
+    const configMap = new Map(configurations.map(config => [config.id, config]));
+    return ids.map(id => configMap.get(id) || new Error(`Configuration not found: ${id}`));
+  }
+
+  private async batchTimeEntries(ids: readonly string[]): Promise<(TimeEntry | Error)[]> {
+    const timeEntries = await this.timeEntryRepository.find({
+      where: { id: In([...ids]) }
+    });
+
+    const entryMap = new Map(timeEntries.map(entry => [entry.id, entry]));
+    return ids.map(id => entryMap.get(id) || new Error(`TimeEntry not found: ${id}`));
+  }
+
+  private async batchGlasses(ids: readonly string[]): Promise<(Glass | Error)[]> {
+    const glasses = await this.glassRepository.find({
+      where: { id: In([...ids]) }
+    });
+
+    const glassMap = new Map(glasses.map(glass => [glass.id, glass]));
+    return ids.map(id => glassMap.get(id) || new Error(`Glass not found: ${id}`));
+  }
+
+  private async batchGlassMovements(ids: readonly string[]): Promise<(GlassMovement | Error)[]> {
+    const movements = await this.glassMovementRepository.find({
+      where: { id: In([...ids]) }
+    });
+
+    const movementMap = new Map(movements.map(movement => [movement.id, movement]));
+    return ids.map(id => movementMap.get(id) || new Error(`GlassMovement not found: ${id}`));
+  }
+
+  private async batchPurchases(ids: readonly string[]): Promise<(Purchase | Error)[]> {
+    const purchases = await this.purchaseRepository.find({
+      where: { id: In([...ids]) }
+    });
+
+    const purchaseMap = new Map(purchases.map(purchase => [purchase.id, purchase]));
+    return ids.map(id => purchaseMap.get(id) || new Error(`Purchase not found: ${id}`));
+  }
+
+  private async batchPurchaseItems(ids: readonly string[]): Promise<(PurchaseItem | Error)[]> {
+    const items = await this.purchaseItemRepository.find({
+      where: { id: In([...ids]) }
+    });
+
+    const itemMap = new Map(items.map(item => [item.id, item]));
+    return ids.map(id => itemMap.get(id) || new Error(`PurchaseItem not found: ${id}`));
+  }
+
+  private async batchStockMovements(ids: readonly string[]): Promise<(StockMovement | Error)[]> {
+    const movements = await this.stockMovementRepository.find({
+      where: { id: In([...ids]) }
+    });
+
+    const movementMap = new Map(movements.map(movement => [movement.id, movement]));
+    return ids.map(id => movementMap.get(id) || new Error(`StockMovement not found: ${id}`));
+  }
+
+  private async batchLoyaltyAccounts(ids: readonly string[]): Promise<(LoyaltyAccount | Error)[]> {
+    const accounts = await this.loyaltyAccountRepository.find({
+      where: { id: In([...ids]) }
+    });
+
+    const accountMap = new Map(accounts.map(account => [account.id, account]));
+    return ids.map(id => accountMap.get(id) || new Error(`LoyaltyAccount not found: ${id}`));
+  }
+
+  private async batchLoyaltyChallenges(ids: readonly string[]): Promise<(LoyaltyChallenge | Error)[]> {
+    const challenges = await this.loyaltyChallengeRepository.find({
+      where: { id: In([...ids]) }
+    });
+
+    const challengeMap = new Map(challenges.map(challenge => [challenge.id, challenge]));
+    return ids.map(id => challengeMap.get(id) || new Error(`LoyaltyChallenge not found: ${id}`));
+  }
+
+  private async batchLoyaltyPromotions(ids: readonly string[]): Promise<(LoyaltyPromotion | Error)[]> {
+    const promotions = await this.loyaltyPromotionRepository.find({
+      where: { id: In([...ids]) }
+    });
+
+    const promotionMap = new Map(promotions.map(promotion => [promotion.id, promotion]));
+    return ids.map(id => promotionMap.get(id) || new Error(`LoyaltyPromotion not found: ${id}`));
+  }
+
+  private async batchLoyaltyRewards(ids: readonly string[]): Promise<(LoyaltyReward | Error)[]> {
+    const rewards = await this.loyaltyRewardRepository.find({
+      where: { id: In([...ids]) }
+    });
+
+    const rewardMap = new Map(rewards.map(reward => [reward.id, reward]));
+    return ids.map(id => rewardMap.get(id) || new Error(`LoyaltyReward not found: ${id}`));
+  }
+
+  private async batchLoyaltyRewardRedemptions(ids: readonly string[]): Promise<(LoyaltyRewardRedemption | Error)[]> {
+    const redemptions = await this.loyaltyRewardRedemptionRepository.find({
+      where: { id: In([...ids]) }
+    });
+
+    const redemptionMap = new Map(redemptions.map(redemption => [redemption.id, redemption]));
+    return ids.map(id => redemptionMap.get(id) || new Error(`LoyaltyRewardRedemption not found: ${id}`));
+  }
+
+  private async batchLoyaltyTiers(ids: readonly string[]): Promise<(LoyaltyTier | Error)[]> {
+    const tiers = await this.loyaltyTierRepository.find({
+      where: { id: In([...ids]) }
+    });
+
+    const tierMap = new Map(tiers.map(tier => [tier.id, tier]));
+    return ids.map(id => tierMap.get(id) || new Error(`LoyaltyTier not found: ${id}`));
+  }
+
+  private async batchLoyaltyTransactions(ids: readonly string[]): Promise<(LoyaltyTransaction | Error)[]> {
+    const transactions = await this.loyaltyTransactionRepository.find({
+      where: { id: In([...ids]) }
+    });
+
+    const transactionMap = new Map(transactions.map(transaction => [transaction.id, transaction]));
+    return ids.map(id => transactionMap.get(id) || new Error(`LoyaltyTransaction not found: ${id}`));
+  }
+
+  private async batchCredits(ids: readonly string[]): Promise<(Credit | Error)[]> {
+    const credits = await this.creditRepository.find({
+      where: { id: In([...ids]) }
+    });
+
+    const creditMap = new Map(credits.map(credit => [credit.id, credit]));
+    return ids.map(id => creditMap.get(id) || new Error(`Credit not found: ${id}`));
+  }
+
+  private async batchProducts(ids: readonly string[]): Promise<(Product | Error)[]> {
+    const products = await this.productRepository.find({
+      where: { id: In([...ids]) }
+    });
+
+    const productMap = new Map(products.map(product => [product.id, product]));
+    return ids.map(id => productMap.get(id) || new Error(`Product not found: ${id}`));
+  }
+
   // Utility methods
 
   private groupBy<T>(array: T[], key: keyof T): Record<string, T[]> {
@@ -303,6 +575,22 @@ export class DataLoaderService {
     this.employeesByCafeId.clearAll()
     this.timeSheetsByEmployeeId.clearAll()
     this.activeShiftByEmployeeId.clearAll()
+    this.configurationById.clearAll()
+    this.timeEntryById.clearAll()
+    this.glassById.clearAll()
+    this.glassMovementById.clearAll()
+    this.purchaseById.clearAll()
+    this.purchaseItemById.clearAll()
+    this.stockMovementById.clearAll()
+    this.loyaltyAccountById.clearAll()
+    this.loyaltyChallengeById.clearAll()
+    this.loyaltyPromotionById.clearAll()
+    this.loyaltyRewardById.clearAll()
+    this.loyaltyRewardRedemptionById.clearAll()
+    this.loyaltyTierById.clearAll()
+    this.loyaltyTransactionById.clearAll()
+    this.creditById.clearAll()
+    this.productById.clearAll()
 
     this.logger.log('All DataLoader caches cleared');
   }

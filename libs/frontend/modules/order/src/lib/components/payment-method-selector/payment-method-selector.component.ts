@@ -231,14 +231,14 @@ export class PaymentMethodSelectorComponent implements OnInit, OnDestroy {
   }
 
   formatCardNumber(event: any): void {
-    let value = event.target.value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
+    const value = event.target.value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
     const formattedValue = value.match(/.{1,4}/g)?.join(' ') || value;
     event.target.value = formattedValue;
     this.cardForm.get('cardNumber')?.setValue(formattedValue);
   }
 
   formatCvv(event: any): void {
-    let value = event.target.value.replace(/[^0-9]/gi, '');
+    const value = event.target.value.replace(/[^0-9]/gi, '');
     event.target.value = value;
     this.cardForm.get('cvv')?.setValue(value);
   }

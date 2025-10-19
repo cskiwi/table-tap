@@ -211,7 +211,7 @@ export class MenuItemDetailComponent implements OnInit, OnDestroy {
   calculateTotal(): number {
     const menuItem = this.menuItem();
     if (!menuItem) return 0;
-    let basePrice = menuItem.price;
+    const basePrice = menuItem.price;
     let customizationPrice = 0;
 
     // Add customization prices

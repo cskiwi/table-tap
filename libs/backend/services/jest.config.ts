@@ -1,4 +1,4 @@
-/* eslint-disable */
+ 
 export default {
   displayName: 'backend-services',
   preset: '../../../jest.preset.js',

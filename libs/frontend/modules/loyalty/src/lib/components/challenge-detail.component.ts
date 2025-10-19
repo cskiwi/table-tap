@@ -24,17 +24,17 @@ export class ChallengeDetailComponent implements OnInit, OnDestroy {
   challengeProgress: any = null;
   leaderboard: any[] = [];
   recentActivity: any[] = [];
-  timeRemaining: string = '';
-  currentUserRank: number = 0;
-  userAvatar: string = '';
-  userTierName: string = '';
+  timeRemaining = '';
+  currentUserRank = 0;
+  userAvatar = '';
+  userTierName = '';
 
-  isActive: boolean = false;
-  isCompleted: boolean = false;
-  isEndingSoon: boolean = false;
-  isJoining: boolean = false;
-  isLeaving: boolean = false;
-  showCelebration: boolean = false;
+  isActive = false;
+  isCompleted = false;
+  isEndingSoon = false;
+  isJoining = false;
+  isLeaving = false;
+  showCelebration = false;
 
   private destroy$ = new Subject<void>()
 

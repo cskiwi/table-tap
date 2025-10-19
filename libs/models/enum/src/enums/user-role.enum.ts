@@ -1,13 +1,17 @@
 export enum UserRole {
   CUSTOMER = 'customer',
   EMPLOYEE = 'employee',
+  SUPERVISOR = 'supervisor',
   MANAGER = 'manager',
   ADMIN = 'admin',
   OWNER = 'owner',
   CASHIER = 'cashier',
   BARISTA = 'barista',
   KITCHEN = 'kitchen',
-  WAITER = 'waiter'
+  KITCHEN_STAFF = 'kitchen_staff',
+  WAITER = 'waiter',
+  SERVER = 'server',
+  CLEANER = 'cleaner'
 }
 
 export enum UserStatus {

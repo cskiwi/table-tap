@@ -2,10 +2,9 @@
   "name": "@app/frontend-pages-home",
   "version": "0.0.1",
   "peerDependencies": {
-    "@angular/router": "19.1.5",
-    "@angular/common": "19.1.5",
-    "@angular/core": "19.1.5",
-    "primeng": "^19.0.9"
+    "@angular/router": "^20.3.2",
+    "@angular/core": "^20.3.2",
+    "primeng": "^20.2.0"
   },
   "sideEffects": false
 }

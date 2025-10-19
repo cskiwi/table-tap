@@ -244,7 +244,7 @@ export class CartValidationService {
     return errors;
   }
 
-  private validateQuantity(quantity: number, field: string = 'quantity'): CartValidationError[] {
+  private validateQuantity(quantity: number, field = 'quantity'): CartValidationError[] {
     const errors: CartValidationError[] = []
 
     if (typeof quantity !== 'number' || !Number.isInteger(quantity)) {

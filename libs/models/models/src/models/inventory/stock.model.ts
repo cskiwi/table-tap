@@ -101,6 +101,47 @@ export class Stock extends BaseEntity {
   @IsOptional()
   declare lastCost: number;
 
+  @Field({ nullable: true })
+  @Column('decimal', { precision: 10, scale: 2, nullable: true })
+  @IsNumber()
+  @IsOptional()
+  declare unitCost: number;
+
+  // Product identification
+  @Field({ nullable: true })
+  @Column({ nullable: true, unique: true })
+  @IsString()
+  @IsOptional()
+  declare sku: string;
+
+  @Field({ nullable: true })
+  @Column({ nullable: true })
+  @IsString()
+  @IsOptional()
+  declare category: string;
+
+  @Field({ nullable: true })
+  @Column({ nullable: true })
+  @IsString()
+  @IsOptional()
+  declare supplier: string;
+
+  @Field({ nullable: true })
+  @Column('timestamp', { nullable: true })
+  declare expiryDate: Date;
+
+  // Stock level constraints
+  @Field()
+  @Column('decimal', { precision: 10, scale: 2, default: 0 })
+  @IsNumber()
+  declare minimumStock: number;
+
+  @Field({ nullable: true })
+  @Column('decimal', { precision: 10, scale: 2, nullable: true })
+  @IsNumber()
+  @IsOptional()
+  declare maximumStock: number;
+
   // Location and organization
   @Field({ nullable: true })
   @Column({ nullable: true })
@@ -129,6 +170,13 @@ export class Stock extends BaseEntity {
   @Column({ default: false })
   @IsBoolean()
   declare outOfStockAlert: boolean;
+
+  // Status
+  @Field({ nullable: true })
+  @Column({ nullable: true, default: 'active' })
+  @IsString()
+  @IsOptional()
+  declare status: string;
 
   @Field({ nullable: true })
   @Column('timestamp', { nullable: true })

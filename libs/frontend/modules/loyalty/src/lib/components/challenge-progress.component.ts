@@ -40,15 +40,15 @@ export class ChallengeProgressComponent implements OnInit, OnDestroy {
   recentlyCompleted: LoyaltyChallenge[] = [];
 
   // Computed properties
-  totalProgress: number = 0;
-  nearCompletionCount: number = 0;
+  totalProgress = 0;
+  nearCompletionCount = 0;
   bestProgressChallenge?: LoyaltyChallenge;
   mostUrgentChallenge?: LoyaltyChallenge;
-  longestStreak: number = 0;
-  weeklyActivity: number = 0;
+  longestStreak = 0;
+  weeklyActivity = 0;
 
   // Modal states
-  showTipsModal: boolean = false;
+  showTipsModal = false;
   selectedChallengeForTips?: LoyaltyChallenge;
 
   private destroy$ = new Subject<void>();

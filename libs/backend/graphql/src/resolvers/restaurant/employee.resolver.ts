@@ -5,19 +5,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { PubSub } from 'graphql-subscriptions';
 import { PermGuard, ReqUser } from '@app/backend-authorization';
-import { User } from '@app/models';
-import {
-  Employee,
-  TimeSheet,
-  Cafe,
-  Counter,
-  EmployeeStatus,
-  // CreateEmployeeInput, // TODO: Create these DTOs
-  // UpdateEmployeeInput,
-  // ShiftInput,
-  // PerformanceMetrics,
-  // PaginatedEmployeeResponse
-} from '@app/models';
+import { User, Employee, TimeSheet, Cafe, Counter, EmployeeStatus } from '@app/models';
 import { EmployeeService } from '@app/backend-services';
 import { DataLoaderService } from '../../dataloaders';
 

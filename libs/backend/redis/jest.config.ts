@@ -1,4 +1,4 @@
-/* eslint-disable */
+ 
 export default {
   displayName: 'backend-redis',
   preset: '../../../jest.preset.js',

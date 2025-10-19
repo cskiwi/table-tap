@@ -1,57 +1,29 @@
-import { Field, InputType, Float } from '@nestjs/graphql';
-import { IsString, IsOptional, IsNumber, IsArray, IsEnum } from 'class-validator';
+import { InputType, PartialType, OmitType } from '@nestjs/graphql';
+import { Order } from '@app/models';
 
 @InputType()
-export class CreateOrderItemInput {
-  @Field()
-  @IsString()
-  productId: string;
-
-  @Field()
-  @IsNumber()
-  quantity: number;
-
-  @Field(() => Float, { nullable: true })
-  @IsNumber()
-  @IsOptional()
-  price?: number;
-
-  @Field({ nullable: true })
-  @IsString()
-  @IsOptional()
-  notes?: string;
-}
-
-@InputType()
-export class CreateOrderInput {
-  @Field()
-  @IsString()
-  cafeId: string;
-
-  @Field(() => [CreateOrderItemInput])
-  @IsArray()
-  items: CreateOrderItemInput[];
-
-  @Field({ nullable: true })
-  @IsString()
-  @IsOptional()
-  userId?: string;
-
-  @Field({ nullable: true })
-  @IsString()
-  @IsOptional()
-  notes?: string;
-}
+export class OrderUpdateInput extends PartialType(
+  OmitType(Order, [
+    'createdAt',
+    'updatedAt',
+    'deletedAt',
+    'cafe',
+    'customer',
+    'createdByEmployee',
+    'items',
+    'payments',
+    'orderNumber',
+    'total',
+    'isActive',
+    'canBeCancelled',
+    'currentWorkflowStep',
+    'actualPrepTime',
+  ] as const),
+  InputType
+) {}
 
 @InputType()
-export class UpdateOrderInput {
-  @Field({ nullable: true })
-  @IsString()
-  @IsOptional()
-  status?: string;
-
-  @Field({ nullable: true })
-  @IsString()
-  @IsOptional()
-  notes?: string;
-}
+export class OrderCreateInput extends PartialType(
+  OmitType(OrderUpdateInput, ['id'] as const),
+  InputType
+) {}

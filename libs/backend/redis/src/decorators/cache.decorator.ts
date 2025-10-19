@@ -211,7 +211,7 @@ export function CacheCafeContext(keyBuilder?: (cafeId: string, ...args: any[]) =
 /**
  * Injectable mixin to add cache service to classes
  */
-export function WithCache<T extends new (...args: any[]) => {}>(constructor: T) {
+export function WithCache<T extends new (...args: any[]) => object>(constructor: T) {
   @Injectable()
   class CacheableClass extends constructor {
     public cacheService!: RedisCacheService;

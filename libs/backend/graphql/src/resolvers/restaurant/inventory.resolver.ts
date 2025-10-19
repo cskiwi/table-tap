@@ -6,12 +6,7 @@ import { Repository } from 'typeorm';
 import { PubSub } from 'graphql-subscriptions';
 import { PermGuard, ReqUser } from '@app/backend-authorization';
 import { User, Stock, Cafe } from '@app/models';
-import {
-  CreateInventoryItemInput,
-  UpdateInventoryItemInput,
-  UpdateInventoryStockInput
-} from '../../inputs';
-import { InventoryService } from '@app/backend-services';
+// import { InventoryService } from '@app/backend-services'; // TODO: Implement InventoryService
 import { DataLoaderService } from '../../dataloaders';
 
 @Injectable()
@@ -23,11 +18,11 @@ export class InventoryResolver {
   constructor(
     @InjectRepository(Stock)
     private readonly inventoryRepository: Repository<Stock>,
-    private readonly inventoryService: InventoryService,
+    // private readonly inventoryService: InventoryService, // TODO: Implement InventoryService
     private readonly dataLoader: DataLoaderService,
   ) {}
 
-  // Queries
+  // Queries - Read directly from repository
   @Query(() => [Stock])
   @UseGuards(PermGuard)
   @UseInterceptors(CacheInterceptor)
@@ -36,7 +31,11 @@ export class InventoryResolver {
     @ReqUser() user?: User,
   ): Promise<Stock[]> {
     try {
-      return await this.inventoryService.findByCafe(cafeId, { user });
+      // Read directly from repository - no service needed for simple CRUD
+      return await this.inventoryRepository.find({
+        where: { cafeId },
+        order: { product: { name: 'ASC' } }
+      });
     } catch (error) {
       this.logger.error(`Failed to fetch inventory for cafe ${cafeId}: ${error.message}`, error.stack);
       throw error;
@@ -51,8 +50,15 @@ export class InventoryResolver {
     @ReqUser() user: User,
   ): Promise<Stock[]> {
     try {
-      // Use DataLoader for caching
-      return await this.dataLoader.lowStockItemsByCafeId.load(cafeId);
+      // Read directly from repository with business rule query
+      return await this.inventoryRepository
+        .createQueryBuilder('inventory')
+        .where('inventory.cafeId = :cafeId', { cafeId })
+        .andWhere('inventory.currentQuantity <= inventory.minimumStock')
+        .andWhere('inventory.currentQuantity > 0')
+        .andWhere('inventory.status = :status', { status: 'ACTIVE' })
+        .orderBy('inventory.currentQuantity', 'ASC')
+        .getMany();
     } catch (error) {
       this.logger.error(`Failed to fetch low stock items for cafe ${cafeId}: ${error.message}`, error.stack);
       throw error;
@@ -65,7 +71,14 @@ export class InventoryResolver {
     @Args('cafeId') cafeId: string,
     @ReqUser() user: User,
   ): Promise<Stock[]> {
-    return this.inventoryService.findOutOfStockItems(cafeId, user);
+    // Read directly from repository
+    return await this.inventoryRepository
+      .createQueryBuilder('inventory')
+      .where('inventory.cafeId = :cafeId', { cafeId })
+      .andWhere('inventory.currentQuantity = 0')
+      .andWhere('inventory.status = :status', { status: 'ACTIVE' })
+      .orderBy('inventory.product.name', 'ASC')
+      .getMany();
   }
 
   @Query(() => [Stock])
@@ -75,7 +88,18 @@ export class InventoryResolver {
     @Args('days', { defaultValue: 7 }) days: number,
     @ReqUser() user: User,
   ): Promise<Stock[]> {
-    return this.inventoryService.findExpiringItems(cafeId, days, user);
+    // Read directly from repository with date calculation
+    const futureDate = new Date();
+    futureDate.setDate(futureDate.getDate() + days);
+
+    return await this.inventoryRepository
+      .createQueryBuilder('inventory')
+      .where('inventory.cafeId = :cafeId', { cafeId })
+      .andWhere('inventory.expiryDate IS NOT NULL')
+      .andWhere('inventory.expiryDate <= :futureDate', { futureDate })
+      .andWhere('inventory.status = :status', { status: 'ACTIVE' })
+      .orderBy('inventory.expiryDate', 'ASC')
+      .getMany();
   }
 
   @Query(() => Stock, { nullable: true })
@@ -84,7 +108,8 @@ export class InventoryResolver {
     @Args('id') id: string,
     @ReqUser() user: User,
   ): Promise<Stock | null> {
-    return this.inventoryService.findById(id, user);
+    // Read directly from repository
+    return await this.inventoryRepository.findOne({ where: { id } });
   }
 
   @Query(() => [Stock])
@@ -94,17 +119,30 @@ export class InventoryResolver {
     @Args('query') query: string,
     @ReqUser() user?: User,
   ): Promise<Stock[]> {
-    return this.inventoryService.search(cafeId, query, { user });
+    // Read directly from repository with search
+    return await this.inventoryRepository
+      .createQueryBuilder('inventory')
+      .where('inventory.cafeId = :cafeId', { cafeId })
+      .andWhere(
+        '(inventory.product.name ILIKE :query OR inventory.sku ILIKE :query OR inventory.description ILIKE :query)',
+        { query: `%${query}%` }
+      )
+      .take(50)
+      .getMany();
   }
 
-  // Mutations
+  // Mutations - Use service ONLY for business logic (validation, alerts)
   @Mutation(() => Stock)
   @UseGuards(PermGuard)
   async createInventoryItem(
-    @Args('input') input: CreateInventoryItemInput,
+    @Args('input') input: Stock,
     @ReqUser() user: User,
   ): Promise<Stock> {
-    const item = await this.inventoryService.createItem(input, user);
+    // Use service for validation and business logic
+    // TODO: Implement InventoryService
+    // throw new Error('InventoryService not implemented');
+    const item: Stock | null = null; // await this.inventoryService.createItem(input, user);
+    if (!item) throw new Error('InventoryService not implemented');
 
     await this.pubSub.publish('inventoryUpdated', {
       inventoryUpdated: item,
@@ -119,10 +157,14 @@ export class InventoryResolver {
   @UseGuards(PermGuard)
   async updateInventoryItem(
     @Args('id') id: string,
-    @Args('input') input: UpdateInventoryItemInput,
+    @Args('input') input: Partial<Stock>,
     @ReqUser() user: User,
   ): Promise<Stock> {
-    const item = await this.inventoryService.updateItem(id, input, user);
+    // Use service for validation logic
+    // TODO: Implement InventoryService
+    // throw new Error('InventoryService not implemented');
+    const item: Stock | null = null; // await this.inventoryService.updateItem(id, input, user);
+    if (!item) throw new Error('InventoryService not implemented');
 
     await this.pubSub.publish('inventoryUpdated', {
       inventoryUpdated: item,
@@ -137,11 +179,15 @@ export class InventoryResolver {
   @UseGuards(PermGuard)
   async updateInventoryStock(
     @Args('id') id: string,
-    @Args('input') input: UpdateInventoryStockInput,
+    @Args('input') input: Partial<Stock> & { operation?: 'ADD' | 'SUBTRACT' | 'SET' },
     @ReqUser() user: User,
   ): Promise<Stock> {
     try {
-      const item = await this.inventoryService.updateStock(id, input, user);
+      // Use service for stock update logic (includes alert generation)
+      // TODO: Implement InventoryService
+      // throw new Error('InventoryService not implemented');
+      const item: Stock | null = null; // await this.inventoryService.updateStock(id, input, user);
+      if (!item) throw new Error('InventoryService not implemented');
 
       // Clear related caches
       this.dataLoader.clearCacheByPattern(`cafeInventory:${item.cafeId}`);
@@ -154,26 +200,22 @@ export class InventoryResolver {
         action: 'STOCK_UPDATED',
       });
 
-      // Check for low stock alert
-      if (item.isLowStock) {
-        await this.pubSub.publish('stockAlert', {
-          stockAlert: {
-            type: 'LOW_STOCK',
-            item,
-            cafeId: item.cafeId,
-          },
-        });
-      }
-
-      // Check for out of stock alert
-      if (item.isOutOfStock) {
-        await this.pubSub.publish('stockAlert', {
-          stockAlert: {
-            type: 'OUT_OF_STOCK',
-            item,
-            cafeId: item.cafeId,
-          },
-        });
+      // Service handles alert generation, we just publish them
+      // TODO: Implement InventoryService
+      const alerts: Array<{ type: string; item: Stock; severity: string; message: string }> = [];
+      // const alerts = await this.inventoryService.getStockAlerts([item]);
+      if (alerts.length > 0) {
+        for (const alert of alerts) {
+          await this.pubSub.publish('stockAlert', {
+            stockAlert: {
+              type: alert.type,
+              item: alert.item,
+              cafeId: item.cafeId,
+              severity: alert.severity,
+              message: alert.message,
+            },
+          });
+        }
       }
 
       return item;
@@ -189,7 +231,14 @@ export class InventoryResolver {
     @Args('id') id: string,
     @ReqUser() user: User,
   ): Promise<boolean> {
-    const item = await this.inventoryService.deleteItem(id, user);
+    // Simple delete - can go directly to repository
+    const item = await this.inventoryRepository.findOne({ where: { id } });
+
+    if (!item) {
+      throw new Error(`Inventory item with ID ${id} not found`);
+    }
+
+    await this.inventoryRepository.remove(item);
 
     await this.pubSub.publish('inventoryUpdated', {
       inventoryUpdated: item,

@@ -127,6 +127,16 @@ export class Order extends BaseEntity {
   @IsNumber()
   declare totalAmount: number;
 
+  @Field()
+  @Column('decimal', { precision: 10, scale: 2 })
+  @IsNumber()
+  get total(): number {
+    return this.totalAmount;
+  }
+  set total(value: number) {
+    this.totalAmount = value;
+  }
+
   // Order type and preferences
   @Field({ nullable: true })
   @Column({ nullable: true })
@@ -151,6 +161,13 @@ export class Order extends BaseEntity {
   @IsString()
   @IsOptional()
   declare specialInstructions: string;
+
+  // Counter assignment
+  @Field({ nullable: true })
+  @Column('uuid', { nullable: true })
+  @IsString()
+  @IsOptional()
+  declare counterId: string;
 
   // Timing
   @Field({ nullable: true })
