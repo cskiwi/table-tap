@@ -1,5 +1,4 @@
-// Main module export
-export * from './lib/order.module';
+// Routes
 export * from './lib/order.routes';
 
 // Component exports

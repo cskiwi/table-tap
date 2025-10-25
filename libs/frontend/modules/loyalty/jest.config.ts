@@ -1,4 +1,4 @@
-/* eslint-disable */
+ 
 export default {
   displayName: 'frontend-modules-loyalty',
   preset: '../../../../jest.preset.js',

@@ -19,6 +19,3 @@ export * from './lib/components/order-summary/order-summary.component';
 
 // Utils
 export * from './lib/utils/cart.utils';
-
-// Module
-export * from './lib/cart.module';

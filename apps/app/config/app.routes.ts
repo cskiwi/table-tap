@@ -9,51 +9,43 @@ export const appRoutes: Route[] = [
   },
   {
     path: 'menu',
-    loadChildren: () =>
-      import('@app/frontend-modules-menu').then(m => m.menuRoutes),
-    title: 'Menu - TableTap'
+    loadChildren: () => import('@app/frontend-modules-menu').then((m) => m.menuRoutes),
+    title: 'Menu - TableTap',
   },
   {
     path: 'cart',
-    loadChildren: () =>
-      import('@app/frontend-modules-cart').then(m => m.cartRoutes),
-    title: 'Cart - TableTap'
+    loadChildren: () => import('@app/frontend-modules-cart').then((m) => m.cartRoutes),
+    title: 'Cart - TableTap',
   },
   {
     path: 'order',
-    loadChildren: () =>
-      import('@app/frontend-modules-order').then(m => m.orderRoutes),
+    loadChildren: () => import('@app/frontend-modules-order').then((m) => m.orderRoutes),
     canActivate: [roleGuard],
     data: { roles: ['customer'] },
-    title: 'Orders - TableTap'
+    title: 'Orders - TableTap',
   },
-  // Kitchen module temporarily disabled due to Angular Material dependencies
-  // TODO: Refactor kitchen module to use PrimeNG
-  /* {
+  {
     path: 'kitchen',
-    loadChildren: () =>
-      import('@app/frontend-modules-kitchen').then(m => m.kitchenRoutes),
+    loadChildren: () => import('@app/frontend-modules-kitchen').then((m) => m.kitchenRoutes),
     canActivate: [roleGuard],
     data: { roles: ['kitchen_staff', 'admin'] },
-    title: 'Kitchen - TableTap'
-  }, */
+    title: 'Kitchen - TableTap',
+  },
   {
     path: 'admin',
-    loadChildren: () =>
-      import('@app/frontend-modules-admin').then(m => m.adminRoutes),
+    loadChildren: () => import('@app/frontend-modules-admin').then((m) => m.adminRoutes),
     canActivate: [roleGuard],
     data: { roles: ['admin'] },
-    title: 'Admin - TableTap'
+    title: 'Admin - TableTap',
   },
   {
     path: 'auth',
-    loadChildren: () =>
-      import('@app/frontend-modules-auth').then(m => m.authRoutes),
-    title: 'Authentication - TableTap'
+    loadChildren: () => import('@app/frontend-modules-auth').then((m) => m.authRoutes),
+    title: 'Authentication - TableTap',
   },
   {
     path: '**',
     redirectTo: '',
-    pathMatch: 'full'
-  }
+    pathMatch: 'full',
+  },
 ];

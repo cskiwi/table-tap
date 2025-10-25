@@ -9,6 +9,3 @@ export * from './services';
 // Components
 export * from './components/dashboard/kitchen-mobile-dashboard.component';
 export * from './components/order-card/kitchen-order-card.component';
-
-// Module
-export * from './kitchen-mobile.module';

@@ -1,44 +1,27 @@
-import {
-  Component,
-  OnInit,
-  OnDestroy,
-  computed,
-  signal,
-  inject,
-  ChangeDetectionStrategy,
-  input,
-  output
-} from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, computed, inject, input, output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { Subject, takeUntil, debounceTime, distinctUntilChanged } from 'rxjs';
+import { Subject } from 'rxjs';
 
 // PrimeNG Components
-import { CardModule } from 'primeng/card';
-import { ButtonModule } from 'primeng/button';
-import { InputTextModule } from 'primeng/inputtext';
-import { SelectModule } from 'primeng/select';
-import { ChipModule } from 'primeng/chip';
-import { SkeletonModule } from 'primeng/skeleton';
-import { MessageModule } from 'primeng/message';
-import { ToggleButtonModule } from 'primeng/togglebutton';
-import { SliderModule } from 'primeng/slider';
-import { DividerModule } from 'primeng/divider';
 import { BadgeModule } from 'primeng/badge';
-import { TagModule } from 'primeng/tag';
-import { TooltipModule } from 'primeng/tooltip';
+import { ButtonModule } from 'primeng/button';
+import { CardModule } from 'primeng/card';
+import { ChipModule } from 'primeng/chip';
+import { DividerModule } from 'primeng/divider';
+import { InputTextModule } from 'primeng/inputtext';
+import { MessageModule } from 'primeng/message';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
+import { SelectModule } from 'primeng/select';
+import { SkeletonModule } from 'primeng/skeleton';
+import { SliderModule } from 'primeng/slider';
+import { TagModule } from 'primeng/tag';
+import { ToggleButtonModule } from 'primeng/togglebutton';
+import { TooltipModule } from 'primeng/tooltip';
 
 import { MenuService } from '../services/menu.service';
-import {
-  MenuItem,
-  MenuCategory,
-  MenuFilters,
-  MenuSortOptions,
-  MenuDisplayOptions,
-  MenuItemStatus
-} from '../types/menu.types';
+import { MenuItem, MenuItemStatus } from '../types/menu.types';
 
 @Component({
   selector: 'app-menu-display',
@@ -73,7 +56,7 @@ export class MenuDisplayComponent implements OnInit, OnDestroy {
   readonly addToCart = output<MenuItem>();
   readonly retryLoad = output<void>();
 
-  private readonly destroy$ = new Subject<void>()
+  private readonly destroy$ = new Subject<void>();
   private readonly router = inject(Router);
   readonly menuService = inject(MenuService);
 
@@ -95,29 +78,31 @@ export class MenuDisplayComponent implements OnInit, OnDestroy {
   readonly displayOptions = this.menuService.displayOptions;
 
   // Local computed properties
-  readonly maxPrice = computed(() =>
-    Math.max(...this.menuService.menuItems().map(item => item.price), 50)
-  );
+  readonly maxPrice = computed(() => Math.max(...this.menuService.menuItems().map((item) => item.price), 50));
   readonly hasActiveFilters = computed(() => {
-    const filters = this.menuService.filters()
-    return !!(filters.search || filters.categoryId || filters.status ||
-             filters.minPrice !== undefined || filters.maxPrice !== undefined ||
-             filters.allergens?.length || filters.preparationTime !== undefined);
+    const filters = this.menuService.filters();
+    return !!(
+      filters.search ||
+      filters.categoryId ||
+      filters.status ||
+      filters.minPrice !== undefined ||
+      filters.maxPrice !== undefined ||
+      filters.allergens?.length ||
+      filters.preparationTime !== undefined
+    );
   });
   readonly selectedCategoryName = computed(() => {
     const categoryId = this.selectedCategoryId;
-    return this.categories().find(cat => cat.id === categoryId)?.name;
+    return this.categories().find((cat) => cat.id === categoryId)?.name;
   });
 
   // Dropdown options
-  readonly categoryOptions = computed(() =>
-    this.categories().map(cat => ({ label: cat.name, value: cat.id }))
-  );
+  readonly categoryOptions = computed(() => this.categories().map((cat) => ({ label: cat.name, value: cat.id })));
 
   readonly statusOptions = [
     { label: 'Available', value: MenuItemStatus.AVAILABLE },
     { label: 'Out of Stock', value: MenuItemStatus.OUT_OF_STOCK },
-    { label: 'Seasonal', value: MenuItemStatus.SEASONAL }
+    { label: 'Seasonal', value: MenuItemStatus.SEASONAL },
   ];
   readonly sortOptions = [
     { label: 'Default Order', value: 'sortOrder-asc' },
@@ -125,7 +110,7 @@ export class MenuDisplayComponent implements OnInit, OnDestroy {
     { label: 'Name (Z-A)', value: 'name-desc' },
     { label: 'Price (Low to High)', value: 'price-asc' },
     { label: 'Price (High to Low)', value: 'price-desc' },
-    { label: 'Preparation Time', value: 'preparationTime-asc' }
+    { label: 'Preparation Time', value: 'preparationTime-asc' },
   ];
   readonly selectedSort = signal('sortOrder-asc');
 
@@ -139,19 +124,19 @@ export class MenuDisplayComponent implements OnInit, OnDestroy {
     }
 
     // Load menu data
-    this.loadMenu()
+    this.loadMenu();
 
     // Set up search debouncing
-    this.setupSearchDebouncing()
+    this.setupSearchDebouncing();
   }
 
   ngOnDestroy(): void {
-    this.destroy$.next()
-    this.destroy$.complete()
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   private loadMenu(): void {
-    this.menuService.loadCompleteMenu(this.cafeId()).subscribe()
+    this.menuService.loadCompleteMenu(this.cafeId()).subscribe();
   }
 
   private setupSearchDebouncing(): void {
@@ -173,9 +158,7 @@ export class MenuDisplayComponent implements OnInit, OnDestroy {
 
   onCategoryChange(categoryId: string | null): void {
     this.selectedCategoryId = categoryId || undefined;
-    this.menuService.selectCategory(
-      categoryId ? this.categories().find(cat => cat.id === categoryId) : undefined
-    );
+    this.menuService.selectCategory(categoryId ? this.categories().find((cat) => cat.id === categoryId) : undefined);
   }
 
   onStatusChange(status: MenuItemStatus | null): void {
@@ -195,13 +178,13 @@ export class MenuDisplayComponent implements OnInit, OnDestroy {
       this.priceRange = values;
       this.menuService.updateFilters({
         minPrice: values[0],
-        maxPrice: values[1]
+        maxPrice: values[1],
       });
     }
   }
 
   onAllergensChange(event: any): void {
-    const allergens = event.value || []
+    const allergens = event.value || [];
     this.excludedAllergens.set(allergens);
     this.menuService.updateFilters({ allergens });
   }
@@ -215,7 +198,7 @@ export class MenuDisplayComponent implements OnInit, OnDestroy {
 
   onSortChange(sortValue: string): void {
     this.selectedSort.set(sortValue);
-    const [field, direction] = sortValue.split('-') as [string, 'asc' | 'desc']
+    const [field, direction] = sortValue.split('-') as [string, 'asc' | 'desc'];
     this.menuService.updateSortOptions({ field: field as any, direction });
   }
 
@@ -230,7 +213,7 @@ export class MenuDisplayComponent implements OnInit, OnDestroy {
     this.priceRange = [0, this.maxPrice()];
     this.excludedAllergens.set([]);
     this.maxPrepTime = 30;
-    this.menuService.clearFilters()
+    this.menuService.clearFilters();
     this.menuService.selectCategory(undefined);
   }
 
@@ -239,16 +222,16 @@ export class MenuDisplayComponent implements OnInit, OnDestroy {
   }
 
   getItemCountForCategory(categoryId: string): number {
-    return this.menuService.menuItems().filter(item => item.categoryId === categoryId).length;
+    return this.menuService.menuItems().filter((item) => item.categoryId === categoryId).length;
   }
 
   onItemClick(item: MenuItem, event?: Event): void {
-    event?.stopPropagation()
+    event?.stopPropagation();
     this.itemSelected.emit(item);
   }
 
   onAddToCart(item: MenuItem, event?: Event): void {
-    event?.stopPropagation()
+    event?.stopPropagation();
     this.addToCart.emit(item);
   }
 
@@ -270,7 +253,7 @@ export class MenuDisplayComponent implements OnInit, OnDestroy {
     }
   }
 
-  getStatusSeverity(status: MenuItemStatus): "success" | "info" | "warn" | "secondary" | "contrast" | "danger" {
+  getStatusSeverity(status: MenuItemStatus): 'success' | 'info' | 'warn' | 'secondary' | 'contrast' | 'danger' {
     switch (status) {
       case MenuItemStatus.OUT_OF_STOCK:
         return 'warn';

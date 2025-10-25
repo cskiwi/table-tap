@@ -7,8 +7,6 @@ import {
   inject,
   EnvironmentProviders,
   makeEnvironmentProviders,
-  NgModule,
-  ModuleWithProviders
 } from '@angular/core';
 import { ApolloLink, InMemoryCache, NormalizedCacheObject } from '@apollo/client/core';
 import { BASE_URL } from '@app/frontend-utils';
@@ -97,35 +95,6 @@ export function createApollo(
     cache,
     devtools: {
       enabled: config?.devToolsEnabled ?? true
-    }
-  }
-}
-
-// Legacy NgModule approach - deprecated, use provideGraphQL instead
-@NgModule({
-  providers: [],
-})
-export class GraphQLModule {
-  static forRoot(
-    config?: GraphqlConfiguration
-  ): ModuleWithProviders<GraphQLModule> {
-    console.warn(
-      'GraphQLModule.forRoot() is deprecated. Use provideGraphQL() in app.config.ts instead.'
-    );
-    return {
-      ngModule: GraphQLModule,
-      providers: [
-        {
-          provide: APOLLO_CACHE,
-          useValue: new InMemoryCache()
-        },
-        {
-          provide: GRAPHQL_CONFIG_TOKEN,
-          useValue: config
-        }
-        // Note: This won't work properly with the new apollo-angular
-        // Users should migrate to provideGraphQL()
-      ]
     }
   }
 }

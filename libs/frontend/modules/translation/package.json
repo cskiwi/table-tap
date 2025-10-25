@@ -5,8 +5,7 @@
     "@angular/core": "^20.3.2",
     "@ngx-translate/core": "^17.0.0",
     "ngx-cookie-service-ssr": "^20.1.0",
-    "rxjs": "~7.8.1",
-    "@ngx-translate/http-loader": "^17.0.0"
+    "rxjs": "~7.8.1"
   },
   "sideEffects": false
 }

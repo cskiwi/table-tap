@@ -1,4 +1,4 @@
-/* eslint-disable */
+ 
 export default {
   displayName: 'frontend-modules-kitchen-mobile',
   preset: '../../../../jest.preset.js',
