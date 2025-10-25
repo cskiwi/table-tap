@@ -14,7 +14,7 @@ import { DividerModule } from 'primeng/divider';
 import { PasswordModule } from 'primeng/password';
 
 @Component({
-  selector: 'tt-login',
+  selector: 'app-login',
   standalone: true,
   imports: [
     ReactiveFormsModule,

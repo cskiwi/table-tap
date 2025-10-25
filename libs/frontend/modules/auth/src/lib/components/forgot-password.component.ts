@@ -11,7 +11,7 @@ import { MessageModule } from 'primeng/message';
 import { DividerModule } from 'primeng/divider';
 
 @Component({
-  selector: 'tt-forgot-password',
+  selector: 'app-forgot-password',
   standalone: true,
   imports: [
     ReactiveFormsModule,

@@ -12,52 +12,52 @@ describe('KitchenDataService', () => {
   let mockSyncService: jest.Mocked<OfflineSyncService>;
 
   const mockOrder: KitchenOrder = {
-    id: 'TEST-001'
-    createdAt: new Date()
-    status: OrderStatus.PENDING
-    priority: OrderPriority.NORMAL
-    station: KitchenStation.GRILL
-    estimatedPrepTime: 15
+    id: 'TEST-001',
+    createdAt: new Date(),
+    status: OrderStatus.PENDING,
+    priority: OrderPriority.NORMAL,
+    station: KitchenStation.GRILL,
+    estimatedPrepTime: 15,
     items: [
       {
-        id: 'item-1'
-        name: 'Burger'
-        quantity: 1
-        prepTime: 8
-        station: KitchenStation.GRILL
+        id: 'item-1',
+        name: 'Burger',
+        quantity: 1,
+        prepTime: 8,
+        station: KitchenStation.GRILL,
         isReady: false
       }
-    ]
-    notes: ['No onions']
+    ],
+    notes: ['No onions'],
     allergens: ['gluten']
   };
 
   beforeEach(() => {
     const storageSpy = {
-      isReady$: { pipe: jest.fn().mockReturnValue({ toPromise: jest.fn().mockResolvedValue(true) }) }
-      getOrders: jest.fn().mockResolvedValue([mockOrder])
-      getInventory: jest.fn().mockResolvedValue([])
-      getConfig: jest.fn().mockResolvedValue(null)
-      saveOrder: jest.fn().mockResolvedValue(undefined)
-      saveOrders: jest.fn().mockResolvedValue(undefined)
-      saveInventoryItem: jest.fn().mockResolvedValue(undefined)
-      saveConfig: jest.fn().mockResolvedValue(undefined)
-      deleteOrder: jest.fn().mockResolvedValue(undefined)
-      getInventoryByBarcode: jest.fn().mockResolvedValue(undefined)
+      isReady$: { pipe: jest.fn().mockReturnValue({ toPromise: jest.fn().mockResolvedValue(true) }) },
+      getOrders: jest.fn().mockResolvedValue([mockOrder]),
+      getInventory: jest.fn().mockResolvedValue([]),
+      getConfig: jest.fn().mockResolvedValue(null),
+      saveOrder: jest.fn().mockResolvedValue(undefined),
+      saveOrders: jest.fn().mockResolvedValue(undefined),
+      saveInventoryItem: jest.fn().mockResolvedValue(undefined),
+      saveConfig: jest.fn().mockResolvedValue(undefined),
+      deleteOrder: jest.fn().mockResolvedValue(undefined),
+      getInventoryByBarcode: jest.fn().mockResolvedValue(undefined),
       getLowStockItems: jest.fn().mockResolvedValue([])
     };
 
     const syncSpy = {
-      isOnline: true
-      forcePullFromServer: jest.fn().mockResolvedValue(undefined)
+      isOnline: true,
+      forcePullFromServer: jest.fn().mockResolvedValue(undefined),
       queueOperation: jest.fn().mockResolvedValue(undefined)
     };
 
     TestBed.configureTestingModule({
-      imports: [HttpClientTestingModule]
+      imports: [HttpClientTestingModule],
       providers: [
-        KitchenDataService
-        { provide: OfflineStorageService, useValue: storageSpy }
+        KitchenDataService,
+        { provide: OfflineStorageService, useValue: storageSpy },
         { provide: OfflineSyncService, useValue: syncSpy }
       ]
     });
@@ -79,8 +79,8 @@ describe('KitchenDataService', () => {
   describe('Order Management', () => {
     it('should create a new order', async () => {
       const orderData = {
-        station: KitchenStation.FRYER
-        priority: OrderPriority.HIGH
+        station: KitchenStation.FRYER,
+        priority: OrderPriority.HIGH,
         items: [{ name: 'Fries', quantity: 2 }]
       };
 

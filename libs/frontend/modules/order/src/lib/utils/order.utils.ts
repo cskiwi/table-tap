@@ -426,7 +426,7 @@ export class OrderUtils {
    * Validate phone number format
    */
   private static isValidPhone(phone: string): boolean {
-    const phoneRegex = /^\+?[\d\s\-\(\)]+$/;
+    const phoneRegex = /^\+?[\d\s\-()]+$/;
     const digitsOnly = phone.replace(/\D/g, '');
     return phoneRegex.test(phone) && digitsOnly.length >= 10;
   }

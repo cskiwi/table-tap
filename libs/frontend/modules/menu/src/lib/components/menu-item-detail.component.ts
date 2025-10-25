@@ -145,19 +145,22 @@ export class MenuItemDetailComponent implements OnInit, OnDestroy {
       
       switch (option.type) {
         case 'radio':
-        case 'dropdown':
+        case 'dropdown': {
           formControls[option.id] = [null, validators]
           break;
-        case 'checkbox':
+        }
+        case 'checkbox': {
           formControls[option.id] = [[], validators]
           break;
-        case 'text':
+        }
+        case 'text': {
           const textValidators = [...validators];
           if (option.maxLength) {
             textValidators.push(Validators.maxLength(option.maxLength));
           }
           formControls[option.id] = ['', textValidators]
           break;
+        }
       }
     });
 

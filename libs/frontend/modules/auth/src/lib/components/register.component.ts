@@ -15,7 +15,7 @@ import { PasswordModule } from 'primeng/password';
 import { CheckboxModule } from 'primeng/checkbox';
 
 @Component({
-  selector: 'tt-register',
+  selector: 'app-register',
   standalone: true,
   imports: [
     ReactiveFormsModule,

@@ -420,7 +420,10 @@ export class LoyaltyGraphQLService {
       }
 
       // Refresh account to get updated points
-      (await this.getCurrentAccount()?.cafeId) && this.refreshLoyaltyAccount(this.getCurrentAccount()!.cafeId);
+      const currentAccount = await this.getCurrentAccount();
+      if (currentAccount?.cafeId) {
+        this.refreshLoyaltyAccount(currentAccount.cafeId);
+      }
 
       return result.data.redeemLoyaltyReward;
     } catch (error) {
