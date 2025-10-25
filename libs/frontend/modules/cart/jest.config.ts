@@ -1,4 +1,4 @@
-/* eslint-disable */
+ 
 export default {
   displayName: 'frontend-modules-cart',
   preset: '../../../../jest.preset.js',

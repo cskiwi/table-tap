@@ -1,4 +1,4 @@
-/* eslint-disable */
+ 
 export default {
   displayName: 'frontend-modules-menu',
   preset: '../../../../jest.preset.js',
