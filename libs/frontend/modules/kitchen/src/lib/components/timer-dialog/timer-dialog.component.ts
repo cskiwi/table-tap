@@ -10,10 +10,11 @@ import { SliderModule } from 'primeng/slider';
 import { CheckboxModule } from 'primeng/checkbox';
 import { DividerModule } from 'primeng/divider';
 
-import { KitchenOrder, TimerType, TimerPriority } from '../../types/kitchen.types';
+import { Order } from '@app/models';
+import { TimerType, TimerPriority } from '@app/models/enums';
 
 export interface TimerDialogData {
-  order: KitchenOrder;
+  order: Order;
   orderItemId?: string;
 }
 
@@ -43,11 +44,11 @@ export interface TimerDialogResult {
 })
 export class TimerDialogComponent {
   readonly quickDurations = [
-    { label: '2 min', seconds: 120 }
-    { label: '5 min', seconds: 300 }
-    { label: '10 min', seconds: 600 }
-    { label: '15 min', seconds: 900 }
-    { label: '20 min', seconds: 1200 }
+    { label: '2 min', seconds: 120 },
+    { label: '5 min', seconds: 300 },
+    { label: '10 min', seconds: 600 },
+    { label: '15 min', seconds: 900 },
+    { label: '20 min', seconds: 1200 },
     { label: '30 min', seconds: 1800
   }
   ];
@@ -66,8 +67,8 @@ export class TimerDialogComponent {
 
     this.timerForm = this.fb.group({
       name: [this.getDefaultTimerName(), Validators.required],
-      minutes: [defaultMinutes, [Validators.min(0), Validators.max(60)]]
-      seconds: [defaultSeconds, [Validators.min(0), Validators.max(59)]]
+      minutes: [defaultMinutes, [Validators.min(0), Validators.max(60)]],
+      seconds: [defaultSeconds, [Validators.min(0), Validators.max(59)]],
       type: [TimerType.COOKING],
       priority: [TimerPriority.MEDIUM],
       sound: [true],
@@ -109,8 +110,8 @@ export class TimerDialogComponent {
     const remainingSeconds = seconds % 60;
 
     this.timerForm.patchValue({
-      minutes
-      seconds: remainingSeconds;
+      minutes,
+      seconds: remainingSeconds
     });
   }
 
@@ -125,7 +126,7 @@ export class TimerDialogComponent {
     const seconds = totalSeconds % 60;
 
     this.timerForm.patchValue({
-      minutes
+      minutes,
       seconds
     });
 
@@ -151,13 +152,13 @@ export class TimerDialogComponent {
   onCreate(): void {
     if (this.timerForm.valid && this.getTotalSeconds() > 0) {
       const result: TimerDialogResult = {
-        name: this.timerForm.get('name')?.value;
-        duration: this.getTotalSeconds()
-        type: this.timerForm.get('type')?.value;
-        priority: this.timerForm.get('priority')?.value;
-        sound: this.timerForm.get('sound')?.value;
-        vibration: this.timerForm.get('vibration')?.value;
-      }
+        name: this.timerForm.get('name')?.value,
+        duration: this.getTotalSeconds(),
+        type: this.timerForm.get('type')?.value,
+        priority: this.timerForm.get('priority')?.value,
+        sound: this.timerForm.get('sound')?.value,
+        vibration: this.timerForm.get('vibration')?.value
+      };
 
       this.dialogRef.close(result);
     }

@@ -3,14 +3,14 @@ import { CommonModule } from '@angular/common';
 import { CardModule } from 'primeng/card';
 import { ButtonModule } from 'primeng/button';
 // Icon removed - use primeicons in template
-import { TabsModule } from 'primeng/tabs';
+import { Tabs, TabList, Tab, TabPanels, TabPanel } from 'primeng/tabs';
 import { ProgressBarModule } from 'primeng/progressbar';
 import { ListboxModule } from 'primeng/listbox';
 import { DividerModule } from 'primeng/divider';
 import { ChipModule } from 'primeng/chip';
 
 import { KitchenService } from '../../services/kitchen.service';
-import { KitchenMetrics, StaffPerformance, CounterUtilization } from '../../types/kitchen.types';
+// Using native types for metrics data - no need for interfaces
 
 @Component({
   selector: 'app-metrics-dashboard',
@@ -19,7 +19,11 @@ import { KitchenMetrics, StaffPerformance, CounterUtilization } from '../../type
     CommonModule,
     CardModule,
     ButtonModule,
-    TabsModule,
+    Tabs,
+    TabList,
+    Tab,
+    TabPanels,
+    TabPanel,
     ProgressBarModule,
     ListboxModule,
     DividerModule,
@@ -92,13 +96,13 @@ export class MetricsDashboardComponent {
   }
 
   getActiveStaffCount(): number {
-    return this.metrics()?.staffPerformance.filter(staff =>
+    return this.metrics()?.staffPerformance.filter((staff: any) =>
       staff.status === 'available' || staff.status === 'busy'
     ).length || 0;
   }
 
   getTotalHoursWorked(): number {
-    return this.metrics()?.staffPerformance.reduce((total, staff) =>
+    return this.metrics()?.staffPerformance.reduce((total: number, staff: any) =>
       total + staff.hoursWorked, 0
     ) || 0;
   }
@@ -126,33 +130,33 @@ export class MetricsDashboardComponent {
   }
 
   getHourBarHeight(orders: number): number {
-    const maxOrders = Math.max(...(this.metrics()?.hourlyStats.map(h => h.orders) || [1]));
+    const maxOrders = Math.max(...(this.metrics()?.hourlyStats.map((h: any) => h.orders) || [1]));
     return (orders / maxOrders) * 100;
   }
 
   getPeakHours(): string {
     const hourlyStats = this.metrics()?.hourlyStats || []
-    const maxOrders = Math.max(...hourlyStats.map(h => h.orders));
+    const maxOrders = Math.max(...hourlyStats.map((h: any) => h.orders));
     const peakHours = hourlyStats
-      .filter(h => h.orders === maxOrders)
-      .map(h => this.formatHour(h.hour));
+      .filter((h: any) => h.orders === maxOrders)
+      .map((h: any) => this.formatHour(h.hour));
 
     return peakHours.join(', ') || 'N/A';
   }
 
   getSlowestPeriod(): string {
     const hourlyStats = this.metrics()?.hourlyStats || []
-    const minOrders = Math.min(...hourlyStats.map(h => h.orders));
+    const minOrders = Math.min(...hourlyStats.map((h: any) => h.orders));
     const slowHours = hourlyStats
-      .filter(h => h.orders === minOrders)
-      .map(h => this.formatHour(h.hour));
+      .filter((h: any) => h.orders === minOrders)
+      .map((h: any) => this.formatHour(h.hour));
 
     return slowHours.join(', ') || 'N/A';
   }
 
   getBestPerformanceHour(): string {
     const hourlyStats = this.metrics()?.hourlyStats || []
-    const bestHour = hourlyStats.reduce((best, current) =>
+    const bestHour = hourlyStats.reduce((best: any, current: any) =>
       current.efficiency > best.efficiency ? current : best
     );
 
@@ -161,7 +165,7 @@ export class MetricsDashboardComponent {
 
   getBestEfficiency(): number {
     const hourlyStats = this.metrics()?.hourlyStats || []
-    return Math.max(...hourlyStats.map(h => h.efficiency), 0);
+    return Math.max(...hourlyStats.map((h: any) => h.efficiency), 0);
   }
 
   refreshMetrics(): void {
@@ -174,11 +178,11 @@ export class MetricsDashboardComponent {
   }
 
   // Track by functions for *ngFor
-  trackByStaffId(index: number, staff: StaffPerformance): string {
+  trackByStaffId(index: number, staff: any): string {
     return staff.employeeId;
   }
 
-  trackByCounterId(index: number, counter: CounterUtilization): string {
+  trackByCounterId(index: number, counter: any): string {
     return counter.counterId;
   }
 

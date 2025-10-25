@@ -11,6 +11,8 @@ import { UserResolver } from './resolvers';
 import { OrderResolver } from './resolvers/restaurant/order.resolver';
 import { InventoryResolver } from './resolvers/restaurant/inventory.resolver';
 import { EmployeeResolver } from './resolvers/restaurant/employee.resolver';
+import { KitchenDashboardResolver } from './resolvers/restaurant/kitchen-dashboard.resolver';
+import { AdminDashboardResolver } from './resolvers/restaurant/admin-dashboard.resolver';
 // Loyalty resolvers temporarily disabled due to missing DTOs and service methods
 // import { LoyaltyAccountResolver } from './resolvers/restaurant/loyalty-account.resolver';
 // import { LoyaltyRewardResolver } from './resolvers/restaurant/loyalty-reward.resolver';
@@ -125,6 +127,8 @@ import { CacheModule } from '@nestjs/cache-manager';
     OrderResolver,
     InventoryResolver,
     EmployeeResolver,
+    KitchenDashboardResolver,
+    AdminDashboardResolver,
     // Loyalty resolvers temporarily disabled
     // LoyaltyAccountResolver,
     // LoyaltyRewardResolver,

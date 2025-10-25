@@ -1,0 +1,315 @@
+# Admin Dashboard GraphQL Schema
+
+extend type Query {
+  # Admin Dashboard Overview
+  adminDashboard(cafeId: ID!): AdminDashboard!
+
+  # Revenue & Financial Metrics
+  revenueMetrics(
+    cafeId: ID!
+    dateRange: DateRangeInput
+  ): RevenueMetrics!
+
+  # Order Analytics
+  orderMetrics(
+    cafeId: ID!
+    dateRange: DateRangeInput
+  ): OrderMetrics!
+
+  # Employee Performance
+  employeePerformance(
+    cafeId: ID!
+    dateRange: DateRangeInput
+    limit: Int
+  ): [EmployeePerformance!]!
+
+  # Sales Analytics
+  salesAnalytics(
+    cafeId: ID!
+    dateRange: DateRangeInput
+  ): SalesAnalytics!
+
+  # Admin Notifications
+  adminNotifications(
+    cafeId: ID!
+    unreadOnly: Boolean
+    limit: Int
+  ): [AdminNotification!]!
+
+  # Admin Settings
+  adminSettings(cafeId: ID!): AdminSettings!
+}
+
+extend type Mutation {
+  # Notifications
+  markNotificationRead(id: ID!): AdminNotification!
+  markAllNotificationsRead(cafeId: ID!): Boolean!
+
+  # Settings
+  updateAdminSettings(
+    cafeId: ID!
+    input: UpdateAdminSettingsInput!
+  ): AdminSettings!
+}
+
+extend type Subscription {
+  # Real-time metric updates
+  revenueUpdated(cafeId: ID!): RevenueMetrics!
+  orderMetricsUpdated(cafeId: ID!): OrderMetrics!
+  adminNotificationCreated(cafeId: ID!): AdminNotification!
+}
+
+# Types
+type AdminDashboard {
+  todayRevenue: Float!
+  todayOrders: Int!
+  activeEmployees: Int!
+  lowStockItems: Int!
+  pendingOrders: Int!
+  averageOrderValue: Float!
+  customerCount: Int!
+  inventoryValue: Float!
+  recentActivity: [RecentActivity!]!
+  topProducts: [ProductSales!]!
+}
+
+type RevenueMetrics {
+  today: Float!
+  yesterday: Float!
+  thisWeek: Float!
+  lastWeek: Float!
+  thisMonth: Float!
+  lastMonth: Float!
+  dailyGrowth: Float!
+  weeklyGrowth: Float!
+  monthlyGrowth: Float!
+  hourlyBreakdown: [HourlyRevenue!]!
+  dailyBreakdown: [DailyRevenue!]!
+  paymentMethods: PaymentMethodBreakdown!
+}
+
+type OrderMetrics {
+  total: Int!
+  pending: Int!
+  preparing: Int!
+  ready: Int!
+  completed: Int!
+  cancelled: Int!
+  averageTime: Float!
+  peakHours: [PeakHour!]!
+  orderTypes: OrderTypeBreakdown!
+}
+
+type EmployeePerformance {
+  employeeId: ID!
+  employee: Employee!
+  ordersProcessed: Int!
+  averageTime: Float!
+  rating: Float!
+  efficiency: Float!
+  currentStatus: StaffStatus!
+  hoursWorked: Float!
+  attendance: AttendanceMetrics!
+}
+
+type AttendanceMetrics {
+  daysPresent: Int!
+  daysAbsent: Int!
+  lateArrivals: Int!
+  overtimeHours: Float!
+}
+
+type SalesAnalytics {
+  topProducts: [ProductSales!]!
+  categoryBreakdown: [CategorySales!]!
+  hourlyRevenue: [HourlyRevenue!]!
+  dailyRevenue: [DailyRevenue!]!
+  paymentMethods: PaymentMethodBreakdown!
+  customerSegments: [CustomerSegment!]!
+}
+
+type ProductSales {
+  productId: ID!
+  product: Product!
+  quantitySold: Int!
+  revenue: Float!
+  growthRate: Float!
+}
+
+type CategorySales {
+  category: String!
+  quantitySold: Int!
+  revenue: Float!
+  percentage: Float!
+}
+
+type HourlyRevenue {
+  hour: Int!
+  revenue: Float!
+  orders: Int!
+  averageValue: Float!
+}
+
+type DailyRevenue {
+  date: Date!
+  revenue: Float!
+  orders: Int!
+  averageValue: Float!
+}
+
+type PeakHour {
+  hour: Int!
+  orderCount: Int!
+}
+
+type PaymentMethodBreakdown {
+  card: Float!
+  cash: Float!
+  digital: Float!
+  other: Float!
+}
+
+type OrderTypeBreakdown {
+  dineIn: Int!
+  takeaway: Int!
+  delivery: Int!
+}
+
+type CustomerSegment {
+  segment: String!
+  count: Int!
+  revenue: Float!
+  averageValue: Float!
+}
+
+type AdminNotification {
+  id: ID!
+  type: NotificationType!
+  severity: NotificationSeverity!
+  title: String!
+  message: String!
+  read: Boolean!
+  createdAt: DateTime!
+  readAt: DateTime
+  actionUrl: String
+  metadata: JSON
+}
+
+type AdminSettings {
+  general: GeneralSettings!
+  operations: OperationsSettings!
+  notifications: NotificationSettings!
+  integrations: IntegrationSettings!
+}
+
+type GeneralSettings {
+  businessName: String!
+  timezone: String!
+  currency: String!
+  taxRate: Float!
+  locale: String!
+}
+
+type OperationsSettings {
+  autoAssignOrders: Boolean!
+  orderTimeout: Int!
+  maxOrdersPerCustomer: Int!
+  enableQualityControl: Boolean!
+  enableInventoryTracking: Boolean!
+}
+
+type NotificationSettings {
+  emailEnabled: Boolean!
+  smsEnabled: Boolean!
+  pushEnabled: Boolean!
+  criticalAlertsOnly: Boolean!
+  notificationEmail: String
+  notificationPhone: String
+}
+
+type IntegrationSettings {
+  paymentProviders: [String!]!
+  inventorySystem: String
+  accountingSystem: String
+  deliveryProviders: [String!]!
+}
+
+type RecentActivity {
+  id: ID!
+  type: ActivityType!
+  description: String!
+  timestamp: DateTime!
+  userId: ID
+  user: User
+  metadata: JSON
+}
+
+# Input Types
+input UpdateAdminSettingsInput {
+  general: GeneralSettingsInput
+  operations: OperationsSettingsInput
+  notifications: NotificationSettingsInput
+  integrations: IntegrationSettingsInput
+}
+
+input GeneralSettingsInput {
+  businessName: String
+  timezone: String
+  currency: String
+  taxRate: Float
+  locale: String
+}
+
+input OperationsSettingsInput {
+  autoAssignOrders: Boolean
+  orderTimeout: Int
+  maxOrdersPerCustomer: Int
+  enableQualityControl: Boolean
+  enableInventoryTracking: Boolean
+}
+
+input NotificationSettingsInput {
+  emailEnabled: Boolean
+  smsEnabled: Boolean
+  pushEnabled: Boolean
+  criticalAlertsOnly: Boolean
+  notificationEmail: String
+  notificationPhone: String
+}
+
+input IntegrationSettingsInput {
+  paymentProviders: [String!]
+  inventorySystem: String
+  accountingSystem: String
+  deliveryProviders: [String!]
+}
+
+# Enums
+enum NotificationType {
+  LOW_STOCK
+  ORDER_ALERT
+  EMPLOYEE_ALERT
+  SYSTEM_ALERT
+  REVENUE_MILESTONE
+  REPORT_READY
+}
+
+enum NotificationSeverity {
+  INFO
+  WARNING
+  ERROR
+  CRITICAL
+}
+
+enum ActivityType {
+  ORDER_CREATED
+  ORDER_COMPLETED
+  EMPLOYEE_CLOCKED_IN
+  EMPLOYEE_CLOCKED_OUT
+  INVENTORY_UPDATED
+  SETTINGS_CHANGED
+  PAYMENT_PROCESSED
+}
+
+# Shared scalar
+scalar JSON

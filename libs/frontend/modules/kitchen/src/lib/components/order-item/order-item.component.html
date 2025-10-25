@@ -49,9 +49,9 @@
   </div>
 
   <!-- Customizations -->
-  @if (item.customizations && item.customizations.length > 0) {
+  @if (getCustomizationsList().length > 0) {
     <div class="flex flex-wrap gap-1 mb-2">
-      @for (customization of item.customizations; track customization) {
+      @for (customization of getCustomizationsList(); track customization) {
         <p-chip
           [label]="customization"
           styleClass="text-xs">

@@ -1,9 +1,9 @@
  
 export default {
-  displayName: 'frontend-modules-kitchen',
+  displayName: 'frontend-modules-loyalty',
   preset: '../../../../jest.preset.js',
   setupFilesAfterEnv: ['<rootDir>/src/test-setup.ts'],
-  coverageDirectory: '../../../../coverage/libs/frontend/modules/kitchen',
+  coverageDirectory: '../../../../coverage/libs/frontend/modules/loyalty',
   transform: {
     '^.+\\.(ts|mjs|js|html)$': [
       'jest-preset-angular',

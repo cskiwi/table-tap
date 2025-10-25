@@ -5,8 +5,8 @@ export { kitchenRoutes } from './lib/kitchen.routes';
 // Comprehensive solution for restaurant kitchen operations
 // TODO: Refactor entire module to use PrimeNG instead of Angular Material
 
-// Core Types and Interfaces
-export * from './lib/types/kitchen.types';
+// Core Types and Interfaces - Now using @app/models and @app/models/enums
+// export * from './lib/types/kitchen.types'; // REMOVED - use @app/models instead
 
 // Services
 export * from './lib/services/kitchen.service';

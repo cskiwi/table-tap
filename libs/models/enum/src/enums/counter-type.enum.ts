@@ -13,5 +13,6 @@ export enum CounterStatus {
   ACTIVE = 'active',
   INACTIVE = 'inactive',
   MAINTENANCE = 'maintenance',
-  OFFLINE = 'offline'
+  OFFLINE = 'offline',
+  FULL = 'full'
 }

@@ -12,8 +12,8 @@ import { ProgressBarModule } from 'primeng/progressbar';
 import { CdkDragDrop, DragDropModule, moveItemInArray } from '@angular/cdk/drag-drop';
 
 import { KitchenService } from '../../services/kitchen.service';
-import { KitchenOrder, OrderPriority, PreparationStatus } from '../../types/kitchen.types';
-import { OrderStatus } from '@app/models';
+import { Order, OrderStatus } from '@app/models';
+import { OrderPriority, PreparationStatus, TimerStatus, TimerType, TimerPriority } from '@app/models/enums';
 import { OrderCardComponent } from '../order-card/order-card.component';
 import { TimerPanelComponent } from '../timer-panel/timer-panel.component';
 import { MetricsDashboardComponent } from '../metrics-dashboard/metrics-dashboard.component';
@@ -115,7 +115,7 @@ export class KitchenDisplayComponent {
         if (event.status === OrderStatus.READY) {
           this.kitchenService.playNotificationSound('order-ready');
         }
-      }
+      },
       error: (error) => console.error('Failed to update order status:', error)
     });
   }
@@ -128,14 +128,14 @@ export class KitchenDisplayComponent {
 
   onTimerCreated(event: { orderId: string; itemId?: string; duration: number; name: string }): void {
     this.kitchenService.createTimer({
-      orderId: event.orderId;
-      orderItemId: event.itemId;
-      name: event.name;
-      duration: event.duration;
-      remainingTime: event.duration;
-      status: 'idle' as const;
-      type: 'cooking' as const;
-      priority: 'medium' as const;
+      orderId: event.orderId,
+      orderItemId: event.itemId,
+      name: event.name,
+      duration: event.duration,
+      remainingTime: event.duration,
+      status: TimerStatus.IDLE,
+      type: TimerType.COOKING,
+      priority: TimerPriority.MEDIUM,
       sound: true,
       vibration: false,
     }).subscribe({
@@ -154,13 +154,13 @@ export class KitchenDisplayComponent {
       next: (qualityControl) => {
         // Open quality check dialog
         console.log('Quality check created:', qualityControl);
-      }
+      },
       error: (error) => console.error('Failed to create quality check:', error)
     });
   }
 
   // Drag and drop
-  onOrderDrop(event: CdkDragDrop<KitchenOrder[]>, column: string): void {
+  onOrderDrop(event: CdkDragDrop<Order[]>, column: string): void {
     if (event.previousContainer === event.container) {
       moveItemInArray(event.container.data, event.previousIndex, event.currentIndex);
     } else {
@@ -241,7 +241,7 @@ export class KitchenDisplayComponent {
     this.kitchenService.refreshData()
   }
 
-  trackByOrderId(index: number, order: KitchenOrder): string {
+  trackByOrderId(index: number, order: Order): string {
     return order.id;
   }
 }

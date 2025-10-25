@@ -25,10 +25,34 @@
   </div>
 
   <!-- Settings Tabs -->
-  <p-tabs>
-    <!-- General Settings -->
-    <p-tabPanel header="General" leftIcon="pi pi-cog">
-      <form [formGroup]="generalForm" class="space-y-6">
+  <p-tabs value="general">
+    <p-tablist>
+      <p-tab value="general">
+        <i class="pi pi-cog mr-2"></i>
+        General
+      </p-tab>
+      <p-tab value="operations">
+        <i class="pi pi-clock mr-2"></i>
+        Operations
+      </p-tab>
+      <p-tab value="notifications">
+        <i class="pi pi-bell mr-2"></i>
+        Notifications
+      </p-tab>
+      <p-tab value="integrations">
+        <i class="pi pi-link mr-2"></i>
+        Integrations
+      </p-tab>
+      <p-tab value="appearance">
+        <i class="pi pi-palette mr-2"></i>
+        Appearance
+      </p-tab>
+    </p-tablist>
+    
+    <p-tabpanels>
+      <!-- General Settings -->
+      <p-tabpanel value="general">
+        <form [formGroup]="generalForm" class="space-y-6">
         <p-card>
           <ng-template pTemplate="header">
             <h3 class="text-xl font-semibold p-4">Restaurant Information</h3>
@@ -120,11 +144,11 @@
           </div>
         </p-card>
       </form>
-    </p-tabPanel>
+      </p-tabpanel>
 
-    <!-- Operations Settings -->
-    <p-tabPanel header="Operations" leftIcon="pi pi-clock">
-      <form [formGroup]="operationsForm" class="space-y-6">
+      <!-- Operations Settings -->
+      <p-tabpanel value="operations">
+        <form [formGroup]="operationsForm" class="space-y-6">
         <p-card>
           <ng-template pTemplate="header">
             <h3 class="text-xl font-semibold p-4">Order Management</h3>
@@ -247,11 +271,11 @@
           </div>
         </p-card>
       </form>
-    </p-tabPanel>
+      </p-tabpanel>
 
-    <!-- Notifications Settings -->
-    <p-tabPanel header="Notifications" leftIcon="pi pi-bell">
-      <form [formGroup]="notificationsForm" class="space-y-6">
+      <!-- Notifications Settings -->
+      <p-tabpanel value="notifications">
+        <form [formGroup]="notificationsForm" class="space-y-6">
         <p-card>
           <ng-template pTemplate="header">
             <h3 class="text-xl font-semibold p-4">Notification Preferences</h3>
@@ -328,11 +352,11 @@
           </div>
         </p-card>
       </form>
-    </p-tabPanel>
+      </p-tabpanel>
 
-    <!-- Integrations Settings -->
-    <p-tabPanel header="Integrations" leftIcon="pi pi-link">
-      <form [formGroup]="integrationsForm" class="space-y-6">
+      <!-- Integrations Settings -->
+      <p-tabpanel value="integrations">
+        <form [formGroup]="integrationsForm" class="space-y-6">
         <p-card>
           <ng-template pTemplate="header">
             <h3 class="text-xl font-semibold p-4">Payment Integration</h3>
@@ -409,11 +433,11 @@
           </div>
         </p-card>
       </form>
-    </p-tabPanel>
+      </p-tabpanel>
 
-    <!-- Appearance Settings -->
-    <p-tabPanel header="Appearance" leftIcon="pi pi-palette">
-      <div class="space-y-6">
+      <!-- Appearance Settings -->
+      <p-tabpanel value="appearance">
+        <div class="space-y-6">
         <p-card>
           <ng-template pTemplate="header">
             <h3 class="text-xl font-semibold p-4">Theme & Branding</h3>
@@ -458,7 +482,8 @@
           </div>
         </p-card>
       </div>
-    </p-tabPanel>
+      </p-tabpanel>
+    </p-tabpanels>
   </p-tabs>
 </div>
 

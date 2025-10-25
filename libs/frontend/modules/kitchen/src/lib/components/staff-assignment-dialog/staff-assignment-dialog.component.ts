@@ -1,4 +1,4 @@
-import { Component, Inject, inject, signal, computed } from '@angular/core';
+import { Component, Inject, inject, signal, computed, input, output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
@@ -10,14 +10,16 @@ import { ChipModule } from 'primeng/chip';
 import { BadgeModule } from 'primeng/badge';
 import { DividerModule } from 'primeng/divider';
 import { ProgressBarModule } from 'primeng/progressbar';
+import { Apollo } from 'apollo-angular';
 import { Observable, of } from 'rxjs';
 import { map, startWith } from 'rxjs/operators';
 
-import { KitchenOrder, StaffStatus } from '../../types/kitchen.types';
-import { Employee } from '@app/models';
+import { Order, Employee } from '@app/models';
+import { StaffStatus } from '@app/models/enums';
+import { GET_KITCHEN_STAFF } from '../../graphql/kitchen.operations';
 
 export interface StaffAssignmentDialogData {
-  order: KitchenOrder;
+  order: Order;
 }
 
 export interface StaffAssignmentDialogResult {
@@ -52,11 +54,21 @@ interface StaffMember extends Employee {
 })
 export class StaffAssignmentDialogComponent {
   private readonly fb = inject(FormBuilder);
+  private readonly apollo = inject(Apollo);
+
+  readonly cafeId = input.required<string>();
+  readonly order = input.required<Order>();
+  readonly assigned = output<StaffAssignmentDialogResult>();
+  readonly cancelled = output<void>();
 
   readonly assignmentForm: FormGroup;
   private readonly _availableStaff = signal<StaffMember[]>([]);
+  private readonly _loading = signal<boolean>(false);
+  private readonly _error = signal<string | null>(null);
 
-  readonly availableStaff = this._availableStaff.asReadonly()
+  readonly availableStaff = this._availableStaff.asReadonly();
+  readonly loading = this._loading.asReadonly();
+  readonly error = this._error.asReadonly();
 
   readonly recommendedStaff = computed(() =>
     this.availableStaff().find(staff => staff.isRecommended)
@@ -79,115 +91,67 @@ export class StaffAssignmentDialogComponent {
   }
 
   private loadAvailableStaff(): void {
-    // Mock data - in real implementation, this would come from a service
-    const mockStaff: StaffMember[] = [
-      {
-        id: '1',
-        firstName: 'John',
-        lastName: 'Smith',
-        position: 'chef',
-        currentOrders: 3,
-        efficiency: 92,
-        workload: 75,
-        isRecommended: true,
-        status: 'available' as any;
-        cafeId: '',
-        employeeId: 'EMP001',
-        hireDate: new Date()
-        isActive: true,
-        displayName: 'John Smith',
-        fullName: 'John Smith',
-        canWorkToday: true,
-        isClockedIn: true,
-        canProcessPayments: false,
-        canRefundOrders: false,
-        canCancelOrders: false,
-        canViewReports: false,
-        canManageInventory: false,
-        createdAt: new Date()
-        currentShiftDuration: null,
-      }
-      {
-        id: '2',
-        firstName: 'Sarah',
-        lastName: 'Johnson',
-        position: 'sous_chef',
-        currentOrders: 5,
-        efficiency: 88,
-        workload: 90,
-        isRecommended: false,
-        status: 'busy' as any;
-        cafeId: '',
-        employeeId: 'EMP002',
-        hireDate: new Date()
-        isActive: true,
-        displayName: 'Sarah Johnson',
-        fullName: 'Sarah Johnson',
-        canWorkToday: true,
-        isClockedIn: true,
-        canProcessPayments: false,
-        canRefundOrders: false,
-        canCancelOrders: false,
-        canViewReports: false,
-        canManageInventory: false,
-        createdAt: new Date()
-        currentShiftDuration: null,
-      }
-      {
-        id: '3',
-        firstName: 'Mike',
-        lastName: 'Wilson',
-        position: 'prep_cook',
-        currentOrders: 2,
-        efficiency: 85,
-        workload: 60,
-        isRecommended: false,
-        status: 'available' as any;
-        cafeId: '',
-        employeeId: 'EMP003',
-        hireDate: new Date()
-        isActive: true,
-        displayName: 'Mike Wilson',
-        fullName: 'Mike Wilson',
-        canWorkToday: true,
-        isClockedIn: true,
-        canProcessPayments: false,
-        canRefundOrders: false,
-        canCancelOrders: false,
-        canViewReports: false,
-        canManageInventory: false,
-        createdAt: new Date()
-        currentShiftDuration: null,
-      }
-      {
-        id: '4',
-        firstName: 'Lisa',
-        lastName: 'Brown',
-        position: 'line_cook',
-        currentOrders: 0,
-        efficiency: 0,
-        workload: 0,
-        isRecommended: false,
-        unavailableReason: 'On break until 3:30 PM',
-        status: 'break' as any;
-        cafeId: '',
-        employeeId: 'EMP004',
-        hireDate: new Date()
-        isActive: true,
-        displayName: 'Lisa Brown',
-        fullName: 'Lisa Brown',
-        canWorkToday: true,
-        isClockedIn: true,
-        canProcessPayments: false,
-        canRefundOrders: false,
-        canCancelOrders: false,
-        canViewReports: false,
-        canManageInventory: false,
-        createdAt: new Date()
-        currentShiftDuration: null,
+    this._loading.set(true);
+    this._error.set(null);
+
+    this.apollo.watchQuery<{ kitchenStaff: any[] }>({
+      query: GET_KITCHEN_STAFF,
+      variables: {
+        cafeId: this.cafeId(),
+        status: [StaffStatus.AVAILABLE, StaffStatus.BUSY],
+      },
+    }).valueChanges.subscribe({
+      next: (result) => {
+        const staffMembers: StaffMember[] = result.data.kitchenStaff.map((staff: any, index: number) => {
+          const efficiency = staff.performance?.efficiency || 0;
+          const ordersCompleted = staff.performance?.ordersCompleted || 0;
+          const workload = this.calculateWorkload(ordersCompleted, efficiency);
+
+          return {
+            id: staff.id,
+            firstName: staff.employee.firstName,
+            lastName: staff.employee.lastName,
+            position: staff.employee.position,
+            currentOrders: ordersCompleted,
+            efficiency: efficiency * 100,
+            workload: workload,
+            isRecommended: index === 0 && efficiency > 0.8 && workload < 80,
+            status: staff.status,
+            cafeId: this.cafeId(),
+            employeeId: staff.employee.id,
+            hireDate: new Date(),
+            isActive: true,
+            displayName: `${staff.employee.firstName} ${staff.employee.lastName}`,
+            fullName: `${staff.employee.firstName} ${staff.employee.lastName}`,
+            canWorkToday: true,
+            isClockedIn: staff.status === StaffStatus.AVAILABLE || staff.status === StaffStatus.BUSY,
+            canProcessPayments: false,
+            canRefundOrders: false,
+            canCancelOrders: false,
+            canViewReports: false,
+            canManageInventory: false,
+            createdAt: new Date(),
+            currentShiftDuration: null,
+          };
+        });
+
+        this._availableStaff.set(staffMembers);
+        this._loading.set(false);
+      },
+      error: (error) => {
+        console.error('Failed to load kitchen staff:', error);
+        this._error.set(error.message);
+        this._loading.set(false);
+      },
+    });
   }
-  ];
-    this._availableStaff.set(mockStaff);
+
+  private calculateWorkload(ordersCompleted: number, efficiency: number): number {
+    // Simple workload calculation based on orders and efficiency
+    // More orders = higher workload, higher efficiency = can handle more
+    const baseWorkload = ordersCompleted * 15;
+    const efficiencyFactor = 1 - (efficiency * 0.5);
+    return Math.min(Math.round(baseWorkload * (1 + efficiencyFactor)), 100);
   }
 
   getStaffStatus(staff: StaffMember): StaffStatus {
@@ -251,15 +215,15 @@ export class StaffAssignmentDialogComponent {
   onAssign(): void {
     if (this.assignmentForm.valid) {
       const result: StaffAssignmentDialogResult = {
-        staffId: this.assignmentForm.get('staffId')?.value;
-        reassign: !!this.data.order.assignedStaff;
-      }
+        staffId: this.assignmentForm.get('staffId')?.value,
+        reassign: !!this.order().assignedStaff,
+      };
 
-      this.dialogRef.close(result);
+      this.assigned.emit(result);
     }
   }
 
   onCancel(): void {
-    this.dialogRef.close()
+    this.cancelled.emit();
   }
 }

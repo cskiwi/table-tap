@@ -10,7 +10,7 @@ import { TooltipModule } from 'primeng/tooltip';
 import { ProgressBarModule } from 'primeng/progressbar';
 
 import { KitchenService } from '../../services/kitchen.service';
-import { KitchenTimer, TimerStatus, TimerType } from '../../types/kitchen.types';
+import { TimerStatus, TimerType } from '@app/models/enums';
 
 @Component({
   selector: 'app-timer-panel',
@@ -53,16 +53,16 @@ export class TimerPanelComponent {
     return timers.sort((a, b) => {
       // Priority order: expired, running, paused, others
       const statusPriority = {
-        [TimerStatus.EXPIRED]: 0
-        [TimerStatus.RUNNING]: 1
-        [TimerStatus.PAUSED]: 2
-        [TimerStatus.IDLE]: 3
-        [TimerStatus.COMPLETED]: 4
+        [TimerStatus.EXPIRED]: 0,
+        [TimerStatus.RUNNING]: 1,
+        [TimerStatus.PAUSED]: 2,
+        [TimerStatus.IDLE]: 3,
+        [TimerStatus.COMPLETED]: 4,
         [TimerStatus.CANCELLED]: 5
       }
 
-      const priorityA = statusPriority[a.status] ?? 999;
-      const priorityB = statusPriority[b.status] ?? 999;
+      const priorityA = statusPriority[a.status as TimerStatus] ?? 999;
+      const priorityB = statusPriority[b.status as TimerStatus] ?? 999;
 
       if (priorityA !== priorityB) {
         return priorityA - priorityB;
@@ -110,16 +110,16 @@ export class TimerPanelComponent {
     if (timer) {
       this.deleteTimer(timerId);
       this.kitchenService.createTimer({
-        orderId: timer.orderId;
-        orderItemId: timer.orderItemId;
-        name: timer.name;
-        duration: timer.duration;
-        remainingTime: timer.duration;
-        status: TimerStatus.IDLE;
-        type: timer.type;
-        priority: timer.priority;
-        sound: timer.sound;
-        vibration: timer.vibration;
+        orderId: timer.orderId,
+        orderItemId: timer.orderItemId,
+        name: timer.name,
+        duration: timer.duration,
+        remainingTime: timer.duration,
+        status: TimerStatus.IDLE,
+        type: timer.type,
+        priority: timer.priority,
+        sound: timer.sound,
+        vibration: timer.vibration
       }).subscribe({
         error: (error) => console.error('Failed to reset timer:', error)
       });
@@ -152,7 +152,7 @@ export class TimerPanelComponent {
   }
 
   // Helper methods
-  getTimerClass(timer: KitchenTimer): string {
+  getTimerClass(timer: any): string {
     const classes = [`timer-${timer.status}`, `priority-${timer.priority}`];
     if (timer.status === TimerStatus.EXPIRED) {
       classes.push('expired');
@@ -165,20 +165,20 @@ export class TimerPanelComponent {
     return classes.join(' ');
   }
 
-  getTimeClass(timer: KitchenTimer): string {
+  getTimeClass(timer: any): string {
     if (timer.status === TimerStatus.EXPIRED) return 'expired';
     if (timer.remainingTime <= 60 && timer.status === TimerStatus.RUNNING) return 'critical';
     if (timer.remainingTime <= 300 && timer.status === TimerStatus.RUNNING) return 'warning';
     return 'normal';
   }
 
-  getProgressPercentage(timer: KitchenTimer): number {
+  getProgressPercentage(timer: any): number {
     if (timer.duration === 0) return 0;
     const elapsed = timer.duration - timer.remainingTime;
     return Math.min((elapsed / timer.duration) * 100, 100);
   }
 
-  getProgressColor(timer: KitchenTimer): string {
+  getProgressColor(timer: any): string {
     if (timer.status === TimerStatus.EXPIRED) return 'warn';
     if (timer.remainingTime <= 60) return 'warn';
     if (timer.remainingTime <= 300) return 'accent';
@@ -250,7 +250,7 @@ export class TimerPanelComponent {
     }
   }
 
-  trackByTimerId(index: number, timer: KitchenTimer): string {
+  trackByTimerId(index: number, timer: any): string {
     return timer.id;
   }
 }

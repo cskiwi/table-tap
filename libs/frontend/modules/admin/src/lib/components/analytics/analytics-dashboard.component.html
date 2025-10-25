@@ -32,10 +32,30 @@
   </div>
 
   <!-- Analytics Tabs -->
-  <p-tabs>
-    <!-- Sales Analytics -->
-    <p-tabpanel header="Sales" leftIcon="pi pi-chart-line">
-      <div class="flex flex-col gap-4">
+  <p-tabs value="sales">
+    <p-tablist>
+      <p-tab value="sales">
+        <i class="pi pi-chart-line mr-2"></i>
+        Sales
+      </p-tab>
+      <p-tab value="performance">
+        <i class="pi pi-chart-pie mr-2"></i>
+        Performance
+      </p-tab>
+      <p-tab value="inventory">
+        <i class="pi pi-box mr-2"></i>
+        Inventory
+      </p-tab>
+      <p-tab value="customers">
+        <i class="pi pi-users mr-2"></i>
+        Customers
+      </p-tab>
+    </p-tablist>
+    
+    <p-tabpanels>
+      <!-- Sales Analytics -->
+      <p-tabpanel value="sales">
+        <div class="flex flex-col gap-4">
         <!-- Sales Summary Cards -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
           <p-card class="bg-surface-card border border-surface-border rounded-lg">
@@ -153,11 +173,11 @@
           </p-table>
         </p-card>
       </div>
-    </p-tabpanel>
+      </p-tabpanel>
 
-    <!-- Performance Analytics -->
-    <p-tabpanel header="Performance" leftIcon="pi pi-chart-pie">
-      <div class="flex flex-col gap-4">
+      <!-- Performance Analytics -->
+      <p-tabpanel value="performance">
+        <div class="flex flex-col gap-4">
         <!-- Performance Metrics -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <p-card class="bg-surface-card border border-surface-border rounded-lg">
@@ -236,11 +256,11 @@
           </p-card>
         </div>
       </div>
-    </p-tabpanel>
+      </p-tabpanel>
 
-    <!-- Inventory Analytics -->
-    <p-tabpanel header="Inventory" leftIcon="pi pi-box">
-      <div class="flex flex-col gap-4">
+      <!-- Inventory Analytics -->
+      <p-tabpanel value="inventory">
+        <div class="flex flex-col gap-4">
         <!-- Inventory Metrics -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <p-card class="bg-surface-card border border-surface-border rounded-lg">
@@ -303,11 +323,11 @@
           </p-card>
         </div>
       </div>
-    </p-tabpanel>
+      </p-tabpanel>
 
-    <!-- Customer Analytics -->
-    <p-tabpanel header="Customers" leftIcon="pi pi-users">
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <!-- Customer Analytics -->
+      <p-tabpanel value="customers">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <p-card class="bg-surface-card border border-surface-border rounded-lg">
           <div class="text-center">
             <h4 class="text-lg font-medium text-color mb-2">Total Customers</h4>
@@ -339,7 +359,8 @@
             <span class="text-color-secondary text-sm">visits per month</span>
           </div>
         </p-card>
-      </div>
-    </p-tabpanel>
+        </div>
+      </p-tabpanel>
+    </p-tabpanels>
   </p-tabs>
 </div>

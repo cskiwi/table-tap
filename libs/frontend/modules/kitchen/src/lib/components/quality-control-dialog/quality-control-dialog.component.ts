@@ -12,14 +12,22 @@ import { ChipModule } from 'primeng/chip';
 import { ListboxModule } from 'primeng/listbox';
 import { ProgressBarModule } from 'primeng/progressbar';
 
-import { KitchenOrder, QualityControl, QualityCheckItem } from '../../types/kitchen.types';
+import { Order } from '@app/models';
+// Using native types for quality control data - no need for interfaces
 
 export interface QualityControlDialogData {
-  order: KitchenOrder;
+  order: Order;
   orderItemId?: string;
 }
 
-export interface QualityControlDialogResult extends Omit<QualityControl, 'id' | 'checkedAt' | 'checkedBy'> {
+export interface QualityControlDialogResult {
+  orderId: string;
+  orderItemId?: string;
+  checklistItems: any[];
+  overallScore: number;
+  comments?: string;
+  approved: boolean;
+  rejectionReason?: string;
   // Additional fields for the result
 }
 

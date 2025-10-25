@@ -1,0 +1,429 @@
+# Kitchen Dashboard GraphQL Schema
+
+extend type Query {
+  # Kitchen Dashboard Overview
+  kitchenDashboard(cafeId: ID!): KitchenDashboard!
+
+  # Kitchen Orders
+  kitchenOrders(
+    cafeId: ID!
+    status: [OrderStatus!]
+    priority: [OrderPriority!]
+    counter: ID
+    dateRange: DateRangeInput
+  ): [KitchenOrder!]!
+
+  kitchenOrder(id: ID!): KitchenOrder
+
+  # Kitchen Timers
+  kitchenTimers(
+    cafeId: ID!
+    status: [TimerStatus!]
+    type: [TimerType!]
+  ): [KitchenTimer!]!
+
+  # Kitchen Metrics
+  kitchenMetrics(
+    cafeId: ID!
+    dateRange: DateRangeInput
+  ): KitchenMetrics!
+
+  # Kitchen Alerts
+  kitchenAlerts(
+    cafeId: ID!
+    severity: [AlertSeverity!]
+    type: [AlertType!]
+    resolved: Boolean
+  ): [KitchenAlert!]!
+
+  # Kitchen Stations
+  kitchenStations(cafeId: ID!): [KitchenStation!]!
+
+  # Kitchen Staff
+  kitchenStaff(
+    cafeId: ID!
+    status: [StaffStatus!]
+    station: StationType
+  ): [KitchenStaff!]!
+
+  # Kitchen Equipment
+  kitchenEquipment(
+    cafeId: ID!
+    status: [EquipmentStatus!]
+    type: [EquipmentType!]
+  ): [KitchenEquipment!]!
+}
+
+extend type Mutation {
+  # Order Management
+  updateKitchenOrderStatus(
+    id: ID!
+    status: OrderStatus!
+  ): KitchenOrder!
+
+  updateOrderItemStatus(
+    id: ID!
+    status: PreparationStatus!
+  ): OrderItem!
+
+  assignOrderToStaff(
+    orderId: ID!
+    staffId: ID!
+  ): KitchenOrder!
+
+  # Timer Management
+  createKitchenTimer(input: CreateKitchenTimerInput!): KitchenTimer!
+  startKitchenTimer(id: ID!): KitchenTimer!
+  pauseKitchenTimer(id: ID!): KitchenTimer!
+  stopKitchenTimer(id: ID!): KitchenTimer!
+  deleteKitchenTimer(id: ID!): Boolean!
+
+  # Alert Management
+  resolveKitchenAlert(id: ID!): KitchenAlert!
+  dismissKitchenAlert(id: ID!): KitchenAlert!
+
+  # Quality Control
+  createQualityCheck(input: CreateQualityCheckInput!): QualityCheck!
+  submitQualityCheck(id: ID!, input: QualityCheckResultInput!): QualityCheck!
+
+  # Workflow
+  applyWorkflowTemplate(orderId: ID!, templateId: ID!): KitchenOrder!
+}
+
+extend type Subscription {
+  # Real-time order updates
+  kitchenOrderUpdated(cafeId: ID!): KitchenOrder!
+  kitchenOrderCreated(cafeId: ID!): KitchenOrder!
+
+  # Timer updates
+  kitchenTimerExpired(cafeId: ID!): KitchenTimer!
+
+  # Alert updates
+  kitchenAlertCreated(cafeId: ID!, severity: AlertSeverity): KitchenAlert!
+}
+
+# Types
+type KitchenDashboard {
+  totalOrders: Int!
+  pendingOrders: Int!
+  inProgressOrders: Int!
+  completedOrders: Int!
+  averagePrepTime: Float!
+  activeTimers: Int!
+  criticalAlerts: Int!
+  activeStaff: Int!
+  stationStatus: [StationStatus!]!
+  recentOrders: [KitchenOrder!]!
+}
+
+type KitchenOrder {
+  id: ID!
+  orderNumber: String!
+  status: OrderStatus!
+  customerName: String
+  orderType: String!
+  tableNumber: String
+  createdAt: DateTime!
+  confirmedAt: DateTime
+  preparingAt: DateTime
+  readyAt: DateTime
+  estimatedPrepTime: Int
+  specialInstructions: String
+  notes: [String!]
+  priority: OrderPriority!
+  items: [OrderItem!]!
+  assignedStaff: KitchenStaff
+  workflowSteps: [WorkflowStep!]!
+  counter: Counter
+}
+
+type WorkflowStep {
+  id: ID!
+  stepName: String!
+  status: StepStatus!
+  assignedCounterId: ID
+  assignedCounter: Counter
+  startedAt: DateTime
+  completedAt: DateTime
+  estimatedDuration: Int
+}
+
+type KitchenTimer {
+  id: ID!
+  type: TimerType!
+  name: String!
+  duration: Int!
+  remainingTime: Int!
+  status: TimerStatus!
+  priority: TimerPriority!
+  orderId: ID
+  order: KitchenOrder
+  orderItemId: ID
+  orderItem: OrderItem
+  equipmentId: ID
+  equipment: KitchenEquipment
+  createdAt: DateTime!
+  startedAt: DateTime
+  pausedAt: DateTime
+  completedAt: DateTime
+  notes: String
+}
+
+type KitchenMetrics {
+  totalOrdersToday: Int!
+  averagePrepTime: Float!
+  onTimeCompletionRate: Float!
+  peakHourOrders: Int!
+  averageWaitTime: Float!
+  ordersByPriority: OrderPriorityBreakdown!
+  ordersByStatus: OrderStatusBreakdown!
+  preparationEfficiency: Float!
+  staffUtilization: Float!
+  equipmentUtilization: Float!
+}
+
+type OrderPriorityBreakdown {
+  normal: Int!
+  high: Int!
+  urgent: Int!
+  rush: Int!
+}
+
+type OrderStatusBreakdown {
+  pending: Int!
+  confirmed: Int!
+  preparing: Int!
+  ready: Int!
+  completed: Int!
+  cancelled: Int!
+}
+
+type KitchenAlert {
+  id: ID!
+  type: AlertType!
+  severity: AlertSeverity!
+  title: String!
+  message: String!
+  orderId: ID
+  order: KitchenOrder
+  equipmentId: ID
+  equipment: KitchenEquipment
+  inventoryItemId: ID
+  createdAt: DateTime!
+  resolvedAt: DateTime
+  dismissedAt: DateTime
+  resolved: Boolean!
+}
+
+type KitchenStation {
+  id: ID!
+  name: String!
+  type: StationType!
+  status: StationStatus!
+  capacity: Int!
+  currentLoad: Int!
+  equipment: [KitchenEquipment!]!
+  assignedStaff: [KitchenStaff!]!
+  currentOrders: [KitchenOrder!]!
+}
+
+type KitchenStaff {
+  id: ID!
+  employee: Employee!
+  currentStation: StationType
+  status: StaffStatus!
+  currentOrders: [KitchenOrder!]!
+  assignedAt: DateTime
+  performance: StaffPerformance
+}
+
+type StaffPerformance {
+  ordersCompleted: Int!
+  averagePrepTime: Float!
+  accuracyRate: Float!
+  efficiency: Float!
+}
+
+type KitchenEquipment {
+  id: ID!
+  name: String!
+  type: EquipmentType!
+  status: EquipmentStatus!
+  stationId: ID!
+  station: KitchenStation!
+  temperature: Float
+  lastMaintenance: DateTime
+  nextMaintenance: DateTime
+  activeTimers: [KitchenTimer!]!
+}
+
+type QualityCheck {
+  id: ID!
+  orderId: ID!
+  order: KitchenOrder!
+  orderItemId: ID
+  orderItem: OrderItem
+  checkpoints: [QualityCheckpoint!]!
+  overallScore: Float
+  passed: Boolean
+  performedBy: Employee
+  performedAt: DateTime
+  notes: String
+}
+
+type QualityCheckpoint {
+  name: String!
+  passed: Boolean!
+  notes: String
+}
+
+# Input Types
+input CreateKitchenTimerInput {
+  type: TimerType!
+  name: String!
+  duration: Int!
+  priority: TimerPriority
+  orderId: ID
+  orderItemId: ID
+  equipmentId: ID
+  autoStart: Boolean
+  notes: String
+}
+
+input CreateQualityCheckInput {
+  orderId: ID!
+  orderItemId: ID
+  checkpoints: [String!]!
+}
+
+input QualityCheckResultInput {
+  checkpoints: [QualityCheckpointInput!]!
+  overallPassed: Boolean!
+  notes: String
+}
+
+input QualityCheckpointInput {
+  name: String!
+  passed: Boolean!
+  notes: String
+}
+
+# Enums
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  PREPARING
+  READY
+  COMPLETED
+  CANCELLED
+}
+
+enum PreparationStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  READY
+  QUALITY_CHECK
+  SERVED
+}
+
+enum StepStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  SKIPPED
+}
+
+enum TimerStatus {
+  IDLE
+  RUNNING
+  PAUSED
+  EXPIRED
+  COMPLETED
+  CANCELLED
+}
+
+enum TimerType {
+  COOKING
+  RESTING
+  COOLING
+  MARINATING
+  PROOFING
+  CUSTOM
+}
+
+enum TimerPriority {
+  LOW
+  NORMAL
+  HIGH
+  CRITICAL
+}
+
+enum OrderPriority {
+  NORMAL
+  HIGH
+  URGENT
+  RUSH
+}
+
+enum AlertSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum AlertType {
+  ORDER_DELAYED
+  EQUIPMENT_FAILURE
+  INVENTORY_LOW
+  QUALITY_ISSUE
+  SAFETY_CONCERN
+  STAFF_SHORTAGE
+  SYSTEM_ERROR
+}
+
+enum StaffStatus {
+  AVAILABLE
+  BUSY
+  ON_BREAK
+  CLOCKED_OUT
+}
+
+enum StationType {
+  GRILL
+  FRYER
+  SALAD
+  DESSERT
+  DRINKS
+  EXPEDITE
+  PREP
+  DISHWASHING
+}
+
+enum StationStatus {
+  OPERATIONAL
+  BUSY
+  OFFLINE
+  MAINTENANCE
+}
+
+enum EquipmentType {
+  OVEN
+  GRILL
+  FRYER
+  MIXER
+  REFRIGERATOR
+  FREEZER
+  WARMING_STATION
+  ESPRESSO_MACHINE
+  BLENDER
+  OTHER
+}
+
+enum EquipmentStatus {
+  OPERATIONAL
+  IN_USE
+  MAINTENANCE_REQUIRED
+  OFFLINE
+  BROKEN
+}

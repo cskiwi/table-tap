@@ -7,7 +7,8 @@ import { MenuModule } from 'primeng/menu';
 import { TooltipModule } from 'primeng/tooltip';
 import { ProgressBarModule } from 'primeng/progressbar';
 
-import { KitchenOrderItem, PreparationStatus } from '../../types/kitchen.types';
+import { OrderItem } from '@app/models';
+import { PreparationStatus } from '@app/models/enums';
 
 @Component({
   selector: 'app-order-item',
@@ -23,7 +24,7 @@ import { KitchenOrderItem, PreparationStatus } from '../../types/kitchen.types';
   templateUrl: './order-item.component.html',
 })
 export class OrderItemComponent {
-  @Input() item!: KitchenOrderItem;
+  @Input() item!: OrderItem;
   @Input() showTimer = true;
   @Input() showNotes = true;
   @Input() showAllergies = true;
@@ -31,11 +32,11 @@ export class OrderItemComponent {
 
   @Output() statusChanged = new EventEmitter<{ itemId: string; status: PreparationStatus }>()
   @Output() timerRequested = new EventEmitter<{ itemId: string; duration: number; name: string }>()
-  @Output() notesClicked = new EventEmitter<KitchenOrderItem>()
+  @Output() notesClicked = new EventEmitter<OrderItem>()
 
   readonly itemClasses = computed(() => {
     const classes = [
-      `status-${this.item.preparationStatus}`
+      `status-${this.item.preparationStatus}`,
       `category-${this.item.product.category?.toLowerCase().replace(/\s+/g, '-')}`];
     if (this.compactMode) classes.push('compact');
     if (this.item.allergiesNotes) classes.push('has-allergies');
@@ -147,7 +148,7 @@ export class OrderItemComponent {
     const name = `${this.item.product.name} Timer`;
 
     this.timerRequested.emit({
-      itemId: this.item.id;
+      itemId: this.item.id,
       duration: duration * 60, // Convert to seconds
       name
     });
@@ -172,32 +173,49 @@ export class OrderItemComponent {
            this.item.preparationStatus !== PreparationStatus.CANCELLED;
   }
 
+  // Customization methods
+  getCustomizationsList(): string[] {
+    if (!this.item.customizations) return [];
+
+    const customizations: string[] = [];
+    const custom = this.item.customizations;
+
+    if (custom.size) customizations.push(`Size: ${custom.size}`);
+    if (custom.temperature) customizations.push(`Temp: ${custom.temperature}`);
+    if (custom.milkType) customizations.push(`Milk: ${custom.milkType}`);
+    if (custom.sweetness) customizations.push(`Sweetness: ${custom.sweetness}`);
+    if (custom.extras?.length) customizations.push(...custom.extras.map(e => `+ ${e}`));
+    if (custom.removals?.length) customizations.push(...custom.removals.map(r => `- ${r}`));
+
+    return customizations;
+  }
+
   // Menu actions
   startPreparation(): void {
     this.statusChanged.emit({
-      itemId: this.item.id;
-      status: PreparationStatus.IN_PROGRESS;
+      itemId: this.item.id,
+      status: PreparationStatus.IN_PROGRESS,
     });
   }
 
   completeItem(): void {
     this.statusChanged.emit({
-      itemId: this.item.id;
-      status: PreparationStatus.COMPLETED;
+      itemId: this.item.id,
+      status: PreparationStatus.COMPLETED,
     });
   }
 
   pauseItem(): void {
     this.statusChanged.emit({
-      itemId: this.item.id;
-      status: PreparationStatus.ON_HOLD;
+      itemId: this.item.id,
+      status: PreparationStatus.ON_HOLD,
     });
   }
 
   resetItem(): void {
     this.statusChanged.emit({
-      itemId: this.item.id;
-      status: PreparationStatus.PENDING;
+      itemId: this.item.id,
+      status: PreparationStatus.PENDING,
     });
   }
 

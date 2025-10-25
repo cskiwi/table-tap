@@ -10,7 +10,6 @@ import { DividerModule } from 'primeng/divider';
 import { FloatLabelModule } from 'primeng/floatlabel';
 
 import { KitchenService } from '../../services/kitchen.service';
-import { KitchenDisplaySettings } from '../../types/kitchen.types';
 
 @Component({
   selector: 'app-settings-panel',
@@ -30,7 +29,7 @@ import { KitchenDisplaySettings } from '../../types/kitchen.types';
 export class SettingsPanelComponent {
   @Input() embedded = false;
   @Output() close = new EventEmitter<void>()
-  @Output() settingsChanged = new EventEmitter<Partial<KitchenDisplaySettings>>()
+  @Output() settingsChanged = new EventEmitter<any>()
 
   private readonly fb = inject(FormBuilder);
   private readonly kitchenService = inject(KitchenService);
@@ -69,7 +68,7 @@ export class SettingsPanelComponent {
 
   saveSettings(): void {
     if (this.settingsForm.valid) {
-      const settings = this.settingsForm.value as KitchenDisplaySettings;
+      const settings = this.settingsForm.value;
       this.kitchenService.updateDisplaySettings(settings);
       this.settingsChanged.emit(settings);
       this.settingsForm.markAsPristine()
@@ -88,7 +87,7 @@ export class SettingsPanelComponent {
   }
 
   resetToDefaults(): void {
-    const defaultSettings: KitchenDisplaySettings = {
+    const defaultSettings = {
       showTimers: true,
       showNotes: true,
       showAllergies: true,

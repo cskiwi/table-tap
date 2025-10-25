@@ -16,17 +16,26 @@
   </ng-template>
 
   @if (metrics()) {
-    <p-tabView>
-      <!-- Overview Tab -->
-      <p-tabPanel header="Overview">
-        <ng-template pTemplate="header">
-          <div class="flex items-center gap-2">
-            <i class="pi pi-th-large"></i>
-            <span>Overview</span>
-          </div>
-        </ng-template>
-
-        <!-- Key Performance Indicators -->
+    <p-tabs value="overview">
+      <p-tablist>
+        <p-tab value="overview">
+          <i class="pi pi-th-large mr-2"></i>
+          Overview
+        </p-tab>
+        <p-tab value="staff">
+          <i class="pi pi-users mr-2"></i>
+          Staff
+        </p-tab>
+        <p-tab value="stations">
+          <i class="pi pi-building mr-2"></i>
+          Stations
+        </p-tab>
+      </p-tablist>
+      
+      <p-tabpanels>
+        <!-- Overview Tab -->
+        <p-tabpanel value="overview">
+          <!-- Key Performance Indicators -->
         <div class="grid grid-cols-2 gap-4 mb-4">
           <div class="p-4 surface-100 rounded-md border">
             <div class="text-3xl font-bold text-primary-500">{{ metrics()!.ordersCompleted }}</div>
@@ -110,18 +119,11 @@
             </div>
           </div>
         }
-      </p-tabPanel>
+        </p-tabpanel>
 
-      <!-- Staff Performance Tab -->
-      <p-tabPanel header="Staff">
-        <ng-template pTemplate="header">
-          <div class="flex items-center gap-2">
-            <i class="pi pi-users"></i>
-            <span>Staff</span>
-          </div>
-        </ng-template>
-
-        <div class="flex items-center gap-4 mb-4 p-3 surface-100 rounded-md">
+        <!-- Staff Performance Tab -->
+        <p-tabpanel value="staff">
+          <div class="flex items-center gap-4 mb-4 p-3 surface-100 rounded-md">
           <div class="flex items-center gap-2">
             <i class="pi pi-user"></i>
             {{ getActiveStaffCount() }} Active Staff
@@ -176,18 +178,11 @@
             </div>
           }
         </div>
-      </p-tabPanel>
+        </p-tabpanel>
 
-      <!-- Stations Tab -->
-      <p-tabPanel header="Stations">
-        <ng-template pTemplate="header">
-          <div class="flex items-center gap-2">
-            <i class="pi pi-building"></i>
-            <span>Stations</span>
-          </div>
-        </ng-template>
-
-        <div class="grid grid-cols-2 gap-4">
+        <!-- Stations Tab -->
+        <p-tabpanel value="stations">
+          <div class="grid grid-cols-2 gap-4">
           @for (counter of metrics()!.countersUtilization; track trackByCounterId($index, counter)) {
             <div class="p-4 border rounded-md">
               <div class="flex items-center justify-between mb-3">
@@ -231,8 +226,9 @@
             </div>
           }
         </div>
-      </p-tabPanel>
-    </p-tabView>
+        </p-tabpanel>
+      </p-tabpanels>
+    </p-tabs>
   } @else {
     <div class="flex flex-col items-center justify-center py-12 text-center">
       <i class="pi pi-chart-line text-4xl text-500 mb-3"></i>

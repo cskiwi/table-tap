@@ -77,7 +77,7 @@ export class AdminService {
     this._loading.set(true);
     this._error.set(null);
 
-    // Load dashboard metrics
+    // Load all dashboard data using GraphQL queries
     this.loadDashboardMetrics(cafeId);
     this.loadRevenueMetrics(cafeId);
     this.loadOrderMetrics(cafeId);
@@ -86,163 +86,95 @@ export class AdminService {
     this.loadNotifications(cafeId);
   }
 
-  // Dashboard metrics
-  private loadDashboardMetrics(cafeId: string): void {
-    // Mock implementation - replace with GraphQL query
-    setTimeout(() => {
-      const metrics: AdminDashboardMetrics = {
-        todayRevenue: 2450.75,
-        todayOrders: 87,
-        activeEmployees: 12,
-        lowStockItems: 5,
-        pendingOrders: 8,
-        averageOrderValue: 28.16,
-        customerCount: 156,
-        inventoryValue: 15420.50,
-      }
-      this._dashboardMetrics.set(metrics);
-      this._loading.set(false);
-    }, 1000);
-  }
-
-  // Revenue metrics
-  loadRevenueMetrics(cafeId: string, dateRange?: AdminDateRange): Observable<RevenueMetrics> {
-    // Mock implementation - replace with GraphQL query
-    return new Observable(observer => {
-      setTimeout(() => {
-        const metrics: RevenueMetrics = {
-          today: 2450.75,
-          yesterday: 2156.32,
-          thisWeek: 16789.45,
-          lastWeek: 15234.67,
-          thisMonth: 67543.21,
-          lastMonth: 58976.54,
-          growth: {
-            daily: 13.6,
-            weekly: 10.2,
-            monthly: 14.5,
-          }
+  loadRevenueMetrics(cafeId: string, dateRange?: AdminDateRange): void {
+    import('../graphql/admin.operations').then(({ GET_REVENUE_METRICS }) => {
+      this.apollo.watchQuery<{ revenueMetrics: RevenueMetrics }>({
+        query: GET_REVENUE_METRICS,
+        variables: { cafeId, dateRange },
+      }).valueChanges.subscribe({
+        next: (result) => {
+          this._revenueMetrics.set(result.data.revenueMetrics);
+        },
+        error: (error) => {
+          this._error.set(error.message);
         }
-        this._revenueMetrics.set(metrics);
-        observer.next(metrics);
-        observer.complete()
-      }, 500);
+      });
     });
   }
 
-  // Order metrics
-  private loadOrderMetrics(cafeId: string): void {
-    // Mock implementation - replace with GraphQL query
-    setTimeout(() => {
-      const metrics: OrderMetrics = {
-        total: 87,
-        pending: 8,
-        preparing: 15,
-        ready: 4,
-        completed: 58,
-        cancelled: 2,
-        averageTime: 12.5,
-        peakHours: [
-          { hour: 8, count: 12 },
-          { hour: 12, count: 25 },
-          { hour: 18, count: 18 }
-        ]
-      };
-      this._orderMetrics.set(metrics);
-    }, 700);
-  }
-
-  // Inventory alerts
-  private loadInventoryAlerts(cafeId: string): void {
-    // Mock implementation - replace with GraphQL query
-    setTimeout(() => {
-      const alerts: InventoryAlert[] = [
-        {
-          id: '1',
-          type: 'LOW_STOCK',
-          itemName: 'Colombian Coffee Beans',
-          sku: 'COF-001',
-          currentStock: 2,
-          minimumStock: 10,
-          severity: 'HIGH',
-          message: 'Stock running low - only 2 units remaining',
-          createdAt: new Date()
+  loadOrderMetrics(cafeId: string): void {
+    import('../graphql/admin.operations').then(({ GET_ORDER_METRICS }) => {
+      this.apollo.watchQuery<{ orderMetrics: OrderMetrics }>({
+        query: GET_ORDER_METRICS,
+        variables: { cafeId },
+      }).valueChanges.subscribe({
+        next: (result) => {
+          this._orderMetrics.set(result.data.orderMetrics);
         },
-  {
-          id: '2',
-          type: 'OUT_OF_STOCK',
-          itemName: 'Oat Milk',
-          sku: 'MLK-003',
-          currentStock: 0,
-          minimumStock: 5,
-          severity: 'CRITICAL',
-          message: 'Out of stock - immediate restocking required',
-          createdAt: new Date()
-  }
-  ];
-      this._inventoryAlerts.set(alerts);
-    }, 600);
-  }
-
-  // Employee performance
-  private loadEmployeePerformance(cafeId: string): void {
-    // Mock implementation - replace with GraphQL query
-    setTimeout(() => {
-      const performance: EmployeePerformance[] = [
-        {
-          employeeId: '1',
-          employeeName: 'Sarah Johnson',
-          position: 'Barista',
-          ordersProcessed: 23,
-          averageOrderTime: 3.2,
-          customerRating: 4.8,
-          hoursWorked: 6.5,
-          efficiency: 92,
-          currentStatus: 'CLOCKED_IN',
-        },
-  {
-          employeeId: '2',
-          employeeName: 'Mike Chen',
-          position: 'Cashier',
-          ordersProcessed: 31,
-          averageOrderTime: 2.1,
-          customerRating: 4.6,
-          hoursWorked: 7.0,
-          efficiency: 88,
-          currentStatus: 'CLOCKED_IN',
-  }
-  ];
-      this._employeePerformance.set(performance);
-    }, 800);
-  }
-
-  // Notifications
-  private loadNotifications(cafeId: string): void {
-    // Mock implementation - replace with GraphQL query
-    setTimeout(() => {
-      const notifications: AdminNotification[] = [
-        {
-          id: '1',
-          type: 'WARNING',
-          title: 'Low Stock Alert',
-          message: 'Colombian Coffee Beans running low',
-          timestamp: new Date(),
-          read: false,
-          actionUrl: '/admin/inventory'
-        },
-        {
-          id: '2',
-          type: 'INFO',
-          title: 'Daily Report Ready',
-          message: 'Yesterday\'s sales report is available',
-          timestamp: new Date(Date.now() - 3600000),
-          read: true,
-          actionUrl: '/admin/analytics'
+        error: (error) => {
+          this._error.set(error.message);
         }
-      ];
-      this._notifications.set(notifications);
-    }, 400);
+      });
+    });
   }
+
+  private loadInventoryAlerts(cafeId: string): void {
+    // TODO: Implement inventory alerts query once inventory system is complete
+    this._inventoryAlerts.set([]);
+  }
+
+  private loadEmployeePerformance(cafeId: string): void {
+    import('../graphql/admin.operations').then(({ GET_EMPLOYEE_PERFORMANCE }) => {
+      this.apollo.watchQuery<{ employeePerformance: EmployeePerformance[] }>({
+        query: GET_EMPLOYEE_PERFORMANCE,
+        variables: { cafeId, limit: 10 },
+      }).valueChanges.subscribe({
+        next: (result) => {
+          this._employeePerformance.set(result.data.employeePerformance);
+        },
+        error: (error) => {
+          this._error.set(error.message);
+        }
+      });
+    });
+  }
+
+  private loadNotifications(cafeId: string): void {
+    import('../graphql/admin.operations').then(({ GET_ADMIN_NOTIFICATIONS }) => {
+      this.apollo.watchQuery<{ adminNotifications: AdminNotification[] }>({
+        query: GET_ADMIN_NOTIFICATIONS,
+        variables: { cafeId, limit: 20 },
+      }).valueChanges.subscribe({
+        next: (result) => {
+          this._notifications.set(result.data.adminNotifications);
+        },
+        error: (error) => {
+          this._error.set(error.message);
+        }
+      });
+    });
+  }
+
+  // Dashboard metrics
+  private loadDashboardMetrics(cafeId: string): void {
+    import('../graphql/admin.operations').then(({ GET_ADMIN_DASHBOARD }) => {
+      this.apollo.watchQuery<{ adminDashboard: AdminDashboardMetrics }>({
+        query: GET_ADMIN_DASHBOARD,
+        variables: { cafeId },
+      }).valueChanges.subscribe({
+        next: (result) => {
+          this._dashboardMetrics.set(result.data.adminDashboard);
+          this._loading.set(false);
+        },
+        error: (error) => {
+          this._error.set(error.message);
+          this._loading.set(false);
+        }
+      });
+    });
+  }
+
+ 
 
   // Sales analytics
   loadSalesAnalytics(cafeId: string, dateRange: AdminDateRange): Observable<SalesAnalytics> {
@@ -288,7 +220,7 @@ export class AdminService {
   }
 
   // Settings management
-  loadSettings(cafeId: string): Observable<AdminSettings> {
+  private loadSettings(cafeId: string): Observable<AdminSettings> {
     return new Observable(observer => {
       setTimeout(() => {
         const settings: AdminSettings = {

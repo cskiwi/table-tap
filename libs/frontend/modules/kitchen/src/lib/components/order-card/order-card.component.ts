@@ -1,17 +1,17 @@
 import { Component, Input, Output, EventEmitter, computed, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { CardModule } from 'primeng/card';
-import { ButtonModule } from 'primeng/button';
+import { ButtonModule, ButtonSeverity } from 'primeng/button';
 // Icon removed - use primeicons in template
 import { ChipModule } from 'primeng/chip';
 import { MenuModule } from 'primeng/menu';
 import { BadgeModule } from 'primeng/badge';
 import { TooltipModule } from 'primeng/tooltip';
-import { ProgressSpinnerModule } from 'primeng/progressspinner';
+import { ProgressBarModule } from 'primeng/progressbar';
 import { CdkMenuModule } from '@angular/cdk/menu';
 
-import { KitchenOrder, KitchenOrderItem, PreparationStatus, OrderPriority } from '../../types/kitchen.types';
-import { OrderStatus } from '@app/models';
+import { Order, OrderItem, OrderStatus } from '@app/models';
+import { PreparationStatus, OrderPriority } from '@app/models/enums';
 import { OrderItemComponent } from '../order-item/order-item.component';
 // TODO: Re-implement dialog components with PrimeNG Dialog
 // import { TimerDialogComponent } from '../timer-dialog/timer-dialog.component';
@@ -28,14 +28,14 @@ import { OrderItemComponent } from '../order-item/order-item.component';
     MenuModule,
     BadgeModule,
     TooltipModule,
-    ProgressSpinnerModule,
+    ProgressBarModule,
     CdkMenuModule,
     OrderItemComponent
   ],
   templateUrl: './order-card.component.html',
 })
 export class OrderCardComponent {
-  @Input() order!: KitchenOrder;
+  @Input() order!: Order;
   @Input() showTimers = true;
   @Input() showNotes = true;
   @Input() showAllergies = true;
@@ -149,17 +149,17 @@ export class OrderCardComponent {
     }
   }
 
-  getPrimaryActionColor(): string {
+  getPrimaryActionColor(): ButtonSeverity {
     switch (this.order.status) {
       case OrderStatus.PENDING:
       case OrderStatus.CONFIRMED:
         return 'primary';
       case OrderStatus.PREPARING:
-        return 'accent';
+        return 'contrast';
       case OrderStatus.READY:
         return 'warn';
       default:
-        return 'basic';
+        return 'secondary';
     }
   }
 
@@ -226,10 +226,10 @@ export class OrderCardComponent {
 
   onItemTimerRequested(event: { itemId: string; duration: number; name: string }): void {
     this.timerCreated.emit({
-      orderId: this.order.id;
-      itemId: event.itemId;
-      duration: event.duration;
-      name: event.name;
+      orderId: this.order.id,
+      itemId: event.itemId,
+      duration: event.duration,
+      name: event.name,
     });
   }
 
@@ -315,13 +315,13 @@ export class OrderCardComponent {
     window.print()
   }
 
-  showItemNotes(item: KitchenOrderItem): void {
+  showItemNotes(item: OrderItem): void {
     // Show item notes in a tooltip or dialog
     console.log('Show notes for item:', item.id);
   }
 
   // Utility methods
-  trackByItemId(index: number, item: KitchenOrderItem): string {
+  trackByItemId(index: number, item: OrderItem): string {
     return item.id;
   }
 }

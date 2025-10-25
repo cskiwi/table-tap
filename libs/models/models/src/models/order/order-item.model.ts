@@ -1,6 +1,7 @@
 import { SortableField } from '@app/utils';
 import { Field, ID, ObjectType } from '@nestjs/graphql';
-import { IsString, IsOptional, IsNumber, IsObject } from 'class-validator';
+import { IsString, IsOptional, IsNumber, IsObject, IsEnum } from 'class-validator';
+import { PreparationStatus } from '@app/models/enums';
 import {
   BaseEntity,
   Column,
@@ -104,6 +105,12 @@ export class OrderItem extends BaseEntity {
   @IsOptional()
   declare specialInstructions: string;
 
+  @Field({ nullable: true })
+  @Column('text', { nullable: true })
+  @IsString()
+  @IsOptional()
+  declare allergiesNotes: string;
+
   // Pricing breakdown
   @Field({ nullable: true })
   @Column('decimal', { precision: 10, scale: 2, nullable: true })
@@ -136,6 +143,23 @@ export class OrderItem extends BaseEntity {
     startedAt?: Date;
     completedAt?: Date;
   }[];
+
+  // Preparation tracking
+  @Field({ nullable: true })
+  @Column('enum', { enum: PreparationStatus, default: PreparationStatus.PENDING, nullable: true })
+  @IsEnum(PreparationStatus)
+  @IsOptional()
+  declare preparationStatus: PreparationStatus;
+
+  @Field({ nullable: true })
+  @Column('timestamp', { nullable: true })
+  @IsOptional()
+  declare preparationStartTime: Date;
+
+  @Field({ nullable: true })
+  @Column('timestamp', { nullable: true })
+  @IsOptional()
+  declare preparationEndTime: Date;
 
   // Computed fields
   @Field()

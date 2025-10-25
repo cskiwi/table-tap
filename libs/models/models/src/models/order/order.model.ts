@@ -1,5 +1,5 @@
 import { SortableField } from '@app/utils';
-import { OrderStatus } from '@app/models/enums';
+import { OrderStatus, OrderPriority } from '@app/models/enums';
 import { Field, ID, ObjectType } from '@nestjs/graphql';
 import { IsString, IsOptional, IsEnum, IsNumber, IsBoolean } from 'class-validator';
 import {
@@ -101,6 +101,15 @@ export class Order extends BaseEntity {
   @JoinColumn({ name: 'createdByEmployeeId' })
   declare createdByEmployee: Relation<User>;
 
+  // Employee assigned to prepare this order
+  @Field({ nullable: true })
+  @Column('uuid', { nullable: true })
+  declare assignedStaffId: string;
+
+  @ManyToOne(() => User, { nullable: true })
+  @JoinColumn({ name: 'assignedStaffId' })
+  declare assignedStaff: Relation<User>;
+
   // Order details
   @Field()
   @Column('decimal', { precision: 10, scale: 2 })
@@ -161,6 +170,13 @@ export class Order extends BaseEntity {
   @IsString()
   @IsOptional()
   declare specialInstructions: string;
+
+  // Order priority
+  @Field({ nullable: true })
+  @Column('enum', { enum: OrderPriority, default: OrderPriority.NORMAL, nullable: true })
+  @IsEnum(OrderPriority)
+  @IsOptional()
+  declare priority: OrderPriority;
 
   // Counter assignment
   @Field({ nullable: true })

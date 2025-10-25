@@ -9,7 +9,8 @@ import { ChipModule } from 'primeng/chip';
 import { BadgeModule } from 'primeng/badge';
 
 import { KitchenService } from '../../services/kitchen.service';
-import { InventoryAlert, AlertSeverity, AlertType } from '../../types/kitchen.types';
+import { AlertSeverity, AlertType } from '@app/models/enums';
+// Using native types for alert data - no need for interfaces
 
 @Component({
   selector: 'app-alerts-panel',
@@ -50,15 +51,15 @@ export class AlertsPanelComponent {
       }
 
       // Sort by severity
-      const severityOrder = {
-        [AlertSeverity.CRITICAL]: 0
-        [AlertSeverity.ERROR]: 1
-        [AlertSeverity.WARNING]: 2
+      const severityOrder: Record<AlertSeverity, number> = {
+        [AlertSeverity.CRITICAL]: 0,
+        [AlertSeverity.ERROR]: 1,
+        [AlertSeverity.WARNING]: 2,
         [AlertSeverity.INFO]: 3
       }
 
-      const severityA = severityOrder[a.severity] ?? 999;
-      const severityB = severityOrder[b.severity] ?? 999;
+      const severityA = severityOrder[a.severity as AlertSeverity] ?? 999;
+      const severityB = severityOrder[b.severity as AlertSeverity] ?? 999;
 
       if (severityA !== severityB) {
         return severityA - severityB;
@@ -69,7 +70,7 @@ export class AlertsPanelComponent {
     });
   }
 
-  getAlertClass(alert: InventoryAlert): string {
+  getAlertClass(alert: any): string {
     const classes = [`severity-${alert.severity}`, `type-${alert.type}`];
     if (alert.resolved) {
       classes.push('resolved');
@@ -78,7 +79,7 @@ export class AlertsPanelComponent {
     return classes.join(' ');
   }
 
-  getAlertIcon(alert: InventoryAlert): string {
+  getAlertIcon(alert: any): string {
     switch (alert.type) {
       case AlertType.LOW_STOCK:
         return 'inventory_2';
@@ -112,7 +113,7 @@ export class AlertsPanelComponent {
     }
   }
 
-  getAlertTitle(alert: InventoryAlert): string {
+  getAlertTitle(alert: any): string {
     switch (alert.type) {
       case AlertType.LOW_STOCK:
         return 'Low Stock Warning';
@@ -148,12 +149,12 @@ export class AlertsPanelComponent {
     this.kitchenService.resolveAlert(alertId).subscribe({
       next: () => {
         this.alertResolved.emit(alertId);
-      }
+      },
       error: (error) => console.error('Failed to resolve alert:', error)
     });
   }
 
-  viewDetails(alert: InventoryAlert): void {
+  viewDetails(alert: any): void {
     // Open alert details dialog
     console.log('View alert details:', alert);
   }
@@ -178,7 +179,7 @@ export class AlertsPanelComponent {
     this.kitchenService.loadAlerts().subscribe()
   }
 
-  trackByAlertId(index: number, alert: InventoryAlert): string {
+  trackByAlertId(index: number, alert: any): string {
     return alert.id;
   }
 }

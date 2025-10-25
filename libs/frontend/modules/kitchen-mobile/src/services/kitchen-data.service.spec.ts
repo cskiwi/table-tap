@@ -117,7 +117,7 @@ describe('KitchenDataService', () => {
 
       expect(mockStorageService.saveOrder).toHaveBeenCalledWith(
         expect.objectContaining({
-          status: OrderStatus.COMPLETED
+          status: OrderStatus.COMPLETED,
           completedAt: expect.any(Date)
         })
       );
@@ -146,8 +146,8 @@ describe('KitchenDataService', () => {
 
   describe('Data Queries', () => {
     const orders = [
-      { ...mockOrder, station: KitchenStation.GRILL }
-      { ...mockOrder, id: 'TEST-002', station: KitchenStation.FRYER }
+      { ...mockOrder, station: KitchenStation.GRILL },
+      { ...mockOrder, id: 'TEST-002', station: KitchenStation.FRYER },
       { ...mockOrder, id: 'TEST-003', priority: OrderPriority.URGENT }
     ];
 
@@ -175,7 +175,7 @@ describe('KitchenDataService', () => {
 
     it('should get active orders only', (done) => {
       const ordersWithCompleted = [
-        ...orders
+        ...orders,
         { ...mockOrder, id: 'TEST-004', status: OrderStatus.COMPLETED }
       ];
 
@@ -193,12 +193,12 @@ describe('KitchenDataService', () => {
     it('should search orders by text', (done) => {
       const ordersWithItems = [
         {
-          ...mockOrder
+          ...mockOrder,
           items: [{ name: 'Cheeseburger', quantity: 1 }]
-        }
+        },
         {
-          ...mockOrder
-          id: 'TEST-002'
+          ...mockOrder,
+          id: 'TEST-002',
           items: [{ name: 'Chicken Wings', quantity: 6 }]
         }
       ];
@@ -218,8 +218,8 @@ describe('KitchenDataService', () => {
   describe('Kitchen Stats', () => {
     it('should calculate kitchen statistics', (done) => {
       const orders = [
-        { ...mockOrder, status: OrderStatus.COMPLETED }
-        { ...mockOrder, id: 'TEST-002', status: OrderStatus.IN_PROGRESS, station: KitchenStation.GRILL }
+        { ...mockOrder, status: OrderStatus.COMPLETED },
+        { ...mockOrder, id: 'TEST-002', status: OrderStatus.IN_PROGRESS, station: KitchenStation.GRILL },
         { ...mockOrder, id: 'TEST-003', status: OrderStatus.IN_PROGRESS, station: KitchenStation.FRYER }
       ];
 
@@ -239,12 +239,12 @@ describe('KitchenDataService', () => {
 
   describe('Inventory Management', () => {
     const mockInventoryItem = {
-      id: 'INV-001'
-      name: 'Ground Beef'
-      currentStock: 5
-      minStock: 10
-      unit: 'lbs'
-      lastUpdated: new Date()
+      id: 'INV-001',
+      name: 'Ground Beef',
+      currentStock: 5,
+      minStock: 10,
+      unit: 'lbs',
+      lastUpdated: new Date(),
       location: 'Freezer A'
     };
 
@@ -258,7 +258,7 @@ describe('KitchenDataService', () => {
 
       expect(mockStorageService.saveInventoryItem).toHaveBeenCalledWith(
         expect.objectContaining({
-          ...updates
+          ...updates,
           lastUpdated: expect.any(Date)
         })
       );
@@ -303,7 +303,7 @@ describe('KitchenDataService', () => {
       await service.updateConfig(updates);
 
       expect(mockStorageService.saveConfig).toHaveBeenCalledWith(
-        'kitchen_config'
+        'kitchen_config',
         expect.objectContaining(updates)
       );
       expect(mockSyncService.queueOperation).toHaveBeenCalled();
@@ -362,8 +362,8 @@ describe('KitchenDataService', () => {
 
     it('should import data', async () => {
       const importData = {
-        orders: [mockOrder]
-        inventory: []
+        orders: [mockOrder],
+        inventory: [],
         config: { voiceControlEnabled: false }
       };
 

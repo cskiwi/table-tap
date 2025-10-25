@@ -62,7 +62,7 @@
               <p-progressbar
                 [value]="getProgressPercentage(timer)"
                 [showValue]="false"
-                [severity]="getProgressColor(timer) === 'warn' ? 'danger' : getProgressColor(timer) === 'accent' ? 'warning' : 'success'">
+                [color]="getProgressColor(timer) === 'warn' ? 'danger' : getProgressColor(timer) === 'accent' ? 'warning' : 'success'">
               </p-progressbar>
               <div class="text-center text-sm text-surface-600 dark:text-surface-400 mt-1">
                 / {{ formatTime(timer.duration) }}
@@ -86,7 +86,7 @@
                 @if (timer.status === 'running') {
                   <p-button
                     icon="pi pi-pause"
-                    severity="warning"
+                    severity="warn"
                     [text]="true"
                     [rounded]="true"
                     (click)="pauseTimer(timer.id)"
