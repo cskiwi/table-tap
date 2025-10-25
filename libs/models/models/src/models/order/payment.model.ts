@@ -36,7 +36,7 @@ export class Payment extends BaseEntity {
   // Relations
   @Field()
   @Column('uuid')
-  @Index()
+  @Index('orderId')
   declare orderId: string;
 
   @ManyToOne(() => Order, order => order.payments, { onDelete: 'CASCADE' })
@@ -45,7 +45,7 @@ export class Payment extends BaseEntity {
 
   @Field({ nullable: true })
   @Column('uuid', { nullable: true })
-  @Index()
+  @Index('userId')
   declare userId: string;
 
   @ManyToOne(() => User, { nullable: true })
@@ -74,10 +74,10 @@ export class Payment extends BaseEntity {
   declare amount: number;
 
   @Field({ nullable: true })
-  @Column({ nullable: true })
+  @Column({ name: 'transactionId', nullable: true })
   @IsString()
   @IsOptional()
-  @Index({ unique: true, where: 'transactionId IS NOT NULL' })
+  @Index('transactionId', { unique: true, where: '"transactionId" IS NOT NULL' })
   declare transactionId: string;
 
   @Field({ nullable: true })

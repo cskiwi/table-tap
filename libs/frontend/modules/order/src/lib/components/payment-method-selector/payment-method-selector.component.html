@@ -321,7 +321,7 @@
             <button
               type="button"
               class="px-6 py-2.5 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed bg-primary text-primary-contrast hover:bg-primary-emphasis"
-              [disabled]="!cardForm?.valid || isProcessing()"
+              [disabled]="!cardForm.valid || isProcessing()"
               (click)="addPaymentMethod()"
             >
               @if (isProcessing()) {

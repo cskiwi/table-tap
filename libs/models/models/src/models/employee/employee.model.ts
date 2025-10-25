@@ -90,7 +90,7 @@ export class Employee extends BaseEntity {
   @Column({ nullable: true, unique: true })
   @IsString()
   @IsOptional()
-  @Index({ unique: true, where: 'email IS NOT NULL' })
+  @Index({ unique: true, where: '"email" IS NOT NULL' })
   declare email: string;
 
   @Field({ nullable: true })

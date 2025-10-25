@@ -61,7 +61,7 @@ export class Glass extends BaseEntity {
   @Column({ nullable: true, unique: true })
   @IsString()
   @IsOptional()
-  @Index({ unique: true, where: 'rfidTag IS NOT NULL' })
+  @Index({ unique: true, where: '"rfidTag" IS NOT NULL' })
   declare rfidTag: string;
 
   @Field({ nullable: true })

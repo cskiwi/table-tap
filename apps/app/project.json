@@ -10,23 +10,23 @@
       "executor": "@nx/angular:application",
       "outputs": ["{options.outputPath}"],
       "options": {
-        "outputPath": "dist/apps/app",
-        "index": "apps/app/src/index.html",
-        "browser": "apps/app/src/main.ts",
-        "server": "apps/app/src/main.server.ts",
-        "polyfills": ["zone.js"],
-        "tsConfig": "apps/app/tsconfig.app.json",
+        "outputPath": "{workspaceRoot}/dist/{projectRoot}",
+        "index": "{projectRoot}/src/index.html",
+        "browser": "{projectRoot}/src/main.ts",
+        "server": "{projectRoot}/src/main.server.ts",
+        "tsConfig": "{projectRoot}/tsconfig.app.json",
         "inlineStyleLanguage": "scss",
         "assets": [
           {
             "glob": "**/*",
-            "input": "apps/app/public"
+            "input": "{projectRoot}/public"
+          },
+          {
+            "glob": "**/assets/**",
+            "input": "{workspaceRoot}/libs"
           }
         ],
-        "styles": ["apps/app/src/styles.scss"],
-        "stylePreprocessorOptions": {
-          "includePaths": ["node_modules/"]
-        },
+        "styles": ["{projectRoot}/src/styles.scss"],
         "externalDependencies": [
           "@apollo/gateway",
           "@apollo/subgraph",
@@ -92,7 +92,8 @@
           "proxyConfig": "{projectRoot}/proxy.conf.json"
         }
       },
-      "defaultConfiguration": "development"
+      "defaultConfiguration": "development",
+      "continuous": true
     },
     "extract-i18n": {
       "executor": "@nx/angular:extract-i18n",
@@ -104,10 +105,23 @@
       "executor": "@nx/eslint:lint"
     },
     "test": {
-      "executor": "@nx/jest:jest",
-      "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
+      "inputs": [
+        "default",
+        "^production",
+        "{workspaceRoot}/jest.preset.js",
+        {
+          "externalDependencies": ["jest"]
+        }
+      ],
+      "outputs": ["{workspaceRoot}/coverage/{projectRoot}", "{workspaceRoot}\\coverage\\apps\\app"],
       "options": {
-        "jestConfig": "{projectRoot}/jest.config.ts"
+        "passWithNoTests": true
+      },
+      "configurations": {
+        "ci": {
+          "ci": true,
+          "coverage": true
+        }
       }
     },
     "set-env": {

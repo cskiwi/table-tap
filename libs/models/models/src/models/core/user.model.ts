@@ -63,14 +63,14 @@ export class User extends BaseEntity {
   @Column({ nullable: true, unique: true })
   @IsEmail()
   @IsOptional()
-  @Index({ unique: true, where: 'email IS NOT NULL' })
+  @Index({ unique: true, where: '"email" IS NOT NULL' })
   declare email: string;
 
   @Field({ nullable: true })
   @Column({ nullable: true })
   @IsPhoneNumber()
   @IsOptional()
-  @Index({ where: 'phone IS NOT NULL' })
+  @Index({ where: '"phone" IS NOT NULL' })
   declare phone: string;
 
   // User Information

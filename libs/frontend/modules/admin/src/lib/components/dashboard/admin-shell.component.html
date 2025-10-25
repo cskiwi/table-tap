@@ -24,8 +24,8 @@
 
       <!-- User Menu -->
       <p-avatar
-        [image]="currentUser()?.profileImage"
-        [label]="currentUser()?.name?.charAt(0)"
+        [image]="currentUser().profileImage"
+        [label]="currentUser().name.charAt(0)"
         shape="circle"
         class="cursor-pointer"
         (click)="userMenu.toggle($event)">
@@ -45,8 +45,8 @@
     <div class="flex flex-col h-full">
       <!-- Cafe Info -->
       <div class="p-4 border-b border-solid surface-border">
-        <h3 class="text-xl font-semibold m-0 mb-1 text-color">{{ currentCafe()?.name || 'TableTap Café' }}</h3>
-        <p class="m-0 text-sm text-color-secondary">{{ currentUser()?.role }}</p>
+        <h3 class="text-xl font-semibold m-0 mb-1 text-color">{{ currentCafe().name || 'TableTap Café' }}</h3>
+        <p class="m-0 text-sm text-color-secondary">{{ currentUser().role }}</p>
       </div>
 
       <p-divider class="my-0"></p-divider>
@@ -124,7 +124,7 @@
   </p-drawer>
 
   <!-- Main Content Area -->
-  <div class="flex-1 overflow-auto transition-all" [class.ml-0]="!sidebarVisible" [class.ml-[280px]]="sidebarVisible">
+  <div class="flex-1 overflow-auto transition-all" [class.ml-0]="!sidebarVisible()" [class.ml-[280px]]="sidebarVisible()">
     <div class="p-4">
       <router-outlet></router-outlet>
     </div>
@@ -198,15 +198,15 @@
     <div class="surface-card">
       <div class="flex items-center gap-3 p-4 border-b border-solid surface-border">
         <p-avatar
-          [image]="currentUser()?.profileImage"
-          [label]="currentUser()?.name?.charAt(0)"
+          [image]="currentUser().profileImage"
+          [label]="currentUser().name.charAt(0)"
           size="large"
           shape="circle">
         </p-avatar>
         <div class="flex-1 min-w-0">
-          <h4 class="m-0 mb-1 text-base font-semibold text-color truncate">{{ currentUser()?.name }}</h4>
-          <p class="m-0 mb-1 text-xs text-color-secondary truncate">{{ currentUser()?.email }}</p>
-          <p class="m-0 text-xs font-medium text-primary">{{ currentUser()?.role }}</p>
+          <h4 class="m-0 mb-1 text-base font-semibold text-color truncate">{{ currentUser().name }}</h4>
+          <p class="m-0 mb-1 text-xs text-color-secondary truncate">{{ currentUser().email }}</p>
+          <p class="m-0 text-xs font-medium text-primary">{{ currentUser().role }}</p>
         </div>
       </div>
 

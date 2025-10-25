@@ -67,7 +67,7 @@ export class Product extends BaseEntity {
   @Column({ unique: true, nullable: true })
   @IsString()
   @IsOptional()
-  @Index({ unique: true, where: 'sku IS NOT NULL' })
+  @Index({ unique: true, where: '"sku" IS NOT NULL' })
   declare sku: string;
 
   @Field()

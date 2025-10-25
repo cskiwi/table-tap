@@ -218,21 +218,63 @@ Versatile badge/tag component.
 
 **Variants:** `badge`, `tag`, `dot`
 
-### Dialog & Notification Components
+### Notification Components
 
-#### ConfirmDialogComponent
-Confirmation dialog service with predefined methods.
+#### PrimeNG ConfirmDialog Integration
+This library integrates with PrimeNG's ConfirmDialog. Use the `ConfirmationService` for confirmation dialogs.
 
+**Setup in Component:**
 ```typescript
-constructor(private confirmDialog: ConfirmDialogComponent) {}
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { ConfirmationService } from 'primeng/api';
 
-async deleteItem() {
-  const confirmed = await this.confirmDialog.confirmDelete('this item');
-  if (confirmed) {
-    // Proceed with deletion
+@Component({
+  selector: 'app-example',
+  standalone: true,
+  imports: [ConfirmDialogModule],
+  providers: [ConfirmationService],
+  template: `
+    <!-- Add to template -->
+    <p-confirmDialog></p-confirmDialog>
+  `
+})
+export class ExampleComponent {
+  constructor(private confirmationService: ConfirmationService) {}
+
+  deleteItem(itemName: string) {
+    this.confirmationService.confirm({
+      message: `Are you sure you want to delete ${itemName}? This action cannot be undone.`,
+      header: 'Delete Confirmation',
+      icon: 'pi pi-trash',
+      acceptLabel: 'Delete',
+      rejectLabel: 'Cancel',
+      acceptButtonStyleClass: 'p-button-danger',
+      accept: () => {
+        // Proceed with deletion
+      },
+      reject: () => {
+        // Handle cancellation
+      }
+    });
+  }
+
+  saveChanges() {
+    this.confirmationService.confirm({
+      message: 'Do you want to save your changes?',
+      header: 'Save Changes',
+      icon: 'pi pi-save',
+      acceptLabel: 'Save',
+      rejectLabel: 'Cancel',
+      acceptButtonStyleClass: 'p-button-success',
+      accept: () => {
+        // Save changes
+      }
+    });
   }
 }
 ```
+
+For more information, see [PrimeNG ConfirmDialog Documentation](https://primeng.org/confirmdialog).
 
 #### ToastNotificationComponent & Service
 Toast notifications with service integration.

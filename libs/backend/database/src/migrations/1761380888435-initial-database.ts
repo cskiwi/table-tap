@@ -1,7 +1,7 @@
 import { MigrationInterface, QueryRunner } from "typeorm";
 
-export class InitialData1759694203354 implements MigrationInterface {
-    name = 'InitialData1759694203354'
+export class InitialDatabase1761380888435 implements MigrationInterface {
+    name = 'InitialDatabase1761380888435'
 
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(`
@@ -65,13 +65,22 @@ export class InitialData1759694203354 implements MigrationInterface {
                 "reorderQuantity" numeric(10, 2) NOT NULL DEFAULT '0',
                 "averageCost" numeric(10, 2),
                 "lastCost" numeric(10, 2),
+                "unitCost" numeric(10, 2),
+                "sku" character varying,
+                "category" character varying,
+                "supplier" character varying,
+                "expiryDate" TIMESTAMP,
+                "minimumStock" numeric(10, 2) NOT NULL DEFAULT '0',
+                "maximumStock" numeric(10, 2),
                 "location" character varying,
                 "unit" character varying,
                 "isActive" boolean NOT NULL DEFAULT true,
                 "lowStockAlert" boolean NOT NULL DEFAULT false,
                 "outOfStockAlert" boolean NOT NULL DEFAULT false,
+                "status" character varying DEFAULT 'active',
                 "lastRestockedAt" TIMESTAMP,
                 "lastSoldAt" TIMESTAMP,
+                CONSTRAINT "UQ_9ee732e1cc687f8a67c5d12fcc1" UNIQUE ("sku"),
                 CONSTRAINT "PK_2725537b7bbe40073a50986598d" PRIMARY KEY ("id")
             )
         `);
@@ -147,8 +156,8 @@ export class InitialData1759694203354 implements MigrationInterface {
             CREATE INDEX "IDX_26c9336d231c4e90419a5954bd" ON "Products" ("name")
         `);
         await queryRunner.query(`
-            CREATE UNIQUE INDEX "IDX_352a9ad4c58dfb50df81e3baf8" ON "Products" ("sku")
-            WHERE sku IS NOT NULL
+            CREATE UNIQUE INDEX "IDX_d47501bbb68f7b8e87c41bed31" ON "Products" ("sku")
+            WHERE "sku" IS NOT NULL
         `);
         await queryRunner.query(`
             CREATE INDEX "IDX_73672ec2e00a65cc52afa58887" ON "Products" ("cafeId", "category")
@@ -189,13 +198,20 @@ export class InitialData1759694203354 implements MigrationInterface {
                 'cash',
                 'credit',
                 'card',
+                'credit_card',
+                'debit_card',
                 'mobile',
-                'voucher'
+                'mobile_payment',
+                'voucher',
+                'gift_card',
+                'store_credit',
+                'split_payment'
             )
         `);
         await queryRunner.query(`
             CREATE TYPE "public"."Payments_status_enum" AS ENUM(
                 'pending',
+                'processing',
                 'authorized',
                 'captured',
                 'completed',
@@ -242,6 +258,9 @@ export class InitialData1759694203354 implements MigrationInterface {
                 "refundedAt" TIMESTAMP,
                 "refundReason" character varying,
                 "processedByEmployeeId" uuid,
+                "processedAt" TIMESTAMP,
+                "metadata" json,
+                "processorResponse" character varying,
                 "notes" text,
                 "receiptNumber" character varying,
                 "receiptData" json,
@@ -249,14 +268,14 @@ export class InitialData1759694203354 implements MigrationInterface {
             )
         `);
         await queryRunner.query(`
-            CREATE INDEX "IDX_d9d9f8079c3f8909154154ce33" ON "Payments" ("orderId")
+            CREATE INDEX "orderId" ON "Payments" ("orderId")
         `);
         await queryRunner.query(`
-            CREATE INDEX "IDX_61e80a03a53cf7b8a01aed5645" ON "Payments" ("userId")
+            CREATE INDEX "userId" ON "Payments" ("userId")
         `);
         await queryRunner.query(`
-            CREATE UNIQUE INDEX "IDX_8097f696a8296ded48d6527c19" ON "Payments" ("transactionId")
-            WHERE transactionId IS NOT NULL
+            CREATE UNIQUE INDEX "transactionId" ON "Payments" ("transactionId")
+            WHERE "transactionId" IS NOT NULL
         `);
         await queryRunner.query(`
             CREATE INDEX "IDX_0cb7b81de6e8f9f84a7c5a40bf" ON "Payments" ("method", "status")
@@ -292,10 +311,12 @@ export class InitialData1759694203354 implements MigrationInterface {
                 "serviceCharge" numeric(10, 2) NOT NULL DEFAULT '0',
                 "discountAmount" numeric(10, 2) NOT NULL DEFAULT '0',
                 "totalAmount" numeric(10, 2) NOT NULL,
+                "total" numeric(10, 2) NOT NULL,
                 "orderType" character varying,
                 "tableNumber" character varying,
                 "notes" text,
                 "specialInstructions" text,
+                "counterId" uuid,
                 "estimatedPrepTime" integer,
                 "confirmedAt" TIMESTAMP,
                 "preparingAt" TIMESTAMP,
@@ -454,13 +475,17 @@ export class InitialData1759694203354 implements MigrationInterface {
             CREATE TYPE "public"."Employees_position_enum" AS ENUM(
                 'customer',
                 'employee',
+                'supervisor',
                 'manager',
                 'admin',
                 'owner',
                 'cashier',
                 'barista',
                 'kitchen',
-                'waiter'
+                'kitchen_staff',
+                'waiter',
+                'server',
+                'cleaner'
             )
         `);
         await queryRunner.query(`
@@ -532,8 +557,8 @@ export class InitialData1759694203354 implements MigrationInterface {
             CREATE INDEX "IDX_47fd6f6b6c4025b2ee42bb8dfe" ON "Employees" ("lastName")
         `);
         await queryRunner.query(`
-            CREATE UNIQUE INDEX "IDX_60c74a67b69f3779837760a02f" ON "Employees" ("email")
-            WHERE email IS NOT NULL
+            CREATE UNIQUE INDEX "IDX_f9c63acc5a12f74368c4c57e8e" ON "Employees" ("email")
+            WHERE "email" IS NOT NULL
         `);
         await queryRunner.query(`
             CREATE INDEX "IDX_44b74604cbc981f4e99c18b0d8" ON "Employees" ("cafeId", "status")
@@ -688,13 +713,17 @@ export class InitialData1759694203354 implements MigrationInterface {
             CREATE TYPE "public"."Users_role_enum" AS ENUM(
                 'customer',
                 'employee',
+                'supervisor',
                 'manager',
                 'admin',
                 'owner',
                 'cashier',
                 'barista',
                 'kitchen',
-                'waiter'
+                'kitchen_staff',
+                'waiter',
+                'server',
+                'cleaner'
             )
         `);
         await queryRunner.query(`
@@ -738,12 +767,12 @@ export class InitialData1759694203354 implements MigrationInterface {
             CREATE UNIQUE INDEX "IDX_92296d4acf305474bdf6e03332" ON "Users" ("sub")
         `);
         await queryRunner.query(`
-            CREATE UNIQUE INDEX "IDX_341c46d696dbec7b2fc93df047" ON "Users" ("email")
-            WHERE email IS NOT NULL
+            CREATE UNIQUE INDEX "IDX_c75e2e4931c3af1378d5443756" ON "Users" ("email")
+            WHERE "email" IS NOT NULL
         `);
         await queryRunner.query(`
-            CREATE INDEX "IDX_75ddad3e6673a743e59a478e49" ON "Users" ("phone")
-            WHERE phone IS NOT NULL
+            CREATE INDEX "IDX_83841eeb21acd71c8422eb5796" ON "Users" ("phone")
+            WHERE "phone" IS NOT NULL
         `);
         await queryRunner.query(`
             CREATE INDEX "IDX_7cf0772bcfdec5a968f30e1d6e" ON "Users" ("firstName")
@@ -1165,6 +1194,7 @@ export class InitialData1759694203354 implements MigrationInterface {
                 "logo" character varying,
                 "website" character varying,
                 "isActive" boolean NOT NULL DEFAULT true,
+                "status" character varying DEFAULT 'active',
                 "settings" json,
                 "businessHours" json,
                 CONSTRAINT "UQ_e3c3a644db189cc9b5c8bfb8910" UNIQUE ("slug"),
@@ -1216,8 +1246,8 @@ export class InitialData1759694203354 implements MigrationInterface {
             CREATE UNIQUE INDEX "IDX_a81b910a0f45cf0da0a7efc2a3" ON "Glasses" ("glassNumber")
         `);
         await queryRunner.query(`
-            CREATE UNIQUE INDEX "IDX_fcbb223ce23bc3c669cae4395c" ON "Glasses" ("rfidTag")
-            WHERE rfidTag IS NOT NULL
+            CREATE UNIQUE INDEX "IDX_67acb8ade7046581d475322256" ON "Glasses" ("rfidTag")
+            WHERE "rfidTag" IS NOT NULL
         `);
         await queryRunner.query(`
             CREATE INDEX "IDX_63ed523be38b69f7192db0acf5" ON "Glasses" ("cafeId", "status")
@@ -1738,7 +1768,7 @@ export class InitialData1759694203354 implements MigrationInterface {
             DROP INDEX "public"."IDX_63ed523be38b69f7192db0acf5"
         `);
         await queryRunner.query(`
-            DROP INDEX "public"."IDX_fcbb223ce23bc3c669cae4395c"
+            DROP INDEX "public"."IDX_67acb8ade7046581d475322256"
         `);
         await queryRunner.query(`
             DROP INDEX "public"."IDX_a81b910a0f45cf0da0a7efc2a3"
@@ -1900,10 +1930,10 @@ export class InitialData1759694203354 implements MigrationInterface {
             DROP INDEX "public"."IDX_7cf0772bcfdec5a968f30e1d6e"
         `);
         await queryRunner.query(`
-            DROP INDEX "public"."IDX_75ddad3e6673a743e59a478e49"
+            DROP INDEX "public"."IDX_83841eeb21acd71c8422eb5796"
         `);
         await queryRunner.query(`
-            DROP INDEX "public"."IDX_341c46d696dbec7b2fc93df047"
+            DROP INDEX "public"."IDX_c75e2e4931c3af1378d5443756"
         `);
         await queryRunner.query(`
             DROP INDEX "public"."IDX_92296d4acf305474bdf6e03332"
@@ -1978,7 +2008,7 @@ export class InitialData1759694203354 implements MigrationInterface {
             DROP INDEX "public"."IDX_44b74604cbc981f4e99c18b0d8"
         `);
         await queryRunner.query(`
-            DROP INDEX "public"."IDX_60c74a67b69f3779837760a02f"
+            DROP INDEX "public"."IDX_f9c63acc5a12f74368c4c57e8e"
         `);
         await queryRunner.query(`
             DROP INDEX "public"."IDX_47fd6f6b6c4025b2ee42bb8dfe"
@@ -2071,13 +2101,13 @@ export class InitialData1759694203354 implements MigrationInterface {
             DROP INDEX "public"."IDX_0cb7b81de6e8f9f84a7c5a40bf"
         `);
         await queryRunner.query(`
-            DROP INDEX "public"."IDX_8097f696a8296ded48d6527c19"
+            DROP INDEX "public"."transactionId"
         `);
         await queryRunner.query(`
-            DROP INDEX "public"."IDX_61e80a03a53cf7b8a01aed5645"
+            DROP INDEX "public"."userId"
         `);
         await queryRunner.query(`
-            DROP INDEX "public"."IDX_d9d9f8079c3f8909154154ce33"
+            DROP INDEX "public"."orderId"
         `);
         await queryRunner.query(`
             DROP TABLE "Payments"
@@ -2104,7 +2134,7 @@ export class InitialData1759694203354 implements MigrationInterface {
             DROP INDEX "public"."IDX_73672ec2e00a65cc52afa58887"
         `);
         await queryRunner.query(`
-            DROP INDEX "public"."IDX_352a9ad4c58dfb50df81e3baf8"
+            DROP INDEX "public"."IDX_d47501bbb68f7b8e87c41bed31"
         `);
         await queryRunner.query(`
             DROP INDEX "public"."IDX_26c9336d231c4e90419a5954bd"
