@@ -49,7 +49,7 @@ export class OrderWorkflowStep extends BaseEntity {
   @IsString()
   declare stepName: string;
 
-  @Field()
+  @Field(() => WorkflowStepStatus)
   @Column('enum', { enum: WorkflowStepStatus, default: WorkflowStepStatus.PENDING })
   @IsEnum(WorkflowStepStatus)
   declare status: WorkflowStepStatus;

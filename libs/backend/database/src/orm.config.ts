@@ -18,9 +18,6 @@ const entities = Object.values(Models).filter(
   }
 );
 
-console.log('Discovered entities:', entities.length, 'out of', Object.values(Models).length, 'exports');
-console.log('Entity names:', entities.map((e: any) => e.name).join(', '));
-
 export function getDbConfig(configService?: ConfigService): DataSourceOptions {
   const getEnvVar = (key: string, defaultValue?: string) => (configService ? configService.get<string>(key) : process.env[key] || defaultValue);
 
@@ -73,10 +70,10 @@ export function initializeDataSource(configService?: ConfigService) {
     ...config,
     entities,
   });
-  datasource.initialize()
+  datasource.initialize();
 
   return {
     datasource,
     config,
-  }
+  };
 }

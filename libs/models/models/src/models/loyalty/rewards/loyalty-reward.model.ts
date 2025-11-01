@@ -72,17 +72,17 @@ export class LoyaltyReward extends BaseEntity {
   @IsOptional()
   declare image: string;
 
-  @Field()
+  @Field(() => LoyaltyRewardType)
   @Column('enum', { enum: LoyaltyRewardType })
   @IsEnum(LoyaltyRewardType)
   declare type: LoyaltyRewardType;
 
-  @Field()
+  @Field(() => LoyaltyRewardCategory)
   @Column('enum', { enum: LoyaltyRewardCategory })
   @IsEnum(LoyaltyRewardCategory)
   declare category: LoyaltyRewardCategory;
 
-  @Field()
+  @Field(() => LoyaltyRewardStatus)
   @Column('enum', { enum: LoyaltyRewardStatus, default: LoyaltyRewardStatus.ACTIVE })
   @IsEnum(LoyaltyRewardStatus)
   declare status: LoyaltyRewardStatus;
@@ -250,7 +250,7 @@ export class LoyaltyReward extends BaseEntity {
     return this.totalQuantity !== -1;
   }
 
-  @Field({ nullable: true })
+  @Field(() => Number, { nullable: true })
   get daysUntilExpiry(): number | null {
     if (!this.validUntil) return null;
     const now = new Date()

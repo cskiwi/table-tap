@@ -102,12 +102,12 @@ export class User extends BaseEntity {
   declare avatar: string;
 
   // Role and Status
-  @Field()
+  @Field(() => UserRole)
   @Column('enum', { enum: UserRole, default: UserRole.CUSTOMER })
   @IsEnum(UserRole)
   declare role: UserRole;
 
-  @Field()
+  @Field(() => UserStatus)
   @Column('enum', { enum: UserStatus, default: UserStatus.ACTIVE })
   @IsEnum(UserStatus)
   declare status: UserStatus;

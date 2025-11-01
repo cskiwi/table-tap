@@ -63,12 +63,12 @@ export class InventoryAlert extends BaseEntity {
   declare stock: Relation<Stock>;
 
   // Alert details
-  @Field()
+  @Field(() => AlertType)
   @Column('enum', { enum: AlertType })
   @IsEnum(AlertType)
   declare type: AlertType;
 
-  @Field()
+  @Field(() => AlertSeverity)
   @Column('enum', { enum: AlertSeverity })
   @IsEnum(AlertSeverity)
   declare severity: AlertSeverity;

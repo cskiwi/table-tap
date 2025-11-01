@@ -1,7 +1,7 @@
 import { MigrationInterface, QueryRunner } from "typeorm";
 
-export class InitalDatabase1761479533070 implements MigrationInterface {
-    name = 'InitalDatabase1761479533070'
+export class InitialDatabase1761996016181 implements MigrationInterface {
+    name = 'InitialDatabase1761996016181'
 
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(`
@@ -1336,29 +1336,30 @@ export class InitalDatabase1761479533070 implements MigrationInterface {
             CREATE UNIQUE INDEX "IDX_a548f4f080ba5839f018680c89" ON "LoyaltyAccounts" ("cafeId", "userId")
         `);
         await queryRunner.query(`
-            CREATE TABLE "LoyaltyChallengeMilestones" (
+            CREATE TABLE "LoyaltyChallengeEligibility" (
                 "id" uuid NOT NULL DEFAULT uuid_generate_v4(),
                 "createdAt" TIMESTAMP NOT NULL DEFAULT now(),
                 "updatedAt" TIMESTAMP DEFAULT now(),
                 "challengeId" uuid NOT NULL,
-                "percentage" integer NOT NULL,
-                "title" character varying NOT NULL,
-                "description" text NOT NULL,
-                "rewardPoints" integer,
-                "rewardBadgeId" uuid,
-                "rewardMessage" text,
-                "sortOrder" integer NOT NULL DEFAULT '0',
-                CONSTRAINT "PK_612499200b2c46c57e94185ad3b" PRIMARY KEY ("id")
+                "minTierLevel" integer,
+                "maxTierLevel" integer,
+                "eligibleTierLevels" text,
+                "newMembersOnly" boolean DEFAULT false,
+                "existingMembersOnly" boolean DEFAULT false,
+                "vipMembersOnly" boolean DEFAULT false,
+                "minOrdersLast30Days" integer,
+                "maxOrdersLast30Days" integer,
+                "minSpendLast30Days" numeric(10, 2),
+                "ageGroups" text,
+                "locations" text,
+                "excludePreviousWinners" boolean DEFAULT false,
+                "excludeRecentParticipants" integer,
+                CONSTRAINT "REL_ba6e1b5edefb1d18b86a259068" UNIQUE ("challengeId"),
+                CONSTRAINT "PK_615af7c721eede4d10f992f4313" PRIMARY KEY ("id")
             )
         `);
         await queryRunner.query(`
-            CREATE INDEX "IDX_3ab16c7f0c221053538ef0001c" ON "LoyaltyChallengeMilestones" ("challengeId")
-        `);
-        await queryRunner.query(`
-            CREATE INDEX "IDX_f4f86c679fd95dc7e1ba64b3fe" ON "LoyaltyChallengeMilestones" ("challengeId", "sortOrder")
-        `);
-        await queryRunner.query(`
-            CREATE UNIQUE INDEX "IDX_e532ac4b31b0f53fdc8ea1478c" ON "LoyaltyChallengeMilestones" ("challengeId", "percentage")
+            CREATE UNIQUE INDEX "IDX_ba6e1b5edefb1d18b86a259068" ON "LoyaltyChallengeEligibility" ("challengeId")
         `);
         await queryRunner.query(`
             CREATE TABLE "LoyaltyChallengeGoals" (
@@ -1388,27 +1389,29 @@ export class InitalDatabase1761479533070 implements MigrationInterface {
             CREATE UNIQUE INDEX "IDX_94a085e67445c9833372047037" ON "LoyaltyChallengeGoals" ("challengeId")
         `);
         await queryRunner.query(`
-            CREATE TABLE "LoyaltyChallengeTrackingRules" (
+            CREATE TABLE "LoyaltyChallengeMilestones" (
                 "id" uuid NOT NULL DEFAULT uuid_generate_v4(),
                 "createdAt" TIMESTAMP NOT NULL DEFAULT now(),
                 "updatedAt" TIMESTAMP DEFAULT now(),
                 "challengeId" uuid NOT NULL,
-                "countOnlyCompletedOrders" boolean DEFAULT true,
-                "countOnlyPaidOrders" boolean DEFAULT true,
-                "minimumOrderValue" numeric(10, 2),
-                "resetOnFailedDay" boolean DEFAULT false,
-                "allowMissedDays" integer,
-                "trackingStartTime" character varying,
-                "trackingEndTime" character varying,
-                "excludeRefunds" boolean DEFAULT true,
-                "excludeCancellations" boolean DEFAULT true,
-                "excludeEmployeeOrders" boolean DEFAULT true,
-                CONSTRAINT "REL_8343c13bc507061fb0a2ccba84" UNIQUE ("challengeId"),
-                CONSTRAINT "PK_86701824aa917984d3106f47043" PRIMARY KEY ("id")
+                "percentage" integer NOT NULL,
+                "title" character varying NOT NULL,
+                "description" text NOT NULL,
+                "rewardPoints" integer,
+                "rewardBadgeId" uuid,
+                "rewardMessage" text,
+                "sortOrder" integer NOT NULL DEFAULT '0',
+                CONSTRAINT "PK_612499200b2c46c57e94185ad3b" PRIMARY KEY ("id")
             )
         `);
         await queryRunner.query(`
-            CREATE UNIQUE INDEX "IDX_8343c13bc507061fb0a2ccba84" ON "LoyaltyChallengeTrackingRules" ("challengeId")
+            CREATE INDEX "IDX_3ab16c7f0c221053538ef0001c" ON "LoyaltyChallengeMilestones" ("challengeId")
+        `);
+        await queryRunner.query(`
+            CREATE INDEX "IDX_f4f86c679fd95dc7e1ba64b3fe" ON "LoyaltyChallengeMilestones" ("challengeId", "sortOrder")
+        `);
+        await queryRunner.query(`
+            CREATE UNIQUE INDEX "IDX_e532ac4b31b0f53fdc8ea1478c" ON "LoyaltyChallengeMilestones" ("challengeId", "percentage")
         `);
         await queryRunner.query(`
             CREATE TABLE "LoyaltyChallengeRewards" (
@@ -1437,30 +1440,27 @@ export class InitalDatabase1761479533070 implements MigrationInterface {
             CREATE UNIQUE INDEX "IDX_50482931def0a62eee28ba021f" ON "LoyaltyChallengeRewards" ("challengeId")
         `);
         await queryRunner.query(`
-            CREATE TABLE "LoyaltyChallengeEligibility" (
+            CREATE TABLE "LoyaltyChallengeTrackingRules" (
                 "id" uuid NOT NULL DEFAULT uuid_generate_v4(),
                 "createdAt" TIMESTAMP NOT NULL DEFAULT now(),
                 "updatedAt" TIMESTAMP DEFAULT now(),
                 "challengeId" uuid NOT NULL,
-                "minTierLevel" integer,
-                "maxTierLevel" integer,
-                "eligibleTierLevels" text,
-                "newMembersOnly" boolean DEFAULT false,
-                "existingMembersOnly" boolean DEFAULT false,
-                "vipMembersOnly" boolean DEFAULT false,
-                "minOrdersLast30Days" integer,
-                "maxOrdersLast30Days" integer,
-                "minSpendLast30Days" numeric(10, 2),
-                "ageGroups" text,
-                "locations" text,
-                "excludePreviousWinners" boolean DEFAULT false,
-                "excludeRecentParticipants" integer,
-                CONSTRAINT "REL_ba6e1b5edefb1d18b86a259068" UNIQUE ("challengeId"),
-                CONSTRAINT "PK_615af7c721eede4d10f992f4313" PRIMARY KEY ("id")
+                "countOnlyCompletedOrders" boolean DEFAULT true,
+                "countOnlyPaidOrders" boolean DEFAULT true,
+                "minimumOrderValue" numeric(10, 2),
+                "resetOnFailedDay" boolean DEFAULT false,
+                "allowMissedDays" integer,
+                "trackingStartTime" character varying,
+                "trackingEndTime" character varying,
+                "excludeRefunds" boolean DEFAULT true,
+                "excludeCancellations" boolean DEFAULT true,
+                "excludeEmployeeOrders" boolean DEFAULT true,
+                CONSTRAINT "REL_8343c13bc507061fb0a2ccba84" UNIQUE ("challengeId"),
+                CONSTRAINT "PK_86701824aa917984d3106f47043" PRIMARY KEY ("id")
             )
         `);
         await queryRunner.query(`
-            CREATE UNIQUE INDEX "IDX_ba6e1b5edefb1d18b86a259068" ON "LoyaltyChallengeEligibility" ("challengeId")
+            CREATE UNIQUE INDEX "IDX_8343c13bc507061fb0a2ccba84" ON "LoyaltyChallengeTrackingRules" ("challengeId")
         `);
         await queryRunner.query(`
             CREATE TYPE "public"."LoyaltyChallenges_type_enum" AS ENUM(
@@ -2777,24 +2777,24 @@ export class InitalDatabase1761479533070 implements MigrationInterface {
             ADD CONSTRAINT "FK_17bc44ed7d3ab936a0f83b5a168" FOREIGN KEY ("referredByUserId") REFERENCES "Users"("id") ON DELETE NO ACTION ON UPDATE NO ACTION
         `);
         await queryRunner.query(`
-            ALTER TABLE "LoyaltyChallengeMilestones"
-            ADD CONSTRAINT "FK_3ab16c7f0c221053538ef0001c3" FOREIGN KEY ("challengeId") REFERENCES "LoyaltyChallenges"("id") ON DELETE CASCADE ON UPDATE NO ACTION
+            ALTER TABLE "LoyaltyChallengeEligibility"
+            ADD CONSTRAINT "FK_ba6e1b5edefb1d18b86a2590680" FOREIGN KEY ("challengeId") REFERENCES "LoyaltyChallenges"("id") ON DELETE CASCADE ON UPDATE NO ACTION
         `);
         await queryRunner.query(`
             ALTER TABLE "LoyaltyChallengeGoals"
             ADD CONSTRAINT "FK_94a085e67445c9833372047037b" FOREIGN KEY ("challengeId") REFERENCES "LoyaltyChallenges"("id") ON DELETE CASCADE ON UPDATE NO ACTION
         `);
         await queryRunner.query(`
-            ALTER TABLE "LoyaltyChallengeTrackingRules"
-            ADD CONSTRAINT "FK_8343c13bc507061fb0a2ccba842" FOREIGN KEY ("challengeId") REFERENCES "LoyaltyChallenges"("id") ON DELETE CASCADE ON UPDATE NO ACTION
+            ALTER TABLE "LoyaltyChallengeMilestones"
+            ADD CONSTRAINT "FK_3ab16c7f0c221053538ef0001c3" FOREIGN KEY ("challengeId") REFERENCES "LoyaltyChallenges"("id") ON DELETE CASCADE ON UPDATE NO ACTION
         `);
         await queryRunner.query(`
             ALTER TABLE "LoyaltyChallengeRewards"
             ADD CONSTRAINT "FK_50482931def0a62eee28ba021fc" FOREIGN KEY ("challengeId") REFERENCES "LoyaltyChallenges"("id") ON DELETE CASCADE ON UPDATE NO ACTION
         `);
         await queryRunner.query(`
-            ALTER TABLE "LoyaltyChallengeEligibility"
-            ADD CONSTRAINT "FK_ba6e1b5edefb1d18b86a2590680" FOREIGN KEY ("challengeId") REFERENCES "LoyaltyChallenges"("id") ON DELETE CASCADE ON UPDATE NO ACTION
+            ALTER TABLE "LoyaltyChallengeTrackingRules"
+            ADD CONSTRAINT "FK_8343c13bc507061fb0a2ccba842" FOREIGN KEY ("challengeId") REFERENCES "LoyaltyChallenges"("id") ON DELETE CASCADE ON UPDATE NO ACTION
         `);
         await queryRunner.query(`
             ALTER TABLE "LoyaltyChallenges"
@@ -3080,19 +3080,19 @@ export class InitalDatabase1761479533070 implements MigrationInterface {
             ALTER TABLE "LoyaltyChallenges" DROP CONSTRAINT "FK_7fd25bcd575c8b837d15de0f5f1"
         `);
         await queryRunner.query(`
-            ALTER TABLE "LoyaltyChallengeEligibility" DROP CONSTRAINT "FK_ba6e1b5edefb1d18b86a2590680"
+            ALTER TABLE "LoyaltyChallengeTrackingRules" DROP CONSTRAINT "FK_8343c13bc507061fb0a2ccba842"
         `);
         await queryRunner.query(`
             ALTER TABLE "LoyaltyChallengeRewards" DROP CONSTRAINT "FK_50482931def0a62eee28ba021fc"
         `);
         await queryRunner.query(`
-            ALTER TABLE "LoyaltyChallengeTrackingRules" DROP CONSTRAINT "FK_8343c13bc507061fb0a2ccba842"
+            ALTER TABLE "LoyaltyChallengeMilestones" DROP CONSTRAINT "FK_3ab16c7f0c221053538ef0001c3"
         `);
         await queryRunner.query(`
             ALTER TABLE "LoyaltyChallengeGoals" DROP CONSTRAINT "FK_94a085e67445c9833372047037b"
         `);
         await queryRunner.query(`
-            ALTER TABLE "LoyaltyChallengeMilestones" DROP CONSTRAINT "FK_3ab16c7f0c221053538ef0001c3"
+            ALTER TABLE "LoyaltyChallengeEligibility" DROP CONSTRAINT "FK_ba6e1b5edefb1d18b86a2590680"
         `);
         await queryRunner.query(`
             ALTER TABLE "LoyaltyAccounts" DROP CONSTRAINT "FK_17bc44ed7d3ab936a0f83b5a168"
@@ -3635,28 +3635,16 @@ export class InitalDatabase1761479533070 implements MigrationInterface {
             DROP TYPE "public"."LoyaltyChallenges_type_enum"
         `);
         await queryRunner.query(`
-            DROP INDEX "public"."IDX_ba6e1b5edefb1d18b86a259068"
-        `);
-        await queryRunner.query(`
-            DROP TABLE "LoyaltyChallengeEligibility"
-        `);
-        await queryRunner.query(`
-            DROP INDEX "public"."IDX_50482931def0a62eee28ba021f"
-        `);
-        await queryRunner.query(`
-            DROP TABLE "LoyaltyChallengeRewards"
-        `);
-        await queryRunner.query(`
             DROP INDEX "public"."IDX_8343c13bc507061fb0a2ccba84"
         `);
         await queryRunner.query(`
             DROP TABLE "LoyaltyChallengeTrackingRules"
         `);
         await queryRunner.query(`
-            DROP INDEX "public"."IDX_94a085e67445c9833372047037"
+            DROP INDEX "public"."IDX_50482931def0a62eee28ba021f"
         `);
         await queryRunner.query(`
-            DROP TABLE "LoyaltyChallengeGoals"
+            DROP TABLE "LoyaltyChallengeRewards"
         `);
         await queryRunner.query(`
             DROP INDEX "public"."IDX_e532ac4b31b0f53fdc8ea1478c"
@@ -3669,6 +3657,18 @@ export class InitalDatabase1761479533070 implements MigrationInterface {
         `);
         await queryRunner.query(`
             DROP TABLE "LoyaltyChallengeMilestones"
+        `);
+        await queryRunner.query(`
+            DROP INDEX "public"."IDX_94a085e67445c9833372047037"
+        `);
+        await queryRunner.query(`
+            DROP TABLE "LoyaltyChallengeGoals"
+        `);
+        await queryRunner.query(`
+            DROP INDEX "public"."IDX_ba6e1b5edefb1d18b86a259068"
+        `);
+        await queryRunner.query(`
+            DROP TABLE "LoyaltyChallengeEligibility"
         `);
         await queryRunner.query(`
             DROP INDEX "public"."IDX_a548f4f080ba5839f018680c89"

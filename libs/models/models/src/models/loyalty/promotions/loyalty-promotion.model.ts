@@ -71,17 +71,17 @@ export class LoyaltyPromotion extends BaseEntity {
   @IsOptional()
   declare image: string;
 
-  @Field()
+  @Field(() => LoyaltyPromotionType)
   @Column('enum', { enum: LoyaltyPromotionType })
   @IsEnum(LoyaltyPromotionType)
   declare type: LoyaltyPromotionType;
 
-  @Field()
+  @Field(() => LoyaltyPromotionStatus)
   @Column('enum', { enum: LoyaltyPromotionStatus, default: LoyaltyPromotionStatus.DRAFT })
   @IsEnum(LoyaltyPromotionStatus)
   declare status: LoyaltyPromotionStatus;
 
-  @Field()
+  @Field(() => LoyaltyPromotionTrigger)
   @Column('enum', { enum: LoyaltyPromotionTrigger })
   @IsEnum(LoyaltyPromotionTrigger)
   declare trigger: LoyaltyPromotionTrigger;
@@ -191,7 +191,7 @@ export class LoyaltyPromotion extends BaseEntity {
     return this.successfulRedemptions > 0 ? this.totalRevenue / this.successfulRedemptions : 0;
   }
 
-  @Field({ nullable: true })
+  @Field(() => Number, { nullable: true })
   get daysUntilStart(): number | null {
     if (!this.startDate) return null;
     const now = new Date()
@@ -199,7 +199,7 @@ export class LoyaltyPromotion extends BaseEntity {
     return Math.ceil(diff / (1000 * 60 * 60 * 24));
   }
 
-  @Field({ nullable: true })
+  @Field(() => Number, { nullable: true })
   get daysUntilEnd(): number | null {
     if (!this.endDate) return null;
     const now = new Date()

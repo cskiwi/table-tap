@@ -43,7 +43,7 @@ export class CounterWorkingHours extends BaseEntity {
   declare counter: Relation<Counter>;
 
   // Day and hours
-  @Field()
+  @Field(() => DayOfWeek)
   @Column('enum', { enum: DayOfWeek })
   @IsEnum(DayOfWeek)
   declare dayOfWeek: DayOfWeek;

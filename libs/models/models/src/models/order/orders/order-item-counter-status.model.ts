@@ -53,7 +53,7 @@ export class OrderItemCounterStatus extends BaseEntity {
   declare counter: Relation<Counter>;
 
   // Status tracking
-  @Field()
+  @Field(() => CounterProcessingStatus)
   @Column('enum', { enum: CounterProcessingStatus, default: CounterProcessingStatus.PENDING })
   @IsEnum(CounterProcessingStatus)
   declare status: CounterProcessingStatus;

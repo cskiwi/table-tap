@@ -198,13 +198,13 @@ export class Glass extends BaseEntity {
     return this.status === 'broken';
   }
 
-  @Field({ nullable: true })
+  @Field(() => Number, { nullable: true })
   get daysSinceLastUse(): number | null {
     if (!this.lastReturnedAt) return null;
     return Math.floor((new Date().getTime() - this.lastReturnedAt.getTime()) / (1000 * 60 * 60 * 24));
   }
 
-  @Field({ nullable: true })
+  @Field(() => Number, { nullable: true })
   get daysSinceLastClean(): number | null {
     if (!this.lastCleanedAt) return null;
     return Math.floor((new Date().getTime() - this.lastCleanedAt.getTime()) / (1000 * 60 * 60 * 24));

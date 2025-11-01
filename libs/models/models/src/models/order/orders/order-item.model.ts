@@ -125,7 +125,7 @@ export class OrderItem extends BaseEntity {
   declare discountAmount: number;
 
   // Counter and preparation tracking (now in separate table)
-  @Field({ nullable: true })
+  @Field(() => [String], { nullable: true })
   @Column('simple-array', { nullable: true })
   declare countersRequired: string[]; // Counter IDs that need to process this item
 
@@ -133,7 +133,7 @@ export class OrderItem extends BaseEntity {
   declare counterStatuses: Relation<OrderItemCounterStatus[]>;
 
   // Preparation tracking
-  @Field({ nullable: true })
+  @Field(() => PreparationStatus, { nullable: true })
   @Column('enum', { enum: PreparationStatus, default: PreparationStatus.PENDING, nullable: true })
   @IsEnum(PreparationStatus)
   @IsOptional()

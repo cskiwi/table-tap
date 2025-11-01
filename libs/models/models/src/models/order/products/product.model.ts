@@ -73,12 +73,12 @@ export class Product extends BaseEntity {
   @Index({ unique: true, where: '"sku" IS NOT NULL' })
   declare sku: string;
 
-  @Field()
+  @Field(() => ProductCategory)
   @Column('enum', { enum: ProductCategory })
   @IsEnum(ProductCategory)
   declare category: ProductCategory;
 
-  @Field()
+  @Field(() => ProductStatus)
   @Column('enum', { enum: ProductStatus, default: ProductStatus.ACTIVE })
   @IsEnum(ProductStatus)
   declare status: ProductStatus;
@@ -145,14 +145,14 @@ export class Product extends BaseEntity {
   @OneToOne(() => ProductAttribute, attributes => attributes.product, { cascade: true })
   declare attributes: Relation<ProductAttribute>;
 
-  @Field({ nullable: true })
+  @Field(() => [String], { nullable: true })
   @Column('simple-array', { nullable: true })
   @IsArray()
   @IsOptional()
   declare tags: string[];
 
   // Counter routing
-  @Field({ nullable: true })
+  @Field(() => [String], { nullable: true })
   @Column('simple-array', { nullable: true })
   @IsArray()
   @IsOptional()

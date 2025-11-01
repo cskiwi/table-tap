@@ -60,7 +60,7 @@ export class TimeSheet extends BaseEntity {
   @Column('date')
   declare shiftDate: Date;
 
-  @Field()
+  @Field(() => ShiftStatus)
   @Column('enum', { enum: ShiftStatus, default: ShiftStatus.SCHEDULED })
   @IsEnum(ShiftStatus)
   declare status: ShiftStatus;
@@ -140,7 +140,7 @@ export class TimeSheet extends BaseEntity {
   @IsOptional()
   declare position: string; // Position worked during this shift
 
-  @Field({ nullable: true })
+  @Field(() => [String], { nullable: true })
   @Column('simple-array', { nullable: true })
   declare countersWorked: string[]; // Counter IDs worked during shift
 
@@ -191,13 +191,13 @@ export class TimeSheet extends BaseEntity {
     return this.actualHours > this.scheduledHours;
   }
 
-  @Field({ nullable: true })
+  @Field(() => Number, { nullable: true })
   get overtimeHours(): number | null {
     if (!this.isOvertime) return null;
     return this.actualHours - this.scheduledHours;
   }
 
-  @Field({ nullable: true })
+  @Field(() => Number, { nullable: true })
   get workingHours(): number | null {
     if (!this.actualHours || !this.breakMinutes) return this.actualHours;
     return this.actualHours - this.breakMinutes / 60;
@@ -208,7 +208,7 @@ export class TimeSheet extends BaseEntity {
     return this.entries?.length > 0;
   }
 
-  @Field()
+  @Field(() => TimeEntry, { nullable: true })
   get lastEntry(): TimeEntry | null {
     if (!this.entries?.length) return null;
     return this.entries.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())[0];
@@ -248,11 +248,8 @@ export class TimeSheetUpdateInput extends PartialType(
     'isClockedIn',
     'isOnBreak',
   ] as const),
-  InputType
+  InputType,
 ) {}
 
 @InputType()
-export class TimeSheetCreateInput extends PartialType(
-  OmitType(TimeSheetUpdateInput, ['id'] as const),
-  InputType
-) {}
+export class TimeSheetCreateInput extends PartialType(OmitType(TimeSheetUpdateInput, ['id'] as const), InputType) {}

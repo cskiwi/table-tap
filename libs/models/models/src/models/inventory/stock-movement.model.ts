@@ -55,7 +55,7 @@ export class StockMovement extends BaseEntity {
   declare product: Relation<Product>;
 
   // Movement details
-  @Field()
+  @Field(() => StockMovementType)
   @Column('enum', { enum: StockMovementType })
   @IsEnum(StockMovementType)
   declare movementType: StockMovementType;

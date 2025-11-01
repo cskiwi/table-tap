@@ -1,6 +1,7 @@
 import { SortableField } from '@app/utils';
 import { Field, ID, ObjectType } from '@nestjs/graphql';
 import { IsString, IsOptional, IsBoolean, IsObject } from 'class-validator';
+import GraphQLJSONObject from 'graphql-type-json';
 import {
   BaseEntity,
   Column,
@@ -70,12 +71,12 @@ export class Configuration extends BaseEntity {
   declare description: string;
 
   // Configuration value
-  @Field()
+  @Field(() => GraphQLJSONObject)
   @Column('json')
   @IsObject()
   declare value: any; // The actual configuration value
 
-  @Field({ nullable: true })
+  @Field(() => GraphQLJSONObject, { nullable: true })
   @Column('json', { nullable: true })
   @IsObject()
   @IsOptional()
@@ -130,7 +131,7 @@ export class Configuration extends BaseEntity {
   @JoinColumn({ name: 'lastModifiedById' })
   declare lastModifiedBy: Relation<User>;
 
-  @Field({ nullable: true })
+  @Field(() => GraphQLJSONObject, { nullable: true })
   @Column('json', { nullable: true })
   @IsObject()
   @IsOptional()

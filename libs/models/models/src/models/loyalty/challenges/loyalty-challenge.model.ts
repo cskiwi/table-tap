@@ -1,28 +1,28 @@
+import { LoyaltyChallengeDifficulty, LoyaltyChallengeFrequency, LoyaltyChallengeStatus, LoyaltyChallengeType } from '@app/models/enums';
 import { SortableField } from '@app/utils';
 import { Field, ID, ObjectType } from '@nestjs/graphql';
-import { IsString, IsOptional, IsNumber, IsEnum, IsBoolean, IsArray } from 'class-validator';
+import { IsArray, IsBoolean, IsEnum, IsNumber, IsOptional, IsString } from 'class-validator';
 import {
   BaseEntity,
   Column,
   CreateDateColumn,
+  DeleteDateColumn,
   Entity,
   Index,
-  PrimaryGeneratedColumn,
-  UpdateDateColumn,
-  DeleteDateColumn,
+  JoinColumn,
   ManyToOne,
   OneToMany,
   OneToOne,
-  JoinColumn,
+  PrimaryGeneratedColumn,
   Relation,
+  UpdateDateColumn,
 } from 'typeorm';
-import { LoyaltyChallengeType, LoyaltyChallengeStatus, LoyaltyChallengeDifficulty, LoyaltyChallengeFrequency } from '@app/models/enums';
-import { LoyaltyChallengeMilestone } from './loyalty-challenge-milestone.model';
-import { LoyaltyChallengeGoals } from './loyalty-challenge-goals.model';
-import { LoyaltyChallengeTrackingRules } from './loyalty-challenge-tracking-rules.model';
-import { LoyaltyChallengeRewards } from './loyalty-challenge-rewards.model';
-import { LoyaltyChallengeEligibility } from './loyalty-challenge-eligibility.model';
 import { Cafe } from '../../core';
+import { LoyaltyChallengeEligibility } from './loyalty-challenge-eligibility.model';
+import { LoyaltyChallengeGoals } from './loyalty-challenge-goals.model';
+import { LoyaltyChallengeMilestone } from './loyalty-challenge-milestone.model';
+import { LoyaltyChallengeRewards } from './loyalty-challenge-rewards.model';
+import { LoyaltyChallengeTrackingRules } from './loyalty-challenge-tracking-rules.model';
 
 @ObjectType('LoyaltyChallenge')
 @Entity('LoyaltyChallenges')
@@ -86,22 +86,22 @@ export class LoyaltyChallenge extends BaseEntity {
   @IsOptional()
   declare image: string;
 
-  @Field()
+  @Field(() => LoyaltyChallengeType)
   @Column('enum', { enum: LoyaltyChallengeType })
   @IsEnum(LoyaltyChallengeType)
   declare type: LoyaltyChallengeType;
 
-  @Field()
+  @Field(() => LoyaltyChallengeStatus)
   @Column('enum', { enum: LoyaltyChallengeStatus, default: LoyaltyChallengeStatus.DRAFT })
   @IsEnum(LoyaltyChallengeStatus)
   declare status: LoyaltyChallengeStatus;
 
-  @Field()
+  @Field(() => LoyaltyChallengeDifficulty)
   @Column('enum', { enum: LoyaltyChallengeDifficulty })
   @IsEnum(LoyaltyChallengeDifficulty)
   declare difficulty: LoyaltyChallengeDifficulty;
 
-  @Field()
+  @Field(() => LoyaltyChallengeFrequency)
   @Column('enum', { enum: LoyaltyChallengeFrequency })
   @IsEnum(LoyaltyChallengeFrequency)
   declare frequency: LoyaltyChallengeFrequency;
@@ -121,19 +121,19 @@ export class LoyaltyChallenge extends BaseEntity {
   declare durationDays: number; // Duration for completion
 
   // Challenge goals and rules
-  @OneToOne(() => LoyaltyChallengeGoals, goals => goals.challenge, { cascade: true })
+  @OneToOne(() => LoyaltyChallengeGoals, (goals) => goals.challenge, { cascade: true })
   declare goals: Relation<LoyaltyChallengeGoals>;
 
   // Progress tracking rules
-  @OneToOne(() => LoyaltyChallengeTrackingRules, trackingRules => trackingRules.challenge, { cascade: true })
+  @OneToOne(() => LoyaltyChallengeTrackingRules, (trackingRules) => trackingRules.challenge, { cascade: true })
   declare trackingRules: Relation<LoyaltyChallengeTrackingRules>;
 
   // Rewards
-  @OneToOne(() => LoyaltyChallengeRewards, rewards => rewards.challenge, { cascade: true })
+  @OneToOne(() => LoyaltyChallengeRewards, (rewards) => rewards.challenge, { cascade: true })
   declare rewards: Relation<LoyaltyChallengeRewards>;
 
   // Eligibility and restrictions
-  @OneToOne(() => LoyaltyChallengeEligibility, eligibility => eligibility.challenge, { cascade: true })
+  @OneToOne(() => LoyaltyChallengeEligibility, (eligibility) => eligibility.challenge, { cascade: true })
   declare eligibility: Relation<LoyaltyChallengeEligibility>;
 
   // Display and gamification
@@ -152,7 +152,7 @@ export class LoyaltyChallenge extends BaseEntity {
   @IsArray()
   declare tags: string[];
 
-  @OneToMany(() => LoyaltyChallengeMilestone, milestone => milestone.challenge, { cascade: true })
+  @OneToMany(() => LoyaltyChallengeMilestone, (milestone) => milestone.challenge, { cascade: true })
   declare milestones: Relation<LoyaltyChallengeMilestone[]>;
 
   // Analytics
@@ -228,7 +228,7 @@ export class LoyaltyChallenge extends BaseEntity {
     return this.completionCount > 0 ? this.totalPointsAwarded / this.completionCount : 0;
   }
 
-  @Field({ nullable: true })
+  @Field(() => Number, { nullable: true })
   get daysUntilStart(): number | null {
     if (!this.startDate) return null;
     const now = new Date();
@@ -236,7 +236,7 @@ export class LoyaltyChallenge extends BaseEntity {
     return Math.ceil(diff / (1000 * 60 * 60 * 24));
   }
 
-  @Field({ nullable: true })
+  @Field(() => Number, { nullable: true })
   get daysUntilEnd(): number | null {
     if (!this.endDate) return null;
     const now = new Date();
@@ -306,7 +306,7 @@ export class LoyaltyChallenge extends BaseEntity {
 }
 
 // GraphQL Input Types
-import { InputType, PartialType, OmitType } from '@nestjs/graphql';
+import { InputType, OmitType, PartialType } from '@nestjs/graphql';
 
 @InputType()
 export class LoyaltyChallengeUpdateInput extends PartialType(
@@ -325,11 +325,8 @@ export class LoyaltyChallengeUpdateInput extends PartialType(
     'difficultyStars',
     'displayType',
   ] as const),
-  InputType
+  InputType,
 ) {}
 
 @InputType()
-export class LoyaltyChallengeCreateInput extends PartialType(
-  OmitType(LoyaltyChallengeUpdateInput, ['id'] as const),
-  InputType
-) {}
+export class LoyaltyChallengeCreateInput extends PartialType(OmitType(LoyaltyChallengeUpdateInput, ['id'] as const), InputType) {}

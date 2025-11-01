@@ -43,7 +43,7 @@ export class CafeBusinessHours extends BaseEntity {
   declare cafe: Relation<Cafe>;
 
   // Day and hours
-  @Field()
+  @Field(() => DayOfWeek)
   @Column('enum', { enum: DayOfWeek })
   declare dayOfWeek: DayOfWeek;
 

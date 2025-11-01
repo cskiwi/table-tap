@@ -57,7 +57,7 @@ export class Credit extends BaseEntity {
   declare user: Relation<User>;
 
   // Transaction details
-  @Field()
+  @Field(() => TransactionType)
   @Column('enum', { enum: TransactionType })
   @IsEnum(TransactionType)
   declare transactionType: TransactionType;
@@ -179,7 +179,7 @@ export class Credit extends BaseEntity {
     return this.restrictions != null && Object.keys(this.restrictions).length > 0;
   }
 
-  @Field({ nullable: true })
+  @Field(() => Number, { nullable: true })
   get daysUntilExpiry(): number | null {
     if (!this.expiresAt) return null;
     const now = new Date();

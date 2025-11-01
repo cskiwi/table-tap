@@ -77,7 +77,7 @@ export class LoyaltyRewardRedemption extends BaseEntity {
   declare order: Relation<Order>;
 
   // Redemption details
-  @Field()
+  @Field(() => LoyaltyRedemptionStatus)
   @Column('enum', { enum: LoyaltyRedemptionStatus, default: LoyaltyRedemptionStatus.PENDING })
   @IsEnum(LoyaltyRedemptionStatus)
   declare status: LoyaltyRedemptionStatus;
@@ -189,7 +189,7 @@ export class LoyaltyRewardRedemption extends BaseEntity {
            this.status === LoyaltyRedemptionStatus.APPROVED;
   }
 
-  @Field({ nullable: true })
+  @Field(() => Number, { nullable: true })
   get daysUntilExpiry(): number | null {
     if (!this.expiresAt) return null;
     const now = new Date()

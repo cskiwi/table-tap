@@ -65,12 +65,12 @@ export class Counter extends BaseEntity {
   @IsOptional()
   declare description: string;
 
-  @Field()
+  @Field(() => CounterType)
   @Column('enum', { enum: CounterType })
   @IsEnum(CounterType)
   declare type: CounterType;
 
-  @Field()
+  @Field(() => CounterStatus)
   @Column('enum', { enum: CounterStatus, default: CounterStatus.ACTIVE })
   @IsEnum(CounterStatus)
   declare status: CounterStatus;
@@ -116,7 +116,7 @@ export class Counter extends BaseEntity {
   declare maxConcurrentOrders: number; // Maximum orders that can be processed simultaneously
 
   // Product categories this counter handles
-  @Field({ nullable: true })
+  @Field(() => [String], { nullable: true })
   @Column('simple-array', { nullable: true })
   declare productCategories: string[]; // ProductCategory enum values
 
@@ -134,7 +134,7 @@ export class Counter extends BaseEntity {
   declare workingHours: Relation<CounterWorkingHours[]>;
 
   // Equipment and resources
-  @Field({ nullable: true })
+  @Field(() => [String], { nullable: true })
   @Column('simple-array', { nullable: true })
   declare equipment: string[]; // List of equipment/tools available
 

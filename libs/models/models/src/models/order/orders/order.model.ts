@@ -59,7 +59,7 @@ export class Order extends BaseEntity {
   @Index({ unique: true })
   declare orderNumber: string;
 
-  @Field()
+  @Field(() => OrderStatus)
   @Column('enum', { enum: OrderStatus, default: OrderStatus.PENDING })
   @IsEnum(OrderStatus)
   declare status: OrderStatus;
@@ -172,7 +172,7 @@ export class Order extends BaseEntity {
   declare specialInstructions: string;
 
   // Order priority
-  @Field({ nullable: true })
+  @Field(() => OrderPriority, { nullable: true })
   @Column('enum', { enum: OrderPriority, default: OrderPriority.NORMAL, nullable: true })
   @IsEnum(OrderPriority)
   @IsOptional()

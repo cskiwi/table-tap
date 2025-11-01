@@ -43,7 +43,7 @@ export class EmployeeWorkingHours extends BaseEntity {
   declare employee: Relation<Employee>;
 
   // Day and hours
-  @Field()
+  @Field(() => DayOfWeek)
   @Column('enum', { enum: DayOfWeek })
   @IsEnum(DayOfWeek)
   declare dayOfWeek: DayOfWeek;

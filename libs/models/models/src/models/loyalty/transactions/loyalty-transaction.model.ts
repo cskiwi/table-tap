@@ -58,12 +58,12 @@ export class LoyaltyTransaction extends BaseEntity {
   declare loyaltyAccount: Relation<LoyaltyAccount>;
 
   // Transaction details
-  @Field()
+  @Field(() => LoyaltyTransactionType)
   @Column('enum', { enum: LoyaltyTransactionType })
   @IsEnum(LoyaltyTransactionType)
   declare type: LoyaltyTransactionType;
 
-  @Field()
+  @Field(() => LoyaltyTransactionStatus)
   @Column('enum', { enum: LoyaltyTransactionStatus, default: LoyaltyTransactionStatus.COMPLETED })
   @IsEnum(LoyaltyTransactionStatus)
   declare status: LoyaltyTransactionStatus;
@@ -210,7 +210,7 @@ export class LoyaltyTransaction extends BaseEntity {
     }
   }
 
-  @Field({ nullable: true })
+  @Field(() => Number, { nullable: true })
   get daysUntilExpiry(): number | null {
     if (!this.expiresAt) return null;
     const now = new Date()

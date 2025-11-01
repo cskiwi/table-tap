@@ -102,7 +102,7 @@ export class Employee extends BaseEntity {
   declare phone: string;
 
   // Employment details
-  @Field()
+  @Field(() => UserRole)
   @Column('enum', { enum: UserRole, default: UserRole.EMPLOYEE })
   @IsEnum(UserRole)
   declare position: UserRole;
@@ -115,7 +115,7 @@ export class Employee extends BaseEntity {
     this.position = value;
   }
 
-  @Field()
+  @Field(() => EmployeeStatus)
   @Column('enum', { enum: EmployeeStatus, default: EmployeeStatus.ACTIVE })
   @IsEnum(EmployeeStatus)
   declare status: EmployeeStatus;
@@ -151,7 +151,7 @@ export class Employee extends BaseEntity {
   declare payType: string; // 'hourly', 'salary', 'commission'
 
   // Work settings
-  @Field({ nullable: true })
+  @Field(() => [String], { nullable: true })
   @Column('simple-array', { nullable: true })
   declare countersAccess: string[]; // Counter IDs this employee can work on
 
@@ -267,7 +267,7 @@ export class Employee extends BaseEntity {
     return todayHours.isWorking;
   }
 
-  @Field({ nullable: true })
+  @Field(() => Number, { nullable: true })
   get currentShiftDuration(): number | null {
     if (!this.isClockedIn || !this.lastClockIn) return null;
     return Math.round((new Date().getTime() - this.lastClockIn.getTime()) / 60000); // in minutes

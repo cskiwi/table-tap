@@ -197,7 +197,7 @@ export class Purchase extends BaseEntity {
   @IsOptional()
   declare deliveryInstructions: string;
 
-  @Field({ nullable: true })
+  @Field(() => [String], { nullable: true })
   @Column('simple-array', { nullable: true })
   declare attachments: string[]; // File paths/URLs to invoices, receipts, etc.
 

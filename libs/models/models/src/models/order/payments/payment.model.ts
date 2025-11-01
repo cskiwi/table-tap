@@ -57,17 +57,17 @@ export class Payment extends BaseEntity {
   declare user: Relation<User>;
 
   // Payment details
-  @Field()
+  @Field(() => PaymentMethod)
   @Column('enum', { enum: PaymentMethod })
   @IsEnum(PaymentMethod)
   declare method: PaymentMethod;
 
-  @Field()
+  @Field(() => PaymentStatus)
   @Column('enum', { enum: PaymentStatus, default: PaymentStatus.PENDING })
   @IsEnum(PaymentStatus)
   declare status: PaymentStatus;
 
-  @Field()
+  @Field(() => TransactionType)
   @Column('enum', { enum: TransactionType, default: TransactionType.PURCHASE })
   @IsEnum(TransactionType)
   declare type: TransactionType;

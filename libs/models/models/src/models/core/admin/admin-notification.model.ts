@@ -64,12 +64,12 @@ export class AdminNotification extends BaseEntity {
   declare user: Relation<User>;
 
   // Notification details
-  @Field()
+  @Field(() => NotificationType)
   @Column('enum', { enum: NotificationType })
   @IsEnum(NotificationType)
   declare type: NotificationType;
 
-  @Field()
+  @Field(() => NotificationSeverity)
   @Column('enum', { enum: NotificationSeverity, default: NotificationSeverity.INFO })
   @IsEnum(NotificationSeverity)
   declare severity: NotificationSeverity;
