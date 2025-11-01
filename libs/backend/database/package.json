@@ -7,7 +7,8 @@
     "@nestjs/common": "^11.0.11",
     "@nestjs/typeorm": "^11.0.0",
     "@nestjs/config": "^4.0.0",
-    "typeorm": "^0.3.20"
+    "typeorm": "^0.3.20",
+    "@app/models/enums": "0.0.1"
   },
   "type": "commonjs",
   "main": "./src/index.js",

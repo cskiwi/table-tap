@@ -22,7 +22,10 @@
     "graphql-query-complexity": "^1.1.0",
     "@nestjs/core": "^11.1.6",
     "graphql-subscriptions": "^3.0.0",
-    "@app/models/enums": "0.0.1"
+    "@app/models/enums": "0.0.1",
+    "xlsx": "^0.18.5",
+    "pdfkit": "^0.17.2",
+    "csv-writer": "^1.6.0"
   },
   "type": "commonjs",
   "main": "./src/index.js",
