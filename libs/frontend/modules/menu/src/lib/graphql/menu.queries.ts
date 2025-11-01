@@ -8,10 +8,10 @@ export const GET_CAFE_MENU = gql`
     $sort: SortInput
   ) {
     cafeMenu(
-      cafeId: $cafeId;
-      categoryId: $categoryId;
-      pagination: $pagination;
-      sort: $sort;
+      cafeId: $cafeId
+      categoryId: $categoryId
+      pagination: $pagination
+      sort: $sort
     ) {
       items {
         id
