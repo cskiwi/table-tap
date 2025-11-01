@@ -45,8 +45,8 @@ export class EmployeeResolver {
   //       take: pagination?.take || 20,
   //       totalPages: Math.ceil(employees.length / (pagination?.take || 20)),
   //     }
-  //   } catch (error) {
-  //     this.logger.error(`Failed to fetch employees for cafe ${cafeId}: ${error.message}`, error.stack);
+  //   } catch (error: unknown) {
+  //     this.logger.error(`Failed to fetch employees for cafe ${cafeId}: ${error instanceof Error ? error.message : 'Unknown error'}`, error instanceof Error ? error.stack : undefined);
   //     throw error;
   //   }
   // }
@@ -61,8 +61,8 @@ export class EmployeeResolver {
       return await this.employeeRepository.findOne({
         where: { id, cafeId: user.cafeId }
       });
-    } catch (error) {
-      this.logger.error(`Failed to fetch employee ${id}: ${error.message}`, error.stack);
+    } catch (error: unknown) {
+      this.logger.error(`Failed to fetch employee ${id}: ${error instanceof Error ? error.message : 'Unknown error'}`, error instanceof Error ? error.stack : undefined);
       throw error;
     }
   }
@@ -78,8 +78,8 @@ export class EmployeeResolver {
   // ): Promise<PerformanceMetrics> {
   //   try {
   //     return await this.employeeService.getPerformanceMetrics(employeeId, startDate, endDate, user);
-  //   } catch (error) {
-  //     this.logger.error(`Failed to get performance metrics for employee ${employeeId}: ${error.message}`, error.stack);
+  //   } catch (error: unknown) {
+  //     this.logger.error(`Failed to get performance metrics for employee ${employeeId}: ${error instanceof Error ? error.message : 'Unknown error'}`, error instanceof Error ? error.stack : undefined);
   //     throw error;
   //   }
   // }
@@ -100,8 +100,8 @@ export class EmployeeResolver {
   //       cafeId: employee.cafeId,
   //     });
   //     return employee;
-  //   } catch (error) {
-  //     this.logger.error(`Failed to create employee: ${error.message}`, error.stack);
+  //   } catch (error: unknown) {
+  //     this.logger.error(`Failed to create employee: ${error instanceof Error ? error.message : 'Unknown error'}`, error instanceof Error ? error.stack : undefined);
   //     throw error;
   //   }
   // }
@@ -123,8 +123,8 @@ export class EmployeeResolver {
   //       cafeId: employee.cafeId,
   //     });
   //     return employee;
-  //   } catch (error) {
-  //     this.logger.error(`Failed to update employee ${id}: ${error.message}`, error.stack);
+  //   } catch (error: unknown) {
+  //     this.logger.error(`Failed to update employee ${id}: ${error instanceof Error ? error.message : 'Unknown error'}`, error instanceof Error ? error.stack : undefined);
   //     throw error;
   //   }
   // }
@@ -143,8 +143,8 @@ export class EmployeeResolver {
       });
 
       return true;
-    } catch (error) {
-      this.logger.error(`Failed to deactivate employee ${id}: ${error.message}`, error.stack);
+    } catch (error: unknown) {
+      this.logger.error(`Failed to deactivate employee ${id}: ${error instanceof Error ? error.message : 'Unknown error'}`, error instanceof Error ? error.stack : undefined);
       throw error;
     }
   }

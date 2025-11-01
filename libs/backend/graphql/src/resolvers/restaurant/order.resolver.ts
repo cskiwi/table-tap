@@ -36,8 +36,8 @@ export class OrderResolver {
         order: { createdAt: 'DESC' },
         take: 100
       });
-    } catch (error) {
-      this.logger.error(`Failed to fetch orders: ${error.message}`, error.stack);
+    } catch (error: unknown) {
+      this.logger.error(`Failed to fetch orders: ${error instanceof Error ? error.message : 'Unknown error'}`, error instanceof Error ? error.stack : undefined);
       throw error;
     }
   }
@@ -51,8 +51,8 @@ export class OrderResolver {
     try {
       // Simple read - directly from repository
       return await this.orderRepository.findOne({ where: { id } });
-    } catch (error) {
-      this.logger.error(`Failed to fetch order ${id}: ${error.message}`, error.stack);
+    } catch (error: unknown) {
+      this.logger.error(`Failed to fetch order ${id}: ${error instanceof Error ? error.message : 'Unknown error'}`, error instanceof Error ? error.stack : undefined);
       throw error;
     }
   }
@@ -127,7 +127,7 @@ export class OrderResolver {
       // (validation, inventory deduction, counter assignment, payment checks)
       // TODO: Implement OrderService
       // throw new Error('OrderService not implemented');
-      const order: Order | null = null; // await this.orderService.create(input, user);
+      const order = null as Order | null; // await this.orderService.create(input, user);
       if (!order) throw new Error('OrderService not implemented');
 
       // Publish new order event
@@ -147,8 +147,8 @@ export class OrderResolver {
       }
 
       return order;
-    } catch (error) {
-      this.logger.error(`Failed to create order: ${error.message}`, error.stack);
+    } catch (error: unknown) {
+      this.logger.error(`Failed to create order: ${error instanceof Error ? error.message : 'Unknown error'}`, error instanceof Error ? error.stack : undefined);
       throw error;
     }
   }
@@ -164,7 +164,7 @@ export class OrderResolver {
       // Status updates have business logic (workflow validation, inventory restoration)
       // TODO: Implement OrderService
       // throw new Error('OrderService not implemented');
-      const order: Order | null = null; // await this.orderService.updateStatus(id, input, user);
+      const order = null as Order | null; // await this.orderService.updateStatus(id, input, user);
       if (!order) throw new Error('OrderService not implemented');
 
       // Publish order status update
@@ -174,8 +174,8 @@ export class OrderResolver {
       });
 
       return order;
-    } catch (error) {
-      this.logger.error(`Failed to update order status: ${error.message}`, error.stack);
+    } catch (error: unknown) {
+      this.logger.error(`Failed to update order status: ${error instanceof Error ? error.message : 'Unknown error'}`, error instanceof Error ? error.stack : undefined);
       throw error;
     }
   }
@@ -236,7 +236,7 @@ export class OrderResolver {
     // Cancellation has business logic (inventory restoration, payment handling)
     // TODO: Implement OrderService
     // throw new Error('OrderService not implemented');
-    const order: Order | null = null; // await this.orderService.cancel(id, reason, user);
+    const order = null as Order | null; // await this.orderService.cancel(id, reason, user);
     if (!order) throw new Error('OrderService not implemented');
 
     await this.pubSub.publish('orderCancelled', {

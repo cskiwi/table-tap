@@ -83,9 +83,13 @@ export class MenuResolver {
       { id, cafeId: user.cafeId },
       input
     );
-    return this.productRepository.findOne({
+    const product = await this.productRepository.findOne({
       where: { id, cafeId: user.cafeId }
-    })!;
+    });
+    if (!product) {
+      throw new Error(`Product with id ${id} not found`);
+    }
+    return product;
   }
 
   @Mutation(() => Boolean)

@@ -78,8 +78,8 @@ export class AdminDashboardResolver {
         recentActivity: [], // TODO: Implement activity tracking
         topProducts: [], // TODO: Implement product analytics
       };
-    } catch (error) {
-      this.logger.error(`Failed to fetch admin dashboard: ${error.message}`, error.stack);
+    } catch (error: unknown) {
+      this.logger.error(`Failed to fetch admin dashboard: ${error instanceof Error ? error.message : 'Unknown error'}`, error instanceof Error ? error.stack : undefined);
       throw error;
     }
   }
@@ -154,8 +154,8 @@ export class AdminDashboardResolver {
           other: 0,
         },
       };
-    } catch (error) {
-      this.logger.error(`Failed to fetch revenue metrics: ${error.message}`, error.stack);
+    } catch (error: unknown) {
+      this.logger.error(`Failed to fetch revenue metrics: ${error instanceof Error ? error.message : 'Unknown error'}`, error instanceof Error ? error.stack : undefined);
       throw error;
     }
   }
@@ -204,8 +204,8 @@ export class AdminDashboardResolver {
           delivery: orders.filter(o => o.orderType === 'DELIVERY').length,
         },
       };
-    } catch (error) {
-      this.logger.error(`Failed to fetch order metrics: ${error.message}`, error.stack);
+    } catch (error: unknown) {
+      this.logger.error(`Failed to fetch order metrics: ${error instanceof Error ? error.message : 'Unknown error'}`, error instanceof Error ? error.stack : undefined);
       throw error;
     }
   }
@@ -242,8 +242,8 @@ export class AdminDashboardResolver {
           overtimeHours: 0,
         },
       }));
-    } catch (error) {
-      this.logger.error(`Failed to fetch employee performance: ${error.message}`, error.stack);
+    } catch (error: unknown) {
+      this.logger.error(`Failed to fetch employee performance: ${error instanceof Error ? error.message : 'Unknown error'}`, error instanceof Error ? error.stack : undefined);
       throw error;
     }
   }
@@ -270,8 +270,8 @@ export class AdminDashboardResolver {
         },
         customerSegments: [],
       };
-    } catch (error) {
-      this.logger.error(`Failed to fetch sales analytics: ${error.message}`, error.stack);
+    } catch (error: unknown) {
+      this.logger.error(`Failed to fetch sales analytics: ${error instanceof Error ? error.message : 'Unknown error'}`, error instanceof Error ? error.stack : undefined);
       throw error;
     }
   }

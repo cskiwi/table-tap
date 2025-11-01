@@ -32,8 +32,8 @@ export class LoyaltyChallengeResolver {
       return await this.loyaltyChallengeRepository.findOne({
         where: { id, cafeId: user.cafeId }
       });
-    } catch (error) {
-      this.logger.error(`Failed to fetch loyalty challenge ${id}: ${error.message}`, error.stack);
+    } catch (error: unknown) {
+      this.logger.error(`Failed to fetch loyalty challenge ${id}: ${error instanceof Error ? error.message : 'Unknown error'}`, error instanceof Error ? error.stack : undefined);
       throw error;
     }
   }

@@ -6,3 +6,38 @@
 @import 'tailwindcss/utilities.css' layer(utilities);
 @layer theme, base, components, utilities;
 @plugin "tailwindcss-primeui";
+
+* {
+  box-sizing: border-box;
+  font-family: inherit;
+}
+
+html {
+  font-size: 0.875rem; /* 0.875 of 16px = 14px */
+  font-family: 'Inter', 'Poppins', Roboto, sans-serif;
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  height: 100%;
+  background-color: var(--p-surface-50);
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease;
+}
+
+// make input fields full width
+input,
+textarea,
+.p-datepicker,
+p-inputnumber,
+p-floatlabel,
+p-iftalabel,
+p-autoComplete,
+p-dropdown,
+p-columnfilterformelement,
+p-multiselect,
+p-select:not(.p-paginator-rpp-dropdown) {
+  width: 100%;
+}

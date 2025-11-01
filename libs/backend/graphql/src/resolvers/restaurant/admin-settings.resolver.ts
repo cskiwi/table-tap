@@ -31,8 +31,8 @@ export class AdminSettingsResolver {
       }
 
       return this.formatSettings(settings);
-    } catch (error) {
-      this.logger.error(`Failed to fetch admin settings: ${error.message}`, error.stack);
+    } catch (error: unknown) {
+      this.logger.error(`Failed to fetch admin settings: ${error instanceof Error ? error.message : 'Unknown error'}`, error instanceof Error ? error.stack : undefined);
       throw error;
     }
   }
@@ -99,8 +99,8 @@ export class AdminSettingsResolver {
 
       const saved = await this.settingsRepository.save(settings);
       return this.formatSettings(saved);
-    } catch (error) {
-      this.logger.error(`Failed to update admin settings: ${error.message}`, error.stack);
+    } catch (error: unknown) {
+      this.logger.error(`Failed to update admin settings: ${error instanceof Error ? error.message : 'Unknown error'}`, error instanceof Error ? error.stack : undefined);
       throw error;
     }
   }

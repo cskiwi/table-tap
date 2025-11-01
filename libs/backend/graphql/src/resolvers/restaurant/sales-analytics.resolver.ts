@@ -76,8 +76,8 @@ export class SalesAnalyticsResolver {
       );
 
       return productsData;
-    } catch (error) {
-      this.logger.error(`Failed to fetch top products: ${error.message}`, error.stack);
+    } catch (error: unknown) {
+      this.logger.error(`Failed to fetch top products: ${error instanceof Error ? error.message : 'Unknown error'}`, error instanceof Error ? error.stack : undefined);
       throw error;
     }
   }
@@ -119,8 +119,8 @@ export class SalesAnalyticsResolver {
         revenue: Number(cat.revenue),
         percentage: totalRevenue > 0 ? (Number(cat.revenue) / totalRevenue) * 100 : 0,
       }));
-    } catch (error) {
-      this.logger.error(`Failed to fetch category breakdown: ${error.message}`, error.stack);
+    } catch (error: unknown) {
+      this.logger.error(`Failed to fetch category breakdown: ${error instanceof Error ? error.message : 'Unknown error'}`, error instanceof Error ? error.stack : undefined);
       throw error;
     }
   }
@@ -161,8 +161,8 @@ export class SalesAnalyticsResolver {
       }
 
       return fullHourlyData;
-    } catch (error) {
-      this.logger.error(`Failed to fetch hourly revenue: ${error.message}`, error.stack);
+    } catch (error: unknown) {
+      this.logger.error(`Failed to fetch hourly revenue: ${error instanceof Error ? error.message : 'Unknown error'}`, error instanceof Error ? error.stack : undefined);
       throw error;
     }
   }
@@ -197,8 +197,8 @@ export class SalesAnalyticsResolver {
         revenue: Number(day.revenue),
         orders: Number(day.orders),
       }));
-    } catch (error) {
-      this.logger.error(`Failed to fetch daily revenue: ${error.message}`, error.stack);
+    } catch (error: unknown) {
+      this.logger.error(`Failed to fetch daily revenue: ${error instanceof Error ? error.message : 'Unknown error'}`, error instanceof Error ? error.stack : undefined);
       throw error;
     }
   }

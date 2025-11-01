@@ -33,8 +33,8 @@ export class LoyaltyRewardResolver {
       return await this.loyaltyRewardRepository.findOne({
         where: { id, cafeId: user.cafeId }
       });
-    } catch (error) {
-      this.logger.error(`Failed to fetch loyalty reward ${id}: ${error.message}`, error.stack);
+    } catch (error: unknown) {
+      this.logger.error(`Failed to fetch loyalty reward ${id}: ${error instanceof Error ? error.message : 'Unknown error'}`, error instanceof Error ? error.stack : undefined);
       throw error;
     }
   }

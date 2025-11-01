@@ -5,7 +5,7 @@ import { Repository, Between } from 'typeorm';
 import { PermGuard, ReqUser } from '@app/backend-authorization';
 import { User, Order, Stock } from '@app/models';
 import * as XLSX from 'xlsx';
-import PDFDocument from 'pdfkit';
+import * as PDFDocument from 'pdfkit';
 import { createObjectCsvWriter } from 'csv-writer';
 import { writeFile, mkdir } from 'fs/promises';
 import { join } from 'path';
@@ -77,8 +77,8 @@ export class ExportResolver {
       }
 
       return filePath;
-    } catch (error) {
-      this.logger.error(`Failed to export sales report: ${error.message}`, error.stack);
+    } catch (error: unknown) {
+      this.logger.error(`Failed to export sales report: ${error instanceof Error ? error.message : 'Unknown error'}`, error instanceof Error ? error.stack : undefined);
       throw error;
     }
   }
@@ -130,8 +130,8 @@ export class ExportResolver {
       }
 
       return filePath;
-    } catch (error) {
-      this.logger.error(`Failed to export inventory report: ${error.message}`, error.stack);
+    } catch (error: unknown) {
+      this.logger.error(`Failed to export inventory report: ${error instanceof Error ? error.message : 'Unknown error'}`, error instanceof Error ? error.stack : undefined);
       throw error;
     }
   }

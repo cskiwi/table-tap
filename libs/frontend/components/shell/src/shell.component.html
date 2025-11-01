@@ -1,8 +1,8 @@
-<div class="min-h-screen flex flex-col">
-  <header class="header sticky top-0 z-[1000] shadow-md">
+<div class="min-h-screen flex flex-col bg-surface-0 text-color">
+  <header class="header sticky top-0 z-[1000] shadow-md bg-primary text-primary-contrast border-b border-surface">
     <div class="flex items-center justify-between p-3 max-w-[1200px] mx-auto">
       <button
-        class="menu-toggle md:hidden bg-transparent border-0 text-white text-xl p-2 rounded cursor-pointer transition-colors duration-200 hover:bg-white/10"
+        class="menu-toggle md:hidden bg-transparent border border-transparent text-primary-contrast text-xl p-2 rounded-border cursor-pointer transition-colors duration-200 hover:bg-emphasis"
         type="button"
         (click)="toggleSidebar()"
         [attr.aria-expanded]="sidebarVisible()"
@@ -11,7 +11,7 @@
         <i class="pi pi-bars"></i>
       </button>
 
-      <a routerLink="/" class="flex items-center gap-2 text-white no-underline text-2xl font-bold transition-colors duration-200 hover:text-gray-200">
+      <a routerLink="/" class="flex items-center gap-2 text-primary-contrast no-underline text-2xl font-bold transition-opacity duration-200 hover:opacity-80">
         <i class="pi pi-coffee text-[1.75rem]"></i>
         <span>TableTap</span>
       </a>
@@ -23,12 +23,12 @@
               [routerLink]="item.route"
               [routerLinkActive]="'active'"
               [routerLinkActiveOptions]="{ exact: item.exact || false }"
-              class="nav-link flex items-center gap-2 px-4 py-2 text-white no-underline rounded-md transition-all duration-200 relative hover:bg-white/10 hover:-translate-y-px"
+              class="nav-link flex items-center gap-2 px-4 py-2 text-primary-contrast no-underline rounded-border transition-all duration-200 relative hover:bg-emphasis hover:-translate-y-px"
             >
               <i [class]="item.icon"></i>
               <span>{{ item.label }}</span>
               @if (item.badge) {
-                <span class="badge bg-red-500 text-white px-1.5 py-0.5 rounded-xl text-xs font-semibold min-w-5 text-center">{{ item.badge }}</span>
+                <span class="badge bg-highlight-emphasis text-primary-contrast px-1.5 py-0.5 rounded-border text-xs font-semibold min-w-5 text-center">{{ item.badge }}</span>
               }
             </a>
           }
@@ -39,7 +39,7 @@
         @if (user(); as currentUser) {
           <div class="relative user-menu">
             <button
-              class="flex items-center gap-2 bg-transparent border-0 text-white p-2 rounded-md cursor-pointer transition-colors duration-200 hover:bg-white/10"
+              class="flex items-center gap-2 bg-transparent border border-transparent text-primary-contrast p-2 rounded-border cursor-pointer transition-colors duration-200 hover:bg-emphasis"
               (click)="toggleUserMenu()"
               type="button"
             >
@@ -53,7 +53,7 @@
               <i class="pi pi-chevron-down"></i>
             </button>
             <div
-              class="user-dropdown absolute top-full right-0 bg-white rounded-lg shadow-lg min-w-[200px] transition-all duration-200 z-[1000]"
+              class="user-dropdown absolute top-full right-0 bg-surface-0 text-color rounded-border shadow-lg min-w-[200px] transition-all duration-200 z-[1000] border border-surface"
               [class.opacity-0]="!userMenuVisible()"
               [class.invisible]="!userMenuVisible()"
               [class.-translate-y-2.5]="!userMenuVisible()"
@@ -63,21 +63,21 @@
             >
               <a
                 routerLink="/profile"
-                class="dropdown-item flex items-center gap-3 px-4 py-3 text-gray-700 no-underline transition-colors duration-200 bg-none border-0 w-full text-left cursor-pointer rounded-t-lg hover:bg-gray-100"
+                class="dropdown-item flex items-center gap-3 px-4 py-3 text-color no-underline transition-colors duration-200 bg-none border-0 w-full text-left cursor-pointer rounded-t-lg hover:bg-highlight"
               >
                 <i class="pi pi-user"></i>
                 Profile
               </a>
               <a
                 routerLink="/settings"
-                class="dropdown-item flex items-center gap-3 px-4 py-3 text-gray-700 no-underline transition-colors duration-200 bg-none border-0 w-full text-left cursor-pointer hover:bg-gray-100"
+                class="dropdown-item flex items-center gap-3 px-4 py-3 text-color no-underline transition-colors duration-200 bg-none border-0 w-full text-left cursor-pointer hover:bg-highlight"
               >
                 <i class="pi pi-cog"></i>
                 Settings
               </a>
-              <hr class="my-0 border-0 border-t border-gray-200" />
+              <hr class="my-0 border-0 border-t border-surface" />
               <button
-                class="dropdown-item logout-btn flex items-center gap-3 px-4 py-3 text-red-600 transition-colors duration-200 bg-none border-0 w-full text-left cursor-pointer rounded-b-lg border-t border-gray-200 hover:bg-gray-100"
+                class="dropdown-item logout-btn flex items-center gap-3 px-4 py-3 text-primary-emphasis transition-colors duration-200 bg-none border-0 w-full text-left cursor-pointer rounded-b-lg border-t border-surface hover:bg-highlight-emphasis"
                 (click)="logout()"
                 type="button"
               >
@@ -88,7 +88,7 @@
           </div>
         } @else {
           <button
-            class="flex items-center gap-2 bg-white/10 border border-white/20 text-white px-4 py-2 rounded-md cursor-pointer transition-all duration-200 font-medium hover:bg-white/20 hover:-translate-y-px"
+            class="flex items-center gap-2 bg-transparent border border-primary-contrast text-primary-contrast px-4 py-2 rounded-border cursor-pointer transition-all duration-200 font-medium hover:bg-emphasis hover:-translate-y-px"
             (click)="login()"
             type="button"
           >
@@ -101,19 +101,19 @@
 
     <!-- Breadcrumbs -->
     @if (breadcrumbs$ | async; as breadcrumbs) {
-      <div class="border-t border-white/10 py-2 px-4 max-w-[1200px] mx-auto w-full">
+      <div class="border-t border-surface py-2 px-4 max-w-[1200px] mx-auto w-full">
         @if (breadcrumbs.length > 1) {
           <nav class="flex items-center gap-2 text-sm">
             @for (crumb of breadcrumbs; track crumb; let last = $last) {
               @if (crumb.route && !last) {
-                <a [routerLink]="crumb.route" class="text-white/80 no-underline transition-colors duration-200 hover:text-white">
+                <a [routerLink]="crumb.route" class="text-primary-contrast no-underline opacity-80 transition-opacity duration-200 hover:opacity-100">
                   {{ crumb.label }}
                 </a>
               } @else {
-                <span class="text-white/60" [class.!text-white]="last" [class.font-medium]="last">{{ crumb.label }}</span>
+                <span class="text-primary-contrast opacity-60" [class.opacity-100]="last" [class.font-medium]="last">{{ crumb.label }}</span>
               }
               @if (!last) {
-                <i class="pi pi-chevron-right text-white/40 text-xs"></i>
+                <i class="pi pi-chevron-right text-primary-contrast opacity-40 text-xs"></i>
               }
             }
           </nav>
@@ -124,14 +124,14 @@
 
   <!-- Mobile Sidebar -->
   <aside
-    class="fixed top-0 w-[300px] h-screen bg-white shadow-lg transition-[left] duration-300 z-[2000] overflow-y-auto"
+    class="fixed top-0 w-[300px] h-screen bg-surface-0 text-color shadow-lg transition-[left] duration-300 z-[2000] overflow-y-auto border-r border-surface"
     [class.-left-[300px]]="!sidebarVisible()"
     [class.left-0]="sidebarVisible()"
   >
-    <div class="flex items-center justify-between p-4 border-b border-gray-200">
-      <h3 class="m-0 text-gray-800 text-xl">Navigation</h3>
+  <div class="flex items-center justify-between p-4 border-b border-surface">
+      <h3 class="m-0 text-color-emphasis text-xl">Navigation</h3>
       <button
-        class="bg-transparent border-0 text-gray-500 text-xl p-2 rounded cursor-pointer transition-all duration-200 hover:bg-gray-100 hover:text-gray-700"
+        class="bg-transparent border-0 text-muted-color text-xl p-2 rounded-border cursor-pointer transition-all duration-200 hover:bg-highlight hover:text-color-emphasis"
         (click)="toggleSidebar()"
         type="button"
       >
@@ -147,22 +147,22 @@
               [routerLink]="item.route"
               [routerLinkActive]="'active'"
               [routerLinkActiveOptions]="{ exact: item.exact || false }"
-              class="nav-link flex items-center gap-3 px-4 py-3 text-gray-700 no-underline transition-all duration-200 hover:bg-gray-100 hover:text-blue-900"
+              class="nav-link flex items-center gap-3 px-4 py-3 text-color no-underline transition-all duration-200 hover:bg-highlight hover:text-color-emphasis"
               (click)="closeSidebar()"
             >
               <i [class]="item.icon"></i>
               <span>{{ item.label }}</span>
               @if (item.badge) {
-                <span class="badge bg-red-500 text-white px-1.5 py-0.5 rounded-xl text-xs font-semibold min-w-5 text-center">{{ item.badge }}</span>
+                <span class="badge bg-highlight-emphasis text-primary-contrast px-1.5 py-0.5 rounded-border text-xs font-semibold min-w-5 text-center">{{ item.badge }}</span>
               }
             </a>
             @if (item.children && item.children.length > 0) {
-              <div class="border-l-2 border-gray-200 ml-4">
+              <div class="border-l border-surface ml-4">
                 @for (child of item.children; track child) {
                   <a
                     [routerLink]="child.route"
                     [routerLinkActive]="'active'"
-                    class="nav-link child flex items-center gap-3 pl-10 py-3 text-gray-700 no-underline text-sm transition-all duration-200 hover:bg-gray-100 hover:text-blue-900"
+                    class="nav-link child flex items-center gap-3 pl-10 py-3 text-muted-color no-underline text-sm transition-all duration-200 hover:bg-highlight hover:text-color-emphasis"
                     (click)="closeSidebar()"
                   >
                     <i [class]="child.icon"></i>
@@ -179,7 +179,7 @@
 
   <!-- Overlay for mobile sidebar -->
   <div
-    class="fixed top-0 left-0 w-screen h-screen bg-black/50 transition-all duration-300 z-[1500]"
+    class="fixed top-0 left-0 w-screen h-screen bg-surface-950/70 transition-all duration-300 z-[1500]"
     [class.opacity-0]="!sidebarVisible()"
     [class.invisible]="!sidebarVisible()"
     [class.opacity-100]="sidebarVisible()"
@@ -187,19 +187,19 @@
     (click)="closeSidebar()"
   ></div>
 
-  <main class="flex-1 min-h-[calc(100vh-120px)] bg-gray-50 p-6 max-w-[1200px] mx-auto w-full md:p-6 sm:p-2">
+  <main class="flex-1 min-h-[calc(100vh-120px)] bg-surface-0 p-6 max-w-[1200px] mx-auto w-full md:p-6 sm:p-2">
     <router-outlet />
   </main>
 
-  <footer class="footer bg-gray-800 text-white py-8 px-4 pb-4 border-t border-gray-700">
+  <footer class="footer bg-surface-950 text-primary-contrast py-8 px-4 pb-4 border-t border-surface">
     <div class="max-w-[1200px] mx-auto text-center">
       <div class="flex justify-center gap-8 mb-4 flex-wrap">
-        <a routerLink="/about" class="text-gray-300 no-underline text-sm transition-colors duration-200 hover:text-white">About</a>
-        <a routerLink="/contact" class="text-gray-300 no-underline text-sm transition-colors duration-200 hover:text-white">Contact</a>
-        <a routerLink="/privacy" class="text-gray-300 no-underline text-sm transition-colors duration-200 hover:text-white">Privacy</a>
-        <a routerLink="/terms" class="text-gray-300 no-underline text-sm transition-colors duration-200 hover:text-white">Terms</a>
+        <a routerLink="/about" class="text-muted-color no-underline text-sm transition-colors duration-200 hover:text-primary-contrast">About</a>
+        <a routerLink="/contact" class="text-muted-color no-underline text-sm transition-colors duration-200 hover:text-primary-contrast">Contact</a>
+        <a routerLink="/privacy" class="text-muted-color no-underline text-sm transition-colors duration-200 hover:text-primary-contrast">Privacy</a>
+        <a routerLink="/terms" class="text-muted-color no-underline text-sm transition-colors duration-200 hover:text-primary-contrast">Terms</a>
       </div>
-      <p class="m-0 text-gray-400 text-sm">&copy; 2025 TableTap. All rights reserved.</p>
+      <p class="m-0 text-muted-color text-sm">&copy; 2025 TableTap. All rights reserved.</p>
     </div>
   </footer>
 </div>

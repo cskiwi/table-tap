@@ -39,8 +39,8 @@ export class InventoryAlertsResolver {
       await this.triggerLowStockAlerts(cafeId, lowStockItems);
 
       return lowStockItems;
-    } catch (error) {
-      this.logger.error(`Failed to fetch low stock items: ${error.message}`, error.stack);
+    } catch (error: unknown) {
+      this.logger.error(`Failed to fetch low stock items: ${error instanceof Error ? error.message : 'Unknown error'}`, error instanceof Error ? error.stack : undefined);
       throw error;
     }
   }
@@ -62,8 +62,8 @@ export class InventoryAlertsResolver {
         .orderBy('stock.lastSoldAt', 'DESC')
         .limit(limit || 50)
         .getMany();
-    } catch (error) {
-      this.logger.error(`Failed to fetch out of stock items: ${error.message}`, error.stack);
+    } catch (error: unknown) {
+      this.logger.error(`Failed to fetch out of stock items: ${error instanceof Error ? error.message : 'Unknown error'}`, error instanceof Error ? error.stack : undefined);
       throw error;
     }
   }
@@ -92,8 +92,8 @@ export class InventoryAlertsResolver {
         .orderBy('stock.expiryDate', 'ASC')
         .limit(limit || 50)
         .getMany();
-    } catch (error) {
-      this.logger.error(`Failed to fetch expiring items: ${error.message}`, error.stack);
+    } catch (error: unknown) {
+      this.logger.error(`Failed to fetch expiring items: ${error instanceof Error ? error.message : 'Unknown error'}`, error instanceof Error ? error.stack : undefined);
       throw error;
     }
   }
@@ -142,8 +142,8 @@ export class InventoryAlertsResolver {
         overStock: overStockCount,
         totalAlerts: lowStockCount + outOfStockCount + expiringCount + overStockCount,
       };
-    } catch (error) {
-      this.logger.error(`Failed to fetch inventory alerts summary: ${error.message}`, error.stack);
+    } catch (error: unknown) {
+      this.logger.error(`Failed to fetch inventory alerts summary: ${error instanceof Error ? error.message : 'Unknown error'}`, error instanceof Error ? error.stack : undefined);
       throw error;
     }
   }

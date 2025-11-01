@@ -39,8 +39,8 @@ export class LoyaltyAccountResolver {
         take,
         where
       });
-    } catch (error) {
-      this.logger.error(`Failed to fetch loyalty accounts: ${error.message}`, error.stack);
+    } catch (error: unknown) {
+      this.logger.error(`Failed to fetch loyalty accounts: ${error instanceof Error ? error.message : 'Unknown error'}`, error instanceof Error ? error.stack : undefined);
       throw error;
     }
   }
@@ -53,8 +53,8 @@ export class LoyaltyAccountResolver {
   ): Promise<LoyaltyAccount | null> {
     try {
       return await this.loyaltyAccountRepository.findOne({ where: { id } });
-    } catch (error) {
-      this.logger.error(`Failed to fetch loyalty account ${id}: ${error.message}`, error.stack);
+    } catch (error: unknown) {
+      this.logger.error(`Failed to fetch loyalty account ${id}: ${error instanceof Error ? error.message : 'Unknown error'}`, error instanceof Error ? error.stack : undefined);
       throw error;
     }
   }
@@ -69,8 +69,8 @@ export class LoyaltyAccountResolver {
       return await this.loyaltyAccountRepository.findOne({
         where: { userId: user.id, cafeId }
       });
-    } catch (error) {
-      this.logger.error(`Failed to fetch user loyalty account: ${error.message}`, error.stack);
+    } catch (error: unknown) {
+      this.logger.error(`Failed to fetch user loyalty account: ${error instanceof Error ? error.message : 'Unknown error'}`, error instanceof Error ? error.stack : undefined);
       throw error;
     }
   }
@@ -87,8 +87,8 @@ export class LoyaltyAccountResolver {
       return await this.loyaltyAccountRepository.findOne({
         where: { loyaltyNumber, cafeId }
       });
-    } catch (error) {
-      this.logger.error(`Failed to fetch loyalty account by number: ${error.message}`, error.stack);
+    } catch (error: unknown) {
+      this.logger.error(`Failed to fetch loyalty account by number: ${error instanceof Error ? error.message : 'Unknown error'}`, error instanceof Error ? error.stack : undefined);
       throw error;
     }
   }

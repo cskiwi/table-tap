@@ -32,8 +32,8 @@ export class LoyaltyTransactionResolver {
       return await this.loyaltyTransactionRepository.findOne({
         where: { id, cafeId: user.cafeId }
       });
-    } catch (error) {
-      this.logger.error(`Failed to fetch loyalty transaction ${id}: ${error.message}`, error.stack);
+    } catch (error: unknown) {
+      this.logger.error(`Failed to fetch loyalty transaction ${id}: ${error instanceof Error ? error.message : 'Unknown error'}`, error instanceof Error ? error.stack : undefined);
       throw error;
     }
   }
@@ -57,8 +57,8 @@ export class LoyaltyTransactionResolver {
         skip: offset,
         order: { createdAt: 'DESC' }
       });
-    } catch (error) {
-      this.logger.error(`Failed to fetch transactions for account ${accountId}: ${error.message}`, error.stack);
+    } catch (error: unknown) {
+      this.logger.error(`Failed to fetch transactions for account ${accountId}: ${error instanceof Error ? error.message : 'Unknown error'}`, error instanceof Error ? error.stack : undefined);
       throw error;
     }
   }
@@ -79,8 +79,8 @@ export class LoyaltyTransactionResolver {
         order: { createdAt: 'DESC' },
         relations: ['loyaltyAccount']
       });
-    } catch (error) {
-      this.logger.error(`Failed to fetch user transactions: ${error.message}`, error.stack);
+    } catch (error: unknown) {
+      this.logger.error(`Failed to fetch user transactions: ${error instanceof Error ? error.message : 'Unknown error'}`, error instanceof Error ? error.stack : undefined);
       throw error;
     }
   }

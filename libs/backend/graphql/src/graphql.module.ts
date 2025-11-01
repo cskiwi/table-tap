@@ -2,6 +2,7 @@ import { ApolloDriver } from '@nestjs/apollo';
 import { Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { GqlModuleOptions, GraphQLModule as NestJsGql } from '@nestjs/graphql';
+import { GraphQLError, GraphQLFormattedError } from 'graphql';
 
 import { ApolloServerPluginLandingPageLocalDefault, ApolloServerPluginLandingPageProductionDefault } from '@apollo/server/plugin/landingPage/default';
 import { ApolloServerPluginSchemaReporting } from '@apollo/server/plugin/schemaReporting';
@@ -140,13 +141,15 @@ import { CacheModule } from '@nestjs/cache-manager';
           context: ({ req }: { req: unknown }) => ({ req }),
           plugins,
           introspection: true,
-          formatError: (error) => {
+          formatError: (error: GraphQLError): GraphQLFormattedError => {
             // Log errors for monitoring
             console.error('GraphQL Error:', error);
             return {
               message: error.message,
-              code: error.extensions?.code,
-              timestamp: new Date().toISOString(),
+              extensions: {
+                code: error.extensions?.['code'],
+                timestamp: new Date().toISOString(),
+              },
             };
           },
         } as Omit<GqlModuleOptions, 'driver'>;

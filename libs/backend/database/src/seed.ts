@@ -1,4 +1,7 @@
-import { DataSource } from 'typeorm';
+import { existsSync } from 'fs';
+import { resolve } from 'path';
+import { config as loadEnvConfig } from 'dotenv';
+import { EntityTarget, ObjectLiteral } from 'typeorm';
 import dataSource from './datasource';
 import {
   User,
@@ -17,30 +20,15 @@ import {
   UserRole,
   UserStatus,
   OrderStatus,
+  OrderPriority,
   PaymentStatus,
   AlertSeverity,
   AlertType,
+  NotificationType,
+  NotificationSeverity,
+  ProductCategory,
+  EmployeeStatus,
 } from '@app/models/enums';
-
-// NotificationType and NotificationSeverity are defined locally in the AdminNotification model
-enum NotificationType {
-  LOW_STOCK = 'LOW_STOCK',
-  ORDER_ALERT = 'ORDER_ALERT',
-  EMPLOYEE_ALERT = 'EMPLOYEE_ALERT',
-  SYSTEM_ALERT = 'SYSTEM_ALERT',
-  REVENUE_MILESTONE = 'REVENUE_MILESTONE',
-  REPORT_READY = 'REPORT_READY',
-  INVENTORY_ALERT = 'INVENTORY_ALERT',
-  PAYMENT_ISSUE = 'PAYMENT_ISSUE',
-  QUALITY_ALERT = 'QUALITY_ALERT',
-}
-
-enum NotificationSeverity {
-  INFO = 'INFO',
-  WARNING = 'WARNING',
-  ERROR = 'ERROR',
-  CRITICAL = 'CRITICAL',
-}
 
 /**
  * Comprehensive seed data for TableTap development and testing
@@ -58,8 +46,15 @@ enum NotificationSeverity {
  * - Sales analytics data
  */
 
-async function seed() {
+export const seed = async () => {
   try {
+    const envPath = process.env['ENV_PATH'] ? resolve(process.cwd(), process.env['ENV_PATH'] as string) : resolve(process.cwd(), '.env');
+    if (existsSync(envPath)) {
+      loadEnvConfig({ path: envPath });
+    } else {
+      console.warn(`ℹ️  Environment file not found at ${envPath}, falling back to existing process variables.`);
+    }
+
     console.log('🌱 Starting database seeding...');
 
     await dataSource.initialize();
@@ -67,17 +62,21 @@ async function seed() {
 
     // Clear existing data (in correct order to respect foreign keys)
     console.log('\n🗑️  Clearing existing data...');
-    await dataSource.query('TRUNCATE TABLE "SalesAnalytics" CASCADE');
-    await dataSource.query('TRUNCATE TABLE "AdminSettings" CASCADE');
-    await dataSource.query('TRUNCATE TABLE "AdminNotifications" CASCADE');
-    await dataSource.query('TRUNCATE TABLE "InventoryAlerts" CASCADE');
-    await dataSource.query('TRUNCATE TABLE "Employees" CASCADE');
-    await dataSource.query('TRUNCATE TABLE "OrderItems" CASCADE');
-    await dataSource.query('TRUNCATE TABLE "Orders" CASCADE');
-    await dataSource.query('TRUNCATE TABLE "Stocks" CASCADE');
-    await dataSource.query('TRUNCATE TABLE "Products" CASCADE');
-    await dataSource.query('TRUNCATE TABLE "Users" CASCADE');
-    await dataSource.query('TRUNCATE TABLE "Cafes" CASCADE');
+    const deleteAll = async (entity: EntityTarget<ObjectLiteral>) => {
+      await dataSource.createQueryBuilder().delete().from(entity).execute();
+    };
+
+    await deleteAll(SalesAnalytics);
+    await deleteAll(AdminSettings);
+    await deleteAll(AdminNotification);
+    await deleteAll(InventoryAlert);
+    await deleteAll(Employee);
+    await deleteAll(OrderItem);
+    await deleteAll(Order);
+    await deleteAll(Stock);
+    await deleteAll(Product);
+    await deleteAll(User);
+    await deleteAll(Cafe);
     console.log('✅ Existing data cleared');
 
     // 1. CREATE CAFE
@@ -102,62 +101,58 @@ async function seed() {
     console.log('\n👤 Creating users...');
     const adminUser = await dataSource.getRepository(User).save({
       cafeId: cafe.id,
-      firstName: 'John',
+      firstName: 'Glenn',
       lastName: 'Admin',
-      fullName: 'John Admin',
       email: 'admin@tabletap.com',
       phoneNumber: '+1-555-100-0001',
       role: UserRole.ADMIN,
       status: UserStatus.ACTIVE,
-      permissions: ['*'],
+      sub: 'auth0|admin-seed',
+      slug: 'glenn-admin',
     });
 
     const managerUser = await dataSource.getRepository(User).save({
       cafeId: cafe.id,
       firstName: 'Sarah',
       lastName: 'Johnson',
-      fullName: 'Sarah Johnson',
       email: 'sarah.johnson@tabletap.com',
       phoneNumber: '+1-555-100-0002',
       role: UserRole.MANAGER,
       status: UserStatus.ACTIVE,
-      permissions: ['orders.*', 'inventory.*', 'employees.view'],
+      slug: 'sarah-johnson',
     });
 
     const employeeUser1 = await dataSource.getRepository(User).save({
       cafeId: cafe.id,
       firstName: 'Mike',
       lastName: 'Chen',
-      fullName: 'Mike Chen',
       email: 'mike.chen@tabletap.com',
       phoneNumber: '+1-555-100-0003',
       role: UserRole.EMPLOYEE,
       status: UserStatus.ACTIVE,
-      permissions: ['orders.view', 'orders.create'],
+      slug: 'mike-chen',
     });
 
     const employeeUser2 = await dataSource.getRepository(User).save({
       cafeId: cafe.id,
       firstName: 'Emma',
       lastName: 'Williams',
-      fullName: 'Emma Williams',
       email: 'emma.williams@tabletap.com',
       phoneNumber: '+1-555-100-0004',
       role: UserRole.EMPLOYEE,
       status: UserStatus.ACTIVE,
-      permissions: ['orders.view', 'orders.create'],
+      slug: 'emma-williams',
     });
 
     const customerUser = await dataSource.getRepository(User).save({
       cafeId: cafe.id,
       firstName: 'Jane',
       lastName: 'Customer',
-      fullName: 'Jane Customer',
       email: 'jane.customer@example.com',
       phoneNumber: '+1-555-200-0001',
       role: UserRole.CUSTOMER,
       status: UserStatus.ACTIVE,
-      permissions: [],
+      slug: 'jane-customer',
     });
 
     console.log(`✅ Created ${5} users (Admin, Manager, 2 Employees, Customer)`);
@@ -169,157 +164,121 @@ async function seed() {
         cafeId: cafe.id,
         name: 'Cappuccino',
         description: 'Classic Italian coffee with steamed milk foam',
-        category: 'Coffee',
-        price: 4.50,
-        costPrice: 1.20,
+        category: ProductCategory.COFFEE,
+        basePrice: 4.5,
         sku: 'COFFEE-CAP-001',
         isAvailable: true,
         preparationTime: 5,
-        calories: 120,
-        ingredients: ['Espresso', 'Steamed Milk', 'Milk Foam'],
       },
       {
         cafeId: cafe.id,
         name: 'Latte',
         description: 'Smooth espresso with steamed milk',
-        category: 'Coffee',
-        price: 4.75,
-        costPrice: 1.30,
+        category: ProductCategory.COFFEE,
+        basePrice: 4.75,
         sku: 'COFFEE-LAT-001',
         isAvailable: true,
         preparationTime: 5,
-        calories: 150,
-        ingredients: ['Espresso', 'Steamed Milk'],
       },
       {
         cafeId: cafe.id,
         name: 'Americano',
         description: 'Espresso diluted with hot water',
-        category: 'Coffee',
-        price: 3.50,
-        costPrice: 0.90,
+        category: ProductCategory.COFFEE,
+        basePrice: 3.5,
         sku: 'COFFEE-AME-001',
         isAvailable: true,
         preparationTime: 3,
-        calories: 15,
-        ingredients: ['Espresso', 'Hot Water'],
       },
       {
         cafeId: cafe.id,
         name: 'Espresso',
         description: 'Strong, concentrated coffee shot',
-        category: 'Coffee',
-        price: 2.75,
-        costPrice: 0.70,
+        category: ProductCategory.COFFEE,
+        basePrice: 2.75,
         sku: 'COFFEE-ESP-001',
         isAvailable: true,
         preparationTime: 2,
-        calories: 3,
-        ingredients: ['Coffee Beans'],
       },
       {
         cafeId: cafe.id,
         name: 'Mocha',
         description: 'Chocolate flavored variant of a latte',
-        category: 'Coffee',
-        price: 5.25,
-        costPrice: 1.50,
+        category: ProductCategory.COFFEE,
+        basePrice: 5.25,
         sku: 'COFFEE-MOC-001',
         isAvailable: true,
         preparationTime: 6,
-        calories: 290,
-        ingredients: ['Espresso', 'Steamed Milk', 'Chocolate Syrup', 'Whipped Cream'],
       },
       {
         cafeId: cafe.id,
         name: 'Croissant',
         description: 'Buttery, flaky French pastry',
-        category: 'Pastries',
-        price: 3.50,
-        costPrice: 1.10,
+        category: ProductCategory.SNACKS,
+        basePrice: 3.5,
         sku: 'FOOD-CRO-001',
         isAvailable: true,
         preparationTime: 2,
-        calories: 231,
-        ingredients: ['Flour', 'Butter', 'Yeast', 'Sugar'],
       },
       {
         cafeId: cafe.id,
         name: 'Blueberry Muffin',
         description: 'Freshly baked muffin with blueberries',
-        category: 'Pastries',
-        price: 3.75,
-        costPrice: 1.00,
+        category: ProductCategory.SNACKS,
+        basePrice: 3.75,
         sku: 'FOOD-MUF-001',
         isAvailable: true,
         preparationTime: 2,
-        calories: 426,
-        ingredients: ['Flour', 'Blueberries', 'Sugar', 'Eggs', 'Butter'],
       },
       {
         cafeId: cafe.id,
         name: 'Avocado Toast',
         description: 'Toasted bread with mashed avocado',
-        category: 'Food',
-        price: 8.50,
-        costPrice: 2.50,
+        category: ProductCategory.FOOD,
+        basePrice: 8.5,
         sku: 'FOOD-AVO-001',
         isAvailable: true,
         preparationTime: 10,
-        calories: 350,
-        ingredients: ['Sourdough Bread', 'Avocado', 'Lemon', 'Salt', 'Pepper'],
       },
       {
         cafeId: cafe.id,
         name: 'Orange Juice',
         description: 'Freshly squeezed orange juice',
-        category: 'Beverages',
-        price: 4.25,
-        costPrice: 1.50,
+        category: ProductCategory.COLD_DRINKS,
+        basePrice: 4.25,
         sku: 'BEV-OJ-001',
         isAvailable: true,
         preparationTime: 3,
-        calories: 110,
-        ingredients: ['Fresh Oranges'],
       },
       {
         cafeId: cafe.id,
         name: 'Green Tea',
         description: 'Traditional Japanese green tea',
-        category: 'Tea',
-        price: 3.25,
-        costPrice: 0.80,
+        category: ProductCategory.TEA,
+        basePrice: 3.25,
         sku: 'TEA-GRE-001',
         isAvailable: true,
         preparationTime: 4,
-        calories: 2,
-        ingredients: ['Green Tea Leaves', 'Hot Water'],
       },
       {
         cafeId: cafe.id,
         name: 'Iced Coffee',
         description: 'Cold brewed coffee served over ice',
-        category: 'Coffee',
-        price: 4.00,
-        costPrice: 1.00,
+        category: ProductCategory.COFFEE,
+        basePrice: 4.0,
         sku: 'COFFEE-ICE-001',
         isAvailable: true,
         preparationTime: 3,
-        calories: 5,
-        ingredients: ['Cold Brew Coffee', 'Ice'],
       },
       {
         cafeId: cafe.id,
         name: 'Bagel with Cream Cheese',
         description: 'Fresh bagel with cream cheese spread',
-        category: 'Food',
-        price: 4.50,
-        costPrice: 1.30,
+        category: ProductCategory.FOOD,
+        basePrice: 4.5,
         sku: 'FOOD-BAG-001',
         isAvailable: true,
         preparationTime: 5,
-        calories: 340,
-        ingredients: ['Bagel', 'Cream Cheese'],
       },
     ] as any);
     console.log(`✅ Created ${products.length} products`);
@@ -332,10 +291,10 @@ async function seed() {
       let quantity: number;
       let minimumStock: number;
 
-      if (product.category === 'Coffee') {
+      if (product.category === ProductCategory.COFFEE) {
         quantity = Math.floor(Math.random() * 50) + 10; // 10-60 units
         minimumStock = 15;
-      } else if (product.category === 'Pastries' || product.category === 'Food') {
+      } else if (product.category === ProductCategory.SNACKS || product.category === ProductCategory.FOOD) {
         quantity = Math.floor(Math.random() * 30) + 5; // 5-35 units
         minimumStock = 10;
       } else {
@@ -358,8 +317,8 @@ async function seed() {
     }
     console.log(`✅ Created ${stocks.length} stock items`);
 
-    // 5. CREATE ORDERS
-    console.log('\n📋 Creating orders...');
+    // 5. CREATE ORDERS AND ORDER ITEMS
+    console.log('\n📋 Creating orders and order items...');
     const orderStatuses: OrderStatus[] = [
       OrderStatus.PENDING,
       OrderStatus.PREPARING,
@@ -370,66 +329,67 @@ async function seed() {
 
     const orderTypes = ['DINE_IN', 'TAKEAWAY'];
     const orders = [];
+    let totalOrderItems = 0;
 
     for (let i = 0; i < 15; i++) {
       const status = orderStatuses[Math.floor(Math.random() * orderStatuses.length)];
       const orderType = orderTypes[Math.floor(Math.random() * orderTypes.length)];
       const createdHoursAgo = Math.random() * 72; // Last 3 days
 
+      // Calculate order totals first
+      const itemCount = Math.floor(Math.random() * 3) + 1; // 1-3 items per order
+      let orderSubtotal = 0;
+
+      // Calculate subtotal for this order
+      for (let j = 0; j < itemCount; j++) {
+        const product = products[Math.floor(Math.random() * products.length)];
+        const quantity = Math.floor(Math.random() * 2) + 1; // 1-2 quantity
+        orderSubtotal += product.basePrice * quantity;
+      }
+
+      const taxAmount = orderSubtotal * 0.0875; // 8.75% tax
+      const totalAmount = orderSubtotal + taxAmount;
+
+      // Create order with calculated totals
       const order = await dataSource.getRepository(Order).save({
         cafeId: cafe.id,
         orderNumber: `ORD-${String(1000 + i).padStart(4, '0')}`,
         status,
         customerId: Math.random() > 0.3 ? customerUser.id : undefined,
-        customerName: Math.random() > 0.3 ? customerUser.fullName : `Guest ${i + 1}`,
+        customerName: Math.random() > 0.3 ? `${customerUser.firstName} ${customerUser.lastName}` : `Guest ${i + 1}`,
         customerEmail: Math.random() > 0.5 ? customerUser.email : undefined,
         orderType: orderType as any,
         tableNumber: orderType === 'DINE_IN' ? `T${Math.floor(Math.random() * 20) + 1}` : undefined,
-        paymentStatus: status === OrderStatus.DELIVERED ? PaymentStatus.COMPLETED : PaymentStatus.PENDING,
-        paymentMethod: status === OrderStatus.DELIVERED ? 'Credit Card' : undefined,
+        subtotal: orderSubtotal,
+        taxAmount: taxAmount,
+        totalAmount: totalAmount,
+        total: totalAmount,
         specialInstructions: Math.random() > 0.7 ? 'Extra hot please' : undefined,
         createdAt: new Date(Date.now() - createdHoursAgo * 60 * 60 * 1000),
       });
       orders.push(order);
-    }
-    console.log(`✅ Created ${orders.length} orders`);
 
-    // 6. CREATE ORDER ITEMS
-    console.log('\n🛒 Creating order items...');
-    let totalOrderItems = 0;
-
-    for (const order of orders) {
-      const itemCount = Math.floor(Math.random() * 3) + 1; // 1-3 items per order
-      let orderTotal = 0;
-
+      // Now create order items
       for (let j = 0; j < itemCount; j++) {
         const product = products[Math.floor(Math.random() * products.length)];
         const quantity = Math.floor(Math.random() * 2) + 1; // 1-2 quantity
-        const totalPrice = product.price * quantity;
-        orderTotal += totalPrice;
+        const totalPrice = product.basePrice * quantity;
 
         await dataSource.getRepository(OrderItem).save({
           orderId: order.id,
           cafeId: cafe.id,
-          menuItemId: product.id,
-          menuItemName: product.name,
+          productId: product.id,
+          productName: product.name,
           quantity,
-          unitPrice: product.price,
+          unitPrice: product.basePrice,
           totalPrice,
           status: order.status,
           specialInstructions: Math.random() > 0.8 ? 'No sugar' : undefined,
         });
         totalOrderItems++;
       }
-
-      // Update order total
-      await dataSource.getRepository(Order).update(order.id, {
-        subtotal: orderTotal,
-        taxAmount: orderTotal * 0.0875, // 8.75% tax
-        totalAmount: orderTotal * 1.0875,
-      });
     }
-    console.log(`✅ Created ${totalOrderItems} order items across ${orders.length} orders`);
+    console.log(`✅ Created ${orders.length} orders with ${totalOrderItems} order items`);
 
     // 7. CREATE EMPLOYEES
     console.log('\n👥 Creating employees...');
@@ -440,13 +400,12 @@ async function seed() {
         firstName: managerUser.firstName,
         lastName: managerUser.lastName,
         email: managerUser.email,
-        phoneNumber: managerUser.phoneNumber,
-        position: 'Manager',
-        employeeNumber: 'EMP-001',
-        hourlyRate: 25.00,
-        status: 'ACTIVE',
+        phone: managerUser.phoneNumber,
+        position: UserRole.MANAGER,
+        employeeId: 'EMP-001',
+        hourlyRate: 25.0,
+        status: EmployeeStatus.ACTIVE,
         hireDate: new Date('2023-01-15'),
-        department: 'Management',
       },
       {
         cafeId: cafe.id,
@@ -454,13 +413,12 @@ async function seed() {
         firstName: employeeUser1.firstName,
         lastName: employeeUser1.lastName,
         email: employeeUser1.email,
-        phoneNumber: employeeUser1.phoneNumber,
-        position: 'Barista',
-        employeeNumber: 'EMP-002',
-        hourlyRate: 18.00,
-        status: 'ACTIVE',
+        phone: employeeUser1.phoneNumber,
+        position: UserRole.EMPLOYEE,
+        employeeId: 'EMP-002',
+        hourlyRate: 18.0,
+        status: EmployeeStatus.ACTIVE,
         hireDate: new Date('2023-03-20'),
-        department: 'Service',
       },
       {
         cafeId: cafe.id,
@@ -468,13 +426,12 @@ async function seed() {
         firstName: employeeUser2.firstName,
         lastName: employeeUser2.lastName,
         email: employeeUser2.email,
-        phoneNumber: employeeUser2.phoneNumber,
-        position: 'Cashier',
-        employeeNumber: 'EMP-003',
-        hourlyRate: 16.00,
-        status: 'ACTIVE',
+        phone: employeeUser2.phoneNumber,
+        position: UserRole.EMPLOYEE,
+        employeeId: 'EMP-003',
+        hourlyRate: 16.0,
+        status: EmployeeStatus.ACTIVE,
         hireDate: new Date('2023-06-10'),
-        department: 'Service',
       },
     ] as any);
     console.log(`✅ Created ${employees.length} employees`);
@@ -482,7 +439,7 @@ async function seed() {
     // 8. CREATE INVENTORY ALERTS
     console.log('\n⚠️  Creating inventory alerts...');
     // Find low stock items
-    const lowStockItems = stocks.filter(s => s.quantity <= s.minimumStock);
+    const lowStockItems = stocks.filter((s) => s.quantity <= s.minimumStock);
     const alerts = [];
 
     for (const stock of lowStockItems.slice(0, 5)) {
@@ -493,9 +450,10 @@ async function seed() {
         type: stock.quantity === 0 ? AlertType.OUT_OF_STOCK : AlertType.LOW_STOCK,
         severity: stock.quantity === 0 ? AlertSeverity.HIGH : AlertSeverity.HIGH,
         title: stock.quantity === 0 ? `Out of Stock: ${product.name}` : `Low Stock: ${product.name}`,
-        message: stock.quantity === 0
-          ? `${product.name} is completely out of stock. Immediate reorder required.`
-          : `${product.name} stock is below minimum level. Current: ${stock.quantity}, Minimum: ${stock.minimumStock}`,
+        message:
+          stock.quantity === 0
+            ? `${product.name} is completely out of stock. Immediate reorder required.`
+            : `${product.name} stock is below minimum level. Current: ${stock.quantity}, Minimum: ${stock.minimumStock}`,
         currentStock: stock.quantity,
         minimumStock: stock.minimumStock,
         reorderLevel: stock.minimumStock * 2,
@@ -514,27 +472,29 @@ async function seed() {
     const expiringDate = new Date();
     expiringDate.setDate(expiringDate.getDate() + 3); // Expires in 3 days
 
-    const perishableStock = stocks.find(s => products.find((p: any) => p.id === s.productId && p.category === 'Pastries'));
+    const perishableStock = stocks.find((s) => products.find((p: any) => p.id === s.productId && p.category === 'Pastries'));
     if (perishableStock) {
       const product = products.find((p: any) => p.id === perishableStock.productId);
-      alerts.push(await dataSource.getRepository(InventoryAlert).save({
-        cafeId: cafe.id,
-        stockId: perishableStock.id,
-        type: AlertType.EXPIRED,
-        severity: AlertSeverity.HIGH,
-        title: `Expiring Soon: ${product.name}`,
-        message: `${product.name} will expire in 3 days. Consider promotional pricing.`,
-        currentStock: perishableStock.quantity,
-        minimumStock: perishableStock.minimumStock,
-        expiryDate: expiringDate,
-        itemName: product.name,
-        sku: product.sku,
-        category: product.category,
-        resolved: false,
-        acknowledged: false,
-        actionUrl: `/admin/inventory/${perishableStock.id}`,
-        actionLabel: 'View Details',
-      } as any));
+      alerts.push(
+        await dataSource.getRepository(InventoryAlert).save({
+          cafeId: cafe.id,
+          stockId: perishableStock.id,
+          type: AlertType.EXPIRED,
+          severity: AlertSeverity.HIGH,
+          title: `Expiring Soon: ${product.name}`,
+          message: `${product.name} will expire in 3 days. Consider promotional pricing.`,
+          currentStock: perishableStock.quantity,
+          minimumStock: perishableStock.minimumStock,
+          expiryDate: expiringDate,
+          itemName: product.name,
+          sku: product.sku,
+          category: product.category,
+          resolved: false,
+          acknowledged: false,
+          actionUrl: `/admin/inventory/${perishableStock.id}`,
+          actionLabel: 'View Details',
+        } as any),
+      );
     }
 
     console.log(`✅ Created ${alerts.length} inventory alerts`);
@@ -570,7 +530,7 @@ async function seed() {
         type: NotificationType.REVENUE_MILESTONE,
         severity: NotificationSeverity.INFO,
         title: 'Daily Revenue Target Achieved',
-        message: 'Congratulations! Today\'s revenue has exceeded $1,000',
+        message: "Congratulations! Today's revenue has exceeded $1,000",
         actionUrl: '/admin/analytics',
         actionLabel: 'View Analytics',
         isRead: true,
@@ -655,7 +615,7 @@ async function seed() {
         dailyRevenueTarget: 1000,
         weeklyRevenueTarget: 7000,
         monthlyRevenueTarget: 30000,
-        averageOrderValue: 15.50,
+        averageOrderValue: 15.5,
         customerRetentionRate: 0.68,
       },
       integrations: {
@@ -674,8 +634,8 @@ async function seed() {
     const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59);
 
     // Calculate actual metrics from orders
-    const completedOrders = orders.filter(o => o.status === OrderStatus.DELIVERED);
-    const todayOrders = completedOrders.filter(o => {
+    const completedOrders = orders.filter((o) => o.status === OrderStatus.DELIVERED);
+    const todayOrders = completedOrders.filter((o) => {
       const orderDate = new Date(o.createdAt);
       return orderDate >= startOfDay && orderDate <= endOfDay;
     });
@@ -710,26 +670,15 @@ async function seed() {
 
     const analytics = await dataSource.getRepository(SalesAnalytics).save({
       cafeId: cafe.id,
-      period: 'daily',
-      startDate: startOfDay,
-      endDate: endOfDay,
+      periodType: 'daily',
+      periodStart: startOfDay,
+      periodEnd: endOfDay,
       totalRevenue,
-      orderCount: completedOrders.length,
+      totalOrders: completedOrders.length,
+      completedOrders: completedOrders.length,
       averageOrderValue,
-      topProducts,
-      revenueGrowth: 12.5, // Mock growth percentage
-      orderGrowth: 8.3,
-      peakHours: [
-        { hour: 8, orders: 15, revenue: 225 },
-        { hour: 12, orders: 25, revenue: 425 },
-        { hour: 17, orders: 20, revenue: 380 },
-      ],
-      categoryBreakdown: {
-        Coffee: { orders: 45, revenue: 210.50 },
-        Pastries: { orders: 22, revenue: 82.50 },
-        Food: { orders: 18, revenue: 175.00 },
-        Beverages: { orders: 12, revenue: 51.00 },
-      },
+      revenueGrowthRate: 12.5, // Mock growth percentage
+      orderGrowthRate: 8.3,
     } as any);
     console.log(`✅ Created sales analytics record`);
 
@@ -756,7 +705,6 @@ async function seed() {
     console.log(`   Cafe ID: ${cafe.id}`);
     console.log('\n🚀 Your database is now ready for development and testing!');
     console.log('='.repeat(60) + '\n');
-
   } catch (error) {
     console.error('\n❌ Seeding failed:', error);
     throw error;
@@ -764,7 +712,7 @@ async function seed() {
     await dataSource.destroy();
     console.log('✅ Database connection closed');
   }
-}
+};
 
 // Run the seed function
 seed()

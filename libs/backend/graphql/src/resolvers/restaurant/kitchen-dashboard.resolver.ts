@@ -86,8 +86,8 @@ export class KitchenDashboardResolver {
         stationStatus: [], // TODO: Implement station tracking
         recentOrders: orders.slice(0, 10),
       };
-    } catch (error) {
-      this.logger.error(`Failed to fetch kitchen dashboard: ${error.message}`, error.stack);
+    } catch (error: unknown) {
+      this.logger.error(`Failed to fetch kitchen dashboard: ${error instanceof Error ? error.message : 'Unknown error'}`, error instanceof Error ? error.stack : undefined);
       throw error;
     }
   }
@@ -125,8 +125,8 @@ export class KitchenDashboardResolver {
       });
 
       return orders;
-    } catch (error) {
-      this.logger.error(`Failed to fetch kitchen orders: ${error.message}`, error.stack);
+    } catch (error: unknown) {
+      this.logger.error(`Failed to fetch kitchen orders: ${error instanceof Error ? error.message : 'Unknown error'}`, error instanceof Error ? error.stack : undefined);
       throw error;
     }
   }
@@ -142,8 +142,8 @@ export class KitchenDashboardResolver {
         where: { id },
         relations: ['items', 'items.product', 'assignedStaff', 'counter'],
       });
-    } catch (error) {
-      this.logger.error(`Failed to fetch kitchen order ${id}: ${error.message}`, error.stack);
+    } catch (error: unknown) {
+      this.logger.error(`Failed to fetch kitchen order ${id}: ${error instanceof Error ? error.message : 'Unknown error'}`, error instanceof Error ? error.stack : undefined);
       throw error;
     }
   }
@@ -214,8 +214,8 @@ export class KitchenDashboardResolver {
         staffUtilization: 75.0, // TODO: Calculate from actual staff data
         equipmentUtilization: 68.0, // TODO: Calculate from equipment tracking
       };
-    } catch (error) {
-      this.logger.error(`Failed to fetch kitchen metrics: ${error.message}`, error.stack);
+    } catch (error: unknown) {
+      this.logger.error(`Failed to fetch kitchen metrics: ${error instanceof Error ? error.message : 'Unknown error'}`, error instanceof Error ? error.stack : undefined);
       throw error;
     }
   }
@@ -253,8 +253,8 @@ export class KitchenDashboardResolver {
       });
 
       return order;
-    } catch (error) {
-      this.logger.error(`Failed to update kitchen order status: ${error.message}`, error.stack);
+    } catch (error: unknown) {
+      this.logger.error(`Failed to update kitchen order status: ${error instanceof Error ? error.message : 'Unknown error'}`, error instanceof Error ? error.stack : undefined);
       throw error;
     }
   }
@@ -269,8 +269,8 @@ export class KitchenDashboardResolver {
     try {
       // TODO: Implement OrderItem repository and update logic
       throw new Error('OrderItem status update not yet implemented');
-    } catch (error) {
-      this.logger.error(`Failed to update order item status: ${error.message}`, error.stack);
+    } catch (error: unknown) {
+      this.logger.error(`Failed to update order item status: ${error instanceof Error ? error.message : 'Unknown error'}`, error instanceof Error ? error.stack : undefined);
       throw error;
     }
   }
@@ -295,8 +295,8 @@ export class KitchenDashboardResolver {
       }
 
       return order;
-    } catch (error) {
-      this.logger.error(`Failed to assign order to staff: ${error.message}`, error.stack);
+    } catch (error: unknown) {
+      this.logger.error(`Failed to assign order to staff: ${error instanceof Error ? error.message : 'Unknown error'}`, error instanceof Error ? error.stack : undefined);
       throw error;
     }
   }

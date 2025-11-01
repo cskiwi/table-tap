@@ -32,8 +32,8 @@ export class InventoryResolver {
         where: { cafeId },
         order: { product: { name: 'ASC' } }
       });
-    } catch (error) {
-      this.logger.error(`Failed to fetch inventory for cafe ${cafeId}: ${error.message}`, error.stack);
+    } catch (error: unknown) {
+      this.logger.error(`Failed to fetch inventory for cafe ${cafeId}: ${error instanceof Error ? error.message : 'Unknown error'}`, error instanceof Error ? error.stack : undefined);
       throw error;
     }
   }
@@ -55,8 +55,8 @@ export class InventoryResolver {
         .andWhere('inventory.status = :status', { status: 'ACTIVE' })
         .orderBy('inventory.currentQuantity', 'ASC')
         .getMany();
-    } catch (error) {
-      this.logger.error(`Failed to fetch low stock items for cafe ${cafeId}: ${error.message}`, error.stack);
+    } catch (error: unknown) {
+      this.logger.error(`Failed to fetch low stock items for cafe ${cafeId}: ${error instanceof Error ? error.message : 'Unknown error'}`, error instanceof Error ? error.stack : undefined);
       throw error;
     }
   }
@@ -137,7 +137,7 @@ export class InventoryResolver {
     // Use service for validation and business logic
     // TODO: Implement InventoryService
     // throw new Error('InventoryService not implemented');
-    const item: Stock | null = null; // await this.inventoryService.createItem(input, user);
+    const item = null as Stock | null; // await this.inventoryService.createItem(input, user);
     if (!item) throw new Error('InventoryService not implemented');
 
     await this.pubSub.publish('inventoryUpdated', {
@@ -159,7 +159,7 @@ export class InventoryResolver {
     // Use service for validation logic
     // TODO: Implement InventoryService
     // throw new Error('InventoryService not implemented');
-    const item: Stock | null = null; // await this.inventoryService.updateItem(id, input, user);
+    const item = null as Stock | null; // await this.inventoryService.updateItem(id, input, user);
     if (!item) throw new Error('InventoryService not implemented');
 
     await this.pubSub.publish('inventoryUpdated', {
@@ -182,7 +182,7 @@ export class InventoryResolver {
       // Use service for stock update logic (includes alert generation)
       // TODO: Implement InventoryService
       // throw new Error('InventoryService not implemented');
-      const item: Stock | null = null; // await this.inventoryService.updateStock(id, input, user);
+      const item = null as Stock | null; // await this.inventoryService.updateStock(id, input, user);
       if (!item) throw new Error('InventoryService not implemented');
 
       await this.pubSub.publish('inventoryUpdated', {
@@ -210,8 +210,8 @@ export class InventoryResolver {
       }
 
       return item;
-    } catch (error) {
-      this.logger.error(`Failed to update inventory stock: ${error.message}`, error.stack);
+    } catch (error: unknown) {
+      this.logger.error(`Failed to update inventory stock: ${error instanceof Error ? error.message : 'Unknown error'}`, error instanceof Error ? error.stack : undefined);
       throw error;
     }
   }

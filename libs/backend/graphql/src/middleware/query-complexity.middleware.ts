@@ -83,7 +83,8 @@ export class QueryComplexityPlugin implements ApolloServerPlugin {
           }
 
         } catch (error) {
-          this.logger.error(`Error calculating query complexity: ${error.message}`);
+          const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+          this.logger.error(`Error calculating query complexity: ${errorMessage}`);
           // Don't block the query if complexity calculation fails
         }
       },

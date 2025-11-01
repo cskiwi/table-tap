@@ -4,25 +4,31 @@ import { DataSource, DataSourceOptions } from 'typeorm';
 
 // Extract all entity classes from the models package
 // An entity class extends BaseEntity and is decorated with @Entity
-const entities = Object.values(Models).filter(
-  (value) => {
-    if (typeof value !== 'function' || !value.prototype) return false;
-    
-    // Check if it extends BaseEntity (TypeORM entity base class)
-    let proto = value.prototype;
-    while (proto) {
-      if (proto.constructor.name === 'BaseEntity') return true;
-      proto = Object.getPrototypeOf(proto);
+const entities = Object.values(Models).filter((value) => {
+  if (typeof value !== 'function' || !value.prototype) return false;
+
+  // Check if it extends BaseEntity (TypeORM entity base class)
+  let proto = value.prototype;
+  while (proto) {
+    if (proto.constructor?.name === 'BaseEntity') {
+      return true;
     }
-    return false;
+    proto = Object.getPrototypeOf(proto);
   }
-);
+  return false;
+});
+
+// const entityNames = entities.map((entity) => entity.name).sort();
+
+// if (process.env['NODE_ENV'] !== 'production') {
+//   console.log(`[database] Registered TypeORM entities (${entityNames.length}):`, entityNames);
+// }
 
 export function getDbConfig(configService?: ConfigService): DataSourceOptions {
   const getEnvVar = (key: string, defaultValue?: string) => (configService ? configService.get<string>(key) : process.env[key] || defaultValue);
 
   const addMigrations = getEnvVar('RUN_MIGRATIONS')?.trim() === 'true';
-  const dbType = getEnvVar('DB_TYPE')?.trim()
+  const dbType = getEnvVar('DB_TYPE')?.trim();
   let config: DataSourceOptions;
 
   console.log('DB_TYPE:', dbType);
@@ -50,7 +56,7 @@ export function getDbConfig(configService?: ConfigService): DataSourceOptions {
       synchronize: false,
       migrationsRun: false,
       cli: {
-        migrationsDir: 'libs/backend/database/src/migrations'
+        migrationsDir: 'libs/backend/database/src/migrations',
       },
       // logging: true,
     } as DataSourceOptions;

@@ -62,7 +62,7 @@ export class OfflineStorageService {
   private async initDatabase(): Promise<void> {
     try {
       this.db = await openDB<KitchenMobileDB>('kitchen-mobile-db', 1, {
-        upgrade(db) {
+        upgrade(db: IDBPDatabase<KitchenMobileDB>) {
           // Orders store
           const ordersStore = db.createObjectStore('orders', { keyPath: 'id' });
           ordersStore.createIndex('by-status', 'status');

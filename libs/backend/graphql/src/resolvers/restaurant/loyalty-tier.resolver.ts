@@ -33,8 +33,8 @@ export class LoyaltyTierResolver {
       return await this.loyaltyTierRepository.findOne({
         where: { id, cafeId: user.cafeId }
       });
-    } catch (error) {
-      this.logger.error(`Failed to fetch loyalty tier ${id}: ${error.message}`, error.stack);
+    } catch (error: unknown) {
+      this.logger.error(`Failed to fetch loyalty tier ${id}: ${error instanceof Error ? error.message : 'Unknown error'}`, error instanceof Error ? error.stack : undefined);
       throw error;
     }
   }
@@ -50,8 +50,8 @@ export class LoyaltyTierResolver {
         where: { cafeId, isActive: true },
         order: { level: 'ASC' }
       });
-    } catch (error) {
-      this.logger.error(`Failed to fetch loyalty tiers for cafe ${cafeId}: ${error.message}`, error.stack);
+    } catch (error: unknown) {
+      this.logger.error(`Failed to fetch loyalty tiers for cafe ${cafeId}: ${error instanceof Error ? error.message : 'Unknown error'}`, error instanceof Error ? error.stack : undefined);
       throw error;
     }
   }

@@ -56,9 +56,9 @@ export class User extends BaseEntity {
 
   // Authentication
   @Index({ unique: true })
-  @Column({ unique: true })
+  @Column({ unique: true, nullable: false })
   @IsString()
-  declare sub: string;
+  declare sub?: string;
 
   @Field({ nullable: true })
   @Column({ nullable: true, unique: true })
@@ -129,7 +129,7 @@ export class User extends BaseEntity {
   @IsOptional()
   declare loyaltyNumber: string;
 
-  @OneToOne(() => UserPreferences, preferences => preferences.user, { cascade: true })
+  @OneToOne(() => UserPreferences, (preferences) => preferences.user, { cascade: true })
   declare preferences: Relation<UserPreferences>;
 
   // Employee reference (for employees who are also users)
@@ -194,11 +194,8 @@ export class UserUpdateInput extends PartialType(
     'displayName',
     'isEmployee',
   ] as const),
-  InputType
+  InputType,
 ) {}
 
 @InputType()
-export class UserCreateInput extends PartialType(
-  OmitType(UserUpdateInput, ['id'] as const),
-  InputType
-) {}
+export class UserCreateInput extends PartialType(OmitType(UserUpdateInput, ['id'] as const), InputType) {}

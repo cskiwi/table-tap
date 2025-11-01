@@ -612,7 +612,13 @@ export class LoyaltyService {
         if (!loyaltyAccount.challengeProgresses) {
           loyaltyAccount.challengeProgresses = [];
         }
-        loyaltyAccount.challengeProgresses.push(challengeProgressRecord);
+        if (challengeProgressRecord) {
+          loyaltyAccount.challengeProgresses.push(challengeProgressRecord);
+        }
+      }
+
+      if (!challengeProgressRecord) {
+        continue;
       }
 
       challengeProgressRecord.progress = progress.currentProgress;

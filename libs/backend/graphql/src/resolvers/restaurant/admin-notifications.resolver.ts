@@ -37,8 +37,8 @@ export class AdminNotificationsResolver {
         .orderBy('notification.createdAt', 'DESC')
         .limit(limit || 50)
         .getMany();
-    } catch (error) {
-      this.logger.error(`Failed to fetch notifications: ${error.message}`, error.stack);
+    } catch (error: unknown) {
+      this.logger.error(`Failed to fetch notifications: ${error instanceof Error ? error.message : 'Unknown error'}`, error instanceof Error ? error.stack : undefined);
       throw error;
     }
   }
@@ -55,8 +55,8 @@ export class AdminNotificationsResolver {
       notification.readAt = new Date();
 
       return await this.notificationRepository.save(notification);
-    } catch (error) {
-      this.logger.error(`Failed to mark notification as read: ${error.message}`, error.stack);
+    } catch (error: unknown) {
+      this.logger.error(`Failed to mark notification as read: ${error instanceof Error ? error.message : 'Unknown error'}`, error instanceof Error ? error.stack : undefined);
       throw error;
     }
   }
@@ -74,8 +74,8 @@ export class AdminNotificationsResolver {
         .execute();
 
       return true;
-    } catch (error) {
-      this.logger.error(`Failed to mark all notifications as read: ${error.message}`, error.stack);
+    } catch (error: unknown) {
+      this.logger.error(`Failed to mark all notifications as read: ${error instanceof Error ? error.message : 'Unknown error'}`, error instanceof Error ? error.stack : undefined);
       throw error;
     }
   }
