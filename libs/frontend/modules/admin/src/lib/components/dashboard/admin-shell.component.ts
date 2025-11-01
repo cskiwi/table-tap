@@ -55,21 +55,22 @@ export class AdminShellComponent implements OnInit, OnDestroy {
   unreadNotificationsCount = this.adminService.unreadNotifications;
   criticalAlertsCount = this.adminService.criticalAlerts;
 
-  // Mock user data - replace with actual user service
-  currentUser = signal({
-    id: '1',
-    name: 'John Admin',
+  // User and cafe data from AdminService
+  // In production, this would come from AuthService and CafeService
+  currentUser = computed(() => ({
+    id: this.adminService.selectedCafeId() || '1',
+    name: 'Admin User', // TODO: Get from AuthService
     email: 'admin@tabletap.com',
     role: 'Restaurant Manager',
-    permissions: [],
-    cafeId: 'cafe-1',
-    profileImage: undefined
-  });
+    permissions: [] as string[],
+    cafeId: this.adminService.selectedCafeId() || '',
+    profileImage: undefined as string | undefined
+  }));
 
-  currentCafe = signal({
-    id: 'cafe-1',
-    name: 'TableTap Downtown',
-  });
+  currentCafe = computed(() => ({
+    id: this.adminService.selectedCafeId() || '',
+    name: 'TableTap Downtown', // TODO: Fetch from CafeService
+  }));
 
   // Navigation items with badges from service
   navigationItems = computed((): AdminNavigationItem[] => [

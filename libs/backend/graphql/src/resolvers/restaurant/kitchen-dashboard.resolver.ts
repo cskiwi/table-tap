@@ -21,7 +21,6 @@ import {
   EquipmentType,
   OrderPriority,
 } from '@app/models/enums';
-import { DataLoaderService } from '../../dataloaders';
 
 @Injectable()
 @Resolver('KitchenDashboard')
@@ -34,7 +33,6 @@ export class KitchenDashboardResolver {
     private readonly orderRepository: Repository<Order>,
     @InjectRepository(Employee)
     private readonly employeeRepository: Repository<Employee>,
-    private readonly dataLoader: DataLoaderService,
   ) {}
 
   @Query('kitchenDashboard')

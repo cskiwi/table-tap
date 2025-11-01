@@ -4,6 +4,7 @@
   "sourceRoot": "libs/models/models/src",
   "projectType": "library",
   "tags": [],
+  "implicitDependencies": ["enums"],
   "targets": {
     "build": {
       "executor": "@nx/js:tsc",

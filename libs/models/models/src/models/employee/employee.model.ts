@@ -12,13 +12,15 @@ import {
   UpdateDateColumn,
   DeleteDateColumn,
   ManyToOne,
-  JoinColumn,
+  OneToOne,
   OneToMany,
+  JoinColumn,
   Relation,
 } from 'typeorm';
-import { Cafe } from '../core/cafe.model';
-import { User } from '../core/user.model';
-import { TimeSheet } from './time-sheet.model';
+import { Cafe, User } from '../core';
+import { TimeSheet } from './attendance';
+import { EmployeeWorkingHours } from './scheduling';
+import { EmployeeEmergencyContact } from './employee-emergency-contact.model';
 
 @ObjectType('Employee')
 @Entity('Employees')
@@ -153,16 +155,8 @@ export class Employee extends BaseEntity {
   @Column('simple-array', { nullable: true })
   declare countersAccess: string[]; // Counter IDs this employee can work on
 
-  @Field({ nullable: true })
-  @Column('json', { nullable: true })
-  declare workingHours: {
-    [key: string]: {
-      // day of week
-      isWorking: boolean;
-      startTime?: string;
-      endTime?: string;
-    };
-  };
+  @OneToMany(() => EmployeeWorkingHours, hours => hours.employee, { cascade: true })
+  declare workingHours: Relation<EmployeeWorkingHours[]>;
 
   @Field({ nullable: true })
   @Column({ nullable: true })
@@ -244,6 +238,9 @@ export class Employee extends BaseEntity {
   @OneToMany(() => TimeSheet, (timeSheet) => timeSheet.employee)
   declare timeSheets: Relation<TimeSheet[]>;
 
+  @OneToOne(() => EmployeeEmergencyContact, (contact) => contact.employee, { nullable: true })
+  declare emergencyContact: Relation<EmployeeEmergencyContact>;
+
   // Computed fields
   @SortableField()
   get fullName(): string {
@@ -264,8 +261,10 @@ export class Employee extends BaseEntity {
   get canWorkToday(): boolean {
     const todayKey = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'][new Date().getDay()];
 
-    if (!this.workingHours?.[todayKey]) return false;
-    return this.workingHours[todayKey].isWorking;
+    if (!this.workingHours) return false;
+    const todayHours = this.workingHours.find(hours => hours.dayOfWeek === todayKey);
+    if (!todayHours) return false;
+    return todayHours.isWorking;
   }
 
   @Field({ nullable: true })
@@ -274,3 +273,32 @@ export class Employee extends BaseEntity {
     return Math.round((new Date().getTime() - this.lastClockIn.getTime()) / 60000); // in minutes
   }
 }
+
+// GraphQL Input Types
+import { InputType, PartialType, OmitType } from '@nestjs/graphql';
+
+@InputType()
+export class EmployeeUpdateInput extends PartialType(
+  OmitType(Employee, [
+    'createdAt',
+    'updatedAt',
+    'deletedAt',
+    'cafe',
+    'user',
+    'timeSheets',
+    'employeeId',
+    'role',
+    'fullName',
+    'isActive',
+    'displayName',
+    'canWorkToday',
+    'currentShiftDuration',
+  ] as const),
+  InputType
+) {}
+
+@InputType()
+export class EmployeeCreateInput extends PartialType(
+  OmitType(EmployeeUpdateInput, ['id'] as const),
+  InputType
+) {}

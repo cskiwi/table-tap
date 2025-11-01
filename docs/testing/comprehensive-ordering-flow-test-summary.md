@@ -104,7 +104,7 @@ This document summarizes the comprehensive testing implementation for the TableT
 ## 🔧 Build and Configuration Fixes Applied
 
 ### TypeScript Configuration Issues Resolved
-1. **Missing Path Mappings**: Added missing `@app/enum`, `@app/frontend-modules-*` mappings to `tsconfig.base.json`
+1. **Missing Path Mappings**: Added missing `@app/models/enums`, `@app/frontend-modules-*` mappings to `tsconfig.base.json`
 2. **Type Errors**: Fixed `toLocaleLowerCase()` typo in `employee.model.ts`
 3. **Module Dependencies**: Added proper enum import path resolution
 

@@ -12,8 +12,6 @@ import {
   Cafe,
   Counter,
 } from '@app/models';
-// import { OrderService } from '@app/backend-services'; // TODO: Implement OrderService
-import { DataLoaderService } from '../../dataloaders';
 
 @Injectable()
 @Resolver(() => Order)
@@ -24,8 +22,6 @@ export class OrderResolver {
   constructor(
     @InjectRepository(Order)
     private readonly orderRepository: Repository<Order>,
-    // private readonly orderService: OrderService, // TODO: Implement OrderService
-    private readonly dataLoader: DataLoaderService,
   ) {}
 
   // Queries - Read directly from repository
@@ -134,10 +130,6 @@ export class OrderResolver {
       const order: Order | null = null; // await this.orderService.create(input, user);
       if (!order) throw new Error('OrderService not implemented');
 
-      // Clear related caches
-      this.dataLoader.clearCacheByPattern(`cafeOrders:${order.cafeId}`);
-      this.dataLoader.clearCacheByPattern(`customerOrders:${user.id}`);
-
       // Publish new order event
       await this.pubSub.publish('orderCreated', {
         orderCreated: order,
@@ -174,12 +166,6 @@ export class OrderResolver {
       // throw new Error('OrderService not implemented');
       const order: Order | null = null; // await this.orderService.updateStatus(id, input, user);
       if (!order) throw new Error('OrderService not implemented');
-
-      // Clear related caches
-      this.dataLoader.clearCacheByPattern(`cafeOrders:${order.cafeId}`);
-      if (order.customerId) {
-        this.dataLoader.clearCacheByPattern(`customerOrders:${order.customerId}`);
-      }
 
       // Publish order status update
       await this.pubSub.publish('orderStatusUpdated', {
@@ -261,33 +247,7 @@ export class OrderResolver {
     return true;
   }
 
-  // Field Resolvers
-  @ResolveField(() => [OrderItem])
-  async items(@Parent() order: Order): Promise<OrderItem[]> {
-    return this.dataLoader.orderItemsByOrderId.load(order.id);
-  }
-
-  @ResolveField(() => [Payment])
-  async payments(@Parent() order: Order): Promise<Payment[]> {
-    return this.dataLoader.paymentsByOrderId.load(order.id);
-  }
-
-  @ResolveField(() => Cafe)
-  async cafe(@Parent() order: Order): Promise<Cafe> {
-    return this.dataLoader.cafeById.load(order.cafeId);
-  }
-
-  @ResolveField(() => User, { nullable: true })
-  async customer(@Parent() order: Order): Promise<User | null> {
-    if (!order.customerId) return null;
-    return this.dataLoader.userById.load(order.customerId);
-  }
-
-  @ResolveField(() => Counter, { nullable: true })
-  async counter(@Parent() order: Order): Promise<Counter | null> {
-    if (!order.counterId) return null;
-    return this.dataLoader.counterById.load(order.counterId);
-  }
+  // Field Resolvers removed - DataLoader not available
 
   // Subscriptions
   @Subscription(() => Order, {

@@ -2,7 +2,8 @@ import { Component, OnInit, OnDestroy, input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Subject, takeUntil, interval, combineLatest } from 'rxjs';
 import { LoyaltyService } from '../services/loyalty.service';
-import { LoyaltyChallenge, LoyaltyAccount, LoyaltyChallengeType } from '@app/models';
+import { LoyaltyChallenge, LoyaltyAccount } from '@app/models';
+import { LoyaltyChallengeType } from '@app/models/enums';
 
 export interface ChallengeProgress {
   challengeId: string;

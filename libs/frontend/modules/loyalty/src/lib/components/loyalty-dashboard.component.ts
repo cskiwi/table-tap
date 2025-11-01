@@ -231,15 +231,16 @@ export class LoyaltyDashboardComponent implements OnInit, OnDestroy {
 
   getChallengeProgress(challenge: LoyaltyChallenge): number {
     const account = this.loyaltyAccount()
-    if (!account?.challengeProgress[challenge.id]) return 0;
+    const progressItem = account?.challengeProgresses?.find(cp => cp.challengeId === challenge.id);
+    if (!progressItem) return 0;
 
-    const progress = account.challengeProgress[challenge.id]
-    return (progress.progress / progress.target) * 100;
+    return (progressItem.progress / progressItem.target) * 100;
   }
 
   getChallengeCurrentValue(challenge: LoyaltyChallenge): number {
     const account = this.loyaltyAccount()
-    return account?.challengeProgress[challenge.id]?.progress || 0;
+    const progressItem = account?.challengeProgresses?.find(cp => cp.challengeId === challenge.id);
+    return progressItem?.progress || 0;
   }
 
   getChallengeUnit(challenge: LoyaltyChallenge): string {

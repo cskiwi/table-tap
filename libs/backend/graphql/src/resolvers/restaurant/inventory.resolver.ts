@@ -6,8 +6,6 @@ import { Repository } from 'typeorm';
 import { PubSub } from 'graphql-subscriptions';
 import { PermGuard, ReqUser } from '@app/backend-authorization';
 import { User, Stock, Cafe } from '@app/models';
-// import { InventoryService } from '@app/backend-services'; // TODO: Implement InventoryService
-import { DataLoaderService } from '../../dataloaders';
 
 @Injectable()
 @Resolver(() => Stock)
@@ -18,8 +16,6 @@ export class InventoryResolver {
   constructor(
     @InjectRepository(Stock)
     private readonly inventoryRepository: Repository<Stock>,
-    // private readonly inventoryService: InventoryService, // TODO: Implement InventoryService
-    private readonly dataLoader: DataLoaderService,
   ) {}
 
   // Queries - Read directly from repository
@@ -189,11 +185,6 @@ export class InventoryResolver {
       const item: Stock | null = null; // await this.inventoryService.updateStock(id, input, user);
       if (!item) throw new Error('InventoryService not implemented');
 
-      // Clear related caches
-      this.dataLoader.clearCacheByPattern(`cafeInventory:${item.cafeId}`);
-      this.dataLoader.clearCacheByPattern(`lowStock:${item.cafeId}`);
-      this.dataLoader.inventoryById.clear(id);
-
       await this.pubSub.publish('inventoryUpdated', {
         inventoryUpdated: item,
         cafeId: item.cafeId,
@@ -249,11 +240,7 @@ export class InventoryResolver {
     return true;
   }
 
-  // Field Resolvers
-  @ResolveField(() => Cafe)
-  async cafe(@Parent() inventory: Stock): Promise<Cafe> {
-    return this.dataLoader.cafeById.load(inventory.cafeId);
-  }
+  // Field Resolvers removed - DataLoader not available
 
   // Subscriptions
   @Subscription(() => Object, {

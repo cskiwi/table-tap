@@ -13,10 +13,9 @@ import {
   JoinColumn,
   Relation,
 } from 'typeorm';
-import { Cafe } from '../core/cafe.model';
-import { Product } from '../order/product.model';
-import { User } from '../core/user.model';
 import { StockMovementType } from '@app/models/enums';
+import { Cafe, User } from '../core';
+import { Product } from '../order';
 
 @ObjectType('StockMovement')
 @Entity('StockMovements')
@@ -159,3 +158,27 @@ export class StockMovement extends BaseEntity {
     return Math.abs(this.quantity);
   }
 }
+
+// GraphQL Input Types
+import { InputType, PartialType, OmitType } from '@nestjs/graphql';
+
+@InputType()
+export class StockMovementUpdateInput extends PartialType(
+  OmitType(StockMovement, [
+    'createdAt',
+    'updatedAt',
+    'cafe',
+    'product',
+    'performedBy',
+    'isIncrease',
+    'isDecrease',
+    'absoluteQuantity',
+  ] as const),
+  InputType
+) {}
+
+@InputType()
+export class StockMovementCreateInput extends PartialType(
+  OmitType(StockMovementUpdateInput, ['id'] as const),
+  InputType
+) {}

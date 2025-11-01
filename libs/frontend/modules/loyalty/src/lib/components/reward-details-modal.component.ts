@@ -6,10 +6,9 @@ import { LoyaltyService } from '../services/loyalty.service';
 import {
   LoyaltyAccount,
   LoyaltyReward,
-  LoyaltyRewardType,
-  LoyaltyRewardCategory,
   LoyaltyRewardRedemption
 } from '@app/models';
+import { LoyaltyRewardType, LoyaltyRewardCategory } from '@app/models/enums';
 
 export interface RedemptionPreview {
   pointsCost: number;

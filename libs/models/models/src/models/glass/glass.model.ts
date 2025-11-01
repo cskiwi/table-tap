@@ -14,10 +14,9 @@ import {
   JoinColumn,
   OneToMany,
 } from 'typeorm';
-import { Cafe } from '../core/cafe.model';
-import { User } from '../core/user.model';
-import { Order } from '../order/order.model';
 import { GlassMovement } from './glass-movement.model';
+import { Cafe, User } from '../core';
+import { Order } from '../order';
 
 @ObjectType('Glass')
 @Entity('Glasses')
@@ -211,3 +210,33 @@ export class Glass extends BaseEntity {
     return Math.floor((new Date().getTime() - this.lastCleanedAt.getTime()) / (1000 * 60 * 60 * 24));
   }
 }
+
+// GraphQL Input Types
+import { InputType, PartialType, OmitType } from '@nestjs/graphql';
+
+@InputType()
+export class GlassUpdateInput extends PartialType(
+  OmitType(Glass, [
+    'createdAt',
+    'updatedAt',
+    'deletedAt',
+    'cafe',
+    'currentCustomer',
+    'currentOrder',
+    'movements',
+    'isAvailable',
+    'isInUse',
+    'needsCleaning',
+    'isLost',
+    'isBroken',
+    'daysSinceLastUse',
+    'daysSinceLastClean',
+  ] as const),
+  InputType
+) {}
+
+@InputType()
+export class GlassCreateInput extends PartialType(
+  OmitType(GlassUpdateInput, ['id'] as const),
+  InputType
+) {}

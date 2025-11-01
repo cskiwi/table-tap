@@ -25,6 +25,7 @@ import { ToastModule } from 'primeng/toast';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { Popover } from 'primeng/popover';
 import { AdminService } from '../../services/admin.service';
+import { Apollo } from 'apollo-angular';
 
 interface Order {
   id: string,
@@ -90,6 +91,7 @@ export class OrderManagementComponent implements OnInit, OnDestroy {
   readonly moreActionsMenu = viewChild.required<Popover>('moreActionsMenu');
 
   private adminService = inject(AdminService);
+  private apollo = inject(Apollo);
   private router = inject(Router);
   private confirmationService = inject(ConfirmationService);
   private messageService = inject(MessageService);
@@ -108,69 +110,8 @@ export class OrderManagementComponent implements OnInit, OnDestroy {
   showOrderDialog = false;
   selectedOrder: Order | null = null;
 
-  // Mock orders data - replace with actual service calls
-  private allOrders = signal<Order[]>([
-    {
-      id: '1',
-      orderNumber: 'ORD-001',
-      customerName: 'John Doe',
-      customerEmail: 'john@example.com',
-      status: 'PENDING',
-      items: [
-        {
-          id: '1',
-          menuItemId: 'menu-1',
-          menuItemName: 'Cappuccino',
-          quantity: 2,
-          unitPrice: 4.50,
-          totalPrice: 9.00,
-          status: 'PENDING'
-        },
-        {
-          id: '2',
-          menuItemId: 'menu-2',
-          menuItemName: 'Croissant',
-          quantity: 1,
-          unitPrice: 3.50,
-          totalPrice: 3.50,
-          status: 'PENDING'
-        }
-      ],
-      totalAmount: 12.50,
-      paymentStatus: 'PENDING',
-      paymentMethod: 'Card',
-      createdAt: new Date(Date.now() - 300000), // 5 minutes ago
-      estimatedReadyTime: new Date(Date.now() + 600000), // 10 minutes from now
-      orderType: 'DINE_IN',
-      tableNumber: '5',
-    },
-    {
-      id: '2',
-      orderNumber: 'ORD-002',
-      customerName: 'Sarah Smith',
-      status: 'PREPARING',
-      items: [
-        {
-          id: '3',
-          menuItemId: 'menu-3',
-          menuItemName: 'Americano',
-          quantity: 1,
-          unitPrice: 3.00,
-          totalPrice: 3.00,
-          status: 'PREPARING'
-        }
-      ],
-      totalAmount: 3.00,
-      paymentStatus: 'PAID',
-      paymentMethod: 'Cash',
-      createdAt: new Date(Date.now() - 900000), // 15 minutes ago
-      assignedEmployeeId: 'emp-1',
-      assignedEmployeeName: 'Mike Chen',
-      counterId: 'counter-1',
-      counterName: 'Main Counter',
-      orderType: 'TAKEAWAY'
-    }
-  ]);
+  // Real orders data from GraphQL
+  private allOrders = signal<Order[]>([]);
 
   // Filter options
   statusFilterOptions = [
@@ -290,10 +231,34 @@ export class OrderManagementComponent implements OnInit, OnDestroy {
 
   loadOrders(): void {
     this.loading.set(true);
-    // Simulate API call
-    setTimeout(() => {
+
+    // Get cafeId from adminService or auth
+    const cafeId = this.adminService.selectedCafeId();
+    if (!cafeId) {
       this.loading.set(false);
-    }, 1000);
+      return;
+    }
+
+    import('../../graphql/admin.operations').then(({ GET_CAFE_ORDERS }) => {
+      this.apollo.query<{ cafeOrders: Order[] }>({
+        query: GET_CAFE_ORDERS,
+        variables: { cafeId },
+      }).subscribe({
+        next: (result) => {
+          this.allOrders.set(result.data.cafeOrders);
+          this.loading.set(false);
+        },
+        error: (error) => {
+          console.error('Error loading orders:', error);
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: 'Failed to load orders'
+          });
+          this.loading.set(false);
+        }
+      });
+    });
   }
 
   refreshOrders(): void {

@@ -5,8 +5,9 @@ import { LoyaltyService } from '../services/loyalty.service';
 import {
   LoyaltyChallenge,
   LoyaltyAccount,
-  LoyaltyChallengeType
+  LoyaltyChallengeMilestone
 } from '@app/models';
+import { LoyaltyChallengeType } from '@app/models/enums';
 
 @Component({
   selector: 'app-challenge-detail',
@@ -219,10 +220,10 @@ export class ChallengeDetailComponent implements OnInit, OnDestroy {
     console.log('Show milestone details:', milestone);
   }
 
-  getMilestoneRewardText(reward: any): string {
-    if (reward.points) return `${reward.points} points`;
-    if (reward.badgeId) return 'Special badge';
-    if (reward.message) return reward.message;
+  getMilestoneRewardText(milestone: LoyaltyChallengeMilestone): string {
+    if (milestone.rewardPoints) return `${milestone.rewardPoints} points`;
+    if (milestone.rewardBadgeId) return 'Special badge';
+    if (milestone.rewardMessage) return milestone.rewardMessage;
     return 'Special reward';
   }
 

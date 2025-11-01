@@ -1,56 +1,11 @@
+import { Order, OrderCreateInput, OrderUpdateInput, User } from '@app/models';
+import { OrderStatus } from '@app/models/enums';
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, DataSource } from 'typeorm';
-// Using temporary types as workaround for missing models
-type OrderEntity = {
-  id: string;
-  orderNumber: string;
-  status: string;
-  cafeId: string;
-  customerId: string;
-  counterId?: string;
-  createdAt: Date;
-  updatedAt: Date;
-  [key: string]: any;
-}
-
-type CreateOrderInput = {
-  cafeId: string;
-  customerId: string;
-  items: any[]
-  [key: string]: any;
-}
-
-type UpdateOrderStatusInput = {
-  orderId: string;
-  status: string;
-  [key: string]: any;
-}
-
-enum OrderStatus {
-  PENDING = 'PENDING',
-  CONFIRMED = 'CONFIRMED',
-  PREPARING = 'PREPARING',
-  READY = 'READY',
-  COMPLETED = 'COMPLETED',
-  CANCELLED = 'CANCELLED'
-}
-
-// Mock entity for TypeORM until proper models are available
-class Order {
-  id!: string;
-  orderNumber!: string;
-  status!: string;
-  cafeId!: string;
-  customerId!: string;
-  counterId?: string;
-  createdAt!: Date;
-  updatedAt!: Date;
-}
-import { User } from '@app/models';
-import { RedisPubSubService } from './pubsub.service';
+import { DataSource, Repository } from 'typeorm';
+import { Cacheable, CacheCafeContext, CacheEvict } from '../decorators/cache.decorator';
 import { RedisCacheService } from './cache.service';
-import { Cacheable, CacheEvict, CacheCafeContext } from '../decorators/cache.decorator';
+import { RedisPubSubService } from './pubsub.service';
 
 @Injectable()
 export class EnhancedOrderService {
@@ -66,7 +21,7 @@ export class EnhancedOrderService {
   /**
    * Create order with Redis pub/sub notifications
    */
-  async createOrder(input: CreateOrderInput, user: User): Promise<OrderEntity> {
+  async createOrder(input: OrderCreateInput, user: User): Promise<Order> {
     const order = await this.dataSource.transaction(async (manager) => {
       // Create order logic (existing implementation)
       const order = manager.create(Order, {
@@ -80,38 +35,34 @@ export class EnhancedOrderService {
 
     // Publish order created event
     await this.pubsub.publishOrderCreated({
-      orderId: (order as OrderEntity).id,
-      orderNumber: (order as OrderEntity).orderNumber,
-      cafeId: (order as OrderEntity).cafeId,
-      customerId: (order as OrderEntity).customerId,
+      orderId: (order as Order).id,
+      orderNumber: (order as Order).orderNumber,
+      cafeId: (order as Order).cafeId,
+      customerId: (order as Order).customerId,
     });
 
     // Send kitchen notification
     await this.pubsub.publishKitchenNotification({
-      orderId: (order as OrderEntity).id,
-      orderNumber: (order as OrderEntity).orderNumber,
-      cafeId: (order as OrderEntity).cafeId,
-      counterId: (order as OrderEntity).counterId,
+      orderId: (order as Order).id,
+      orderNumber: (order as Order).orderNumber,
+      cafeId: (order as Order).cafeId,
+      counterId: (order as Order).counterId,
       items: [], // Would be populated from order items
       priority: 'normal',
       estimatedReadyTime: (order as any).estimatedReadyTime,
     });
 
     // Invalidate relevant caches
-    await this.cache.invalidateCafeCache((order as OrderEntity).cafeId);
+    await this.cache.invalidateCafeCache((order as Order).cafeId);
 
-    this.logger.log(`Order ${(order as OrderEntity).orderNumber} created and notifications sent`);
-    return order as OrderEntity;
+    this.logger.log(`Order ${(order as Order).orderNumber} created and notifications sent`);
+    return order as Order;
   }
 
   /**
    * Update order status with real-time notifications
    */
-  async updateOrderStatus(
-    orderId: string,
-    input: UpdateOrderStatusInput,
-    user: User
-  ): Promise<OrderEntity> {
+  async updateOrderStatus(orderId: string, input: OrderUpdateInput, user: User): Promise<Order> {
     const order = await this.orderRepository.findOne({ where: { id: orderId } });
     if (!order) {
       throw new Error(`Order ${orderId} not found`);
@@ -123,25 +74,25 @@ export class EnhancedOrderService {
 
     // Publish status update
     await this.pubsub.publishOrderStatusUpdated({
-      orderId: (order as OrderEntity).id,
-      orderNumber: (order as OrderEntity).orderNumber,
-      cafeId: (order as OrderEntity).cafeId,
-      customerId: (order as OrderEntity).customerId,
+      orderId: (order as Order).id,
+      orderNumber: (order as Order).orderNumber,
+      cafeId: (order as Order).cafeId,
+      customerId: (order as Order).customerId,
       status: input.status,
     });
 
     // Cache the updated order
     await this.cache.set(`order:${orderId}`, updatedOrder, { ttl: 1800, namespace: 'orders' });
 
-    this.logger.log(`Order ${(order as OrderEntity).orderNumber} status updated to ${input.status}`);
-    return updatedOrder as OrderEntity;
+    this.logger.log(`Order ${(order as Order).orderNumber} status updated to ${input.status}`);
+    return updatedOrder as Order;
   }
 
   /**
    * Get cached order by ID
    */
   @Cacheable(undefined, 1800, 'orders') // Cache for 30 minutes
-  async getOrderById(orderId: string): Promise<OrderEntity | null> {
+  async getOrderById(orderId: string): Promise<Order | null> {
     return this.orderRepository.findOne({
       where: { id: orderId },
       relations: ['items', 'customer', 'cafe'],
@@ -153,7 +104,7 @@ export class EnhancedOrderService {
    */
   @CacheCafeContext((cafeId) => `cafe-orders-${cafeId}`, 900) // 15 minutes
   async getCafeOrders(cafeId: string, status?: OrderStatus): Promise<Order[]> {
-    const where: any = { cafeId }
+    const where: any = { cafeId };
     if (status) {
       where.status = status;
     }
@@ -223,10 +174,10 @@ export class EnhancedOrderService {
       this.orderRepository.count({ where: { cafeId, status: OrderStatus.PENDING } }),
       this.orderRepository.count({ where: { cafeId, status: OrderStatus.PREPARING } }),
       this.orderRepository.count({ where: { cafeId, status: OrderStatus.READY } }),
-      this.orderRepository.count({ where: { cafeId, status: OrderStatus.COMPLETED } }),
+      this.orderRepository.count({ where: { cafeId, status: OrderStatus.DELIVERED } }),
     ]);
 
-    return { total, pending, preparing, ready, completed }
+    return { total, pending, preparing, ready, completed };
   }
 
   /**
@@ -253,8 +204,10 @@ export class EnhancedOrderService {
    * Get kitchen notifications stream
    */
   getKitchenNotificationsStream(cafeId: string) {
-    return this.pubsub.getCafeEvents(cafeId).pipe(
+    return this.pubsub
+      .getCafeEvents(cafeId)
+      .pipe
       // Would add filtering logic here
-    );
+      ();
   }
 }

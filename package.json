@@ -12,7 +12,8 @@
     "lint": "nx run-many -t lint",
     "migrate:create": "npx cross-env RUN_MIGRATIONS=true nx run backend-database:migration-generate",
     "migrate": "npx cross-env RUN_MIGRATIONS=true nx run backend-database:migration-run",
-    "migrate:undo": "npx cross-env RUN_MIGRATIONS=true nx run backend-database:migration-revert"
+    "migrate:undo": "npx cross-env RUN_MIGRATIONS=true nx run backend-database:migration-revert",
+    "db:seed": "npx ts-node -P libs/backend/database/tsconfig.lib.json libs/backend/database/src/seed.ts"
   },
   "private": true,
   "dependencies": {
@@ -55,6 +56,7 @@
     "@nx/nest": "21.6.5",
     "@primeuix/themes": "^1.2.3",
     "@types/cookie-parser": "^1.4.9",
+    "@types/pdfkit": "^0.17.3",
     "@types/xml2js": "^0.4.14",
     "@zxing/library": "^0.21.3",
     "apollo-angular": "^11.0.0",
@@ -69,6 +71,7 @@
     "cookie-parser": "^1.4.7",
     "cross-env": "^7.0.3",
     "crypto-hash": "^3.1.0",
+    "csv-writer": "^1.6.0",
     "dataloader": "^2.2.3",
     "dayjs": "^1.11.18",
     "eslint": "^9.35.0",
@@ -85,6 +88,7 @@
     "ngx-cookie-service-ssr": "^20.1.0",
     "ngxtension": "^5.1.0",
     "panzoom": "^9.4.3",
+    "pdfkit": "^0.17.2",
     "pg": "^8.16.3",
     "primeicons": "^7.0.0",
     "reflect-metadata": "^0.2.2",
@@ -99,6 +103,7 @@
     "typesense": "^2.1.0",
     "util": "^0.12.5",
     "winston": "^3.17.0",
+    "xlsx": "^0.18.5",
     "xml2js": "^0.6.2"
   },
   "devDependencies": {

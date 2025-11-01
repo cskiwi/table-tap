@@ -49,42 +49,8 @@ export class EmployeeManagementComponent implements OnInit {
   selectedStatus: string | null = null;
   selectedPerformance: string | null = null;
 
-  // Mock data
-  private allEmployees = signal<EmployeePerformance[]>([
-    {
-      employeeId: '1',
-      employeeName: 'Sarah Johnson',
-      position: 'Barista',
-      ordersProcessed: 23,
-      averageOrderTime: 3.2,
-      customerRating: 4.8,
-      hoursWorked: 6.5,
-      efficiency: 92,
-      currentStatus: 'CLOCKED_IN',
-    },
-  {
-      employeeId: '2',
-      employeeName: 'Mike Chen',
-      position: 'Cashier',
-      ordersProcessed: 31,
-      averageOrderTime: 2.1,
-      customerRating: 4.6,
-      hoursWorked: 7.0,
-      efficiency: 88,
-      currentStatus: 'CLOCKED_IN',
-    },
-  {
-      employeeId: '3',
-      employeeName: 'Emma Williams',
-      position: 'Manager',
-      ordersProcessed: 15,
-      averageOrderTime: 4.5,
-      customerRating: 4.9,
-      hoursWorked: 8.0,
-      efficiency: 95,
-      currentStatus: 'CLOCKED_OUT',
-    }
-  ]);
+  // Real employee data from AdminService
+  private allEmployees = this.adminService.employeePerformance;
 
   // Filter options
   positionOptions = [
@@ -198,21 +164,17 @@ export class EmployeeManagementComponent implements OnInit {
   }
 
   clockIn(employee: EmployeePerformance): void {
-    const updatedEmployees = this.allEmployees().map(emp =>
-      emp.employeeId === employee.employeeId
-        ? { ...emp, currentStatus: 'CLOCKED_IN' as const }
-        : emp
-    );
-    this.allEmployees.set(updatedEmployees);
+    // In production, this would call a GraphQL mutation
+    // For now, we just log the action
+    console.log(`Clocking in employee: ${employee.employeeName}`);
+    // TODO: Implement GraphQL mutation for clock in/out
   }
 
   clockOut(employee: EmployeePerformance): void {
-    const updatedEmployees = this.allEmployees().map(emp =>
-      emp.employeeId === employee.employeeId
-        ? { ...emp, currentStatus: 'CLOCKED_OUT' as const }
-        : emp
-    );
-    this.allEmployees.set(updatedEmployees);
+    // In production, this would call a GraphQL mutation
+    // For now, we just log the action
+    console.log(`Clocking out employee: ${employee.employeeName}`);
+    // TODO: Implement GraphQL mutation for clock in/out
   }
 
   exportEmployees(): void {

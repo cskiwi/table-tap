@@ -1,24 +1,23 @@
 import { Component, computed, effect, inject, signal } from '@angular/core';
 
-import { ReactiveFormsModule } from '@angular/forms';
-import { CardModule } from 'primeng/card';
-import { ButtonModule } from 'primeng/button';
-import { ChipModule } from 'primeng/chip';
-import { MenuModule } from 'primeng/menu';
-import { BadgeModule } from 'primeng/badge';
-import { ToolbarModule } from 'primeng/toolbar';
-import { DividerModule } from 'primeng/divider';
-import { ProgressBarModule } from 'primeng/progressbar';
 import { CdkDragDrop, DragDropModule, moveItemInArray } from '@angular/cdk/drag-drop';
+import { ReactiveFormsModule } from '@angular/forms';
+import { BadgeModule } from 'primeng/badge';
+import { ButtonModule } from 'primeng/button';
+import { CardModule } from 'primeng/card';
+import { ChipModule } from 'primeng/chip';
+import { DividerModule } from 'primeng/divider';
+import { MenuModule } from 'primeng/menu';
+import { ProgressBarModule } from 'primeng/progressbar';
+import { ToolbarModule } from 'primeng/toolbar';
 
+import { Order } from '@app/models';
+import { PreparationStatus, TimerPriority, TimerStatus, TimerType, OrderStatus } from '@app/models/enums';
 import { KitchenService } from '../../services/kitchen.service';
-import { Order, OrderStatus } from '@app/models';
-import { OrderPriority, PreparationStatus, TimerStatus, TimerType, TimerPriority } from '@app/models/enums';
+import { AlertsPanelComponent } from '../alerts-panel/alerts-panel.component';
+import { MetricsDashboardComponent } from '../metrics-dashboard/metrics-dashboard.component';
 import { OrderCardComponent } from '../order-card/order-card.component';
 import { TimerPanelComponent } from '../timer-panel/timer-panel.component';
-import { MetricsDashboardComponent } from '../metrics-dashboard/metrics-dashboard.component';
-import { AlertsPanelComponent } from '../alerts-panel/alerts-panel.component';
-import { SettingsPanelComponent } from '../settings-panel/settings-panel.component';
 
 @Component({
   selector: 'app-kitchen-display',
@@ -38,8 +37,7 @@ import { SettingsPanelComponent } from '../settings-panel/settings-panel.compone
     TimerPanelComponent,
     MetricsDashboardComponent,
     AlertsPanelComponent,
-    SettingsPanelComponent
-],
+  ],
   templateUrl: './kitchen-display.component.html',
 })
 export class KitchenDisplayComponent {
@@ -53,21 +51,17 @@ export class KitchenDisplayComponent {
   // Computed properties from service
   readonly pendingOrders = this.kitchenService.pendingOrders;
   readonly inProgressOrders = this.kitchenService.inProgressOrders;
-  readonly readyOrders = computed(() =>
-    this.kitchenService.completedOrders()
-  );
+  readonly readyOrders = computed(() => this.kitchenService.completedOrders());
   readonly displaySettings = this.kitchenService.displaySettings;
   readonly isLoading = this.kitchenService.isLoading;
   readonly criticalAlerts = this.kitchenService.criticalAlerts;
   readonly expiredTimers = this.kitchenService.expiredTimers;
 
   // Panel visibility computed properties
-  readonly showTimerPanel = this._showTimerPanel.asReadonly()
-  readonly showMetricsPanel = this._showMetricsPanel.asReadonly()
-  readonly showAlertsPanel = this._showAlertsPanel.asReadonly()
-  readonly showAnyPanel = computed(() =>
-    this.showTimerPanel() || this.showMetricsPanel() || this.showAlertsPanel()
-  );
+  readonly showTimerPanel = this._showTimerPanel.asReadonly();
+  readonly showMetricsPanel = this._showMetricsPanel.asReadonly();
+  readonly showAlertsPanel = this._showAlertsPanel.asReadonly();
+  readonly showAnyPanel = computed(() => this.showTimerPanel() || this.showMetricsPanel() || this.showAlertsPanel());
 
   // Count computed properties
   readonly pendingCount = computed(() => this.pendingOrders().length);
@@ -97,15 +91,15 @@ export class KitchenDisplayComponent {
 
   // Panel toggle methods
   toggleTimerPanel(): void {
-    this._showTimerPanel.update(show => !show);
+    this._showTimerPanel.update((show) => !show);
   }
 
   toggleMetricsPanel(): void {
-    this._showMetricsPanel.update(show => !show);
+    this._showMetricsPanel.update((show) => !show);
   }
 
   toggleAlertsPanel(): void {
-    this._showAlertsPanel.update(show => !show);
+    this._showAlertsPanel.update((show) => !show);
   }
 
   // Order management methods
@@ -116,36 +110,38 @@ export class KitchenDisplayComponent {
           this.kitchenService.playNotificationSound('order-ready');
         }
       },
-      error: (error) => console.error('Failed to update order status:', error)
+      error: (error) => console.error('Failed to update order status:', error),
     });
   }
 
   onItemStatusChanged(event: { itemId: string; status: PreparationStatus }): void {
     this.kitchenService.updateItemStatus(event.itemId, event.status).subscribe({
-      error: (error) => console.error('Failed to update item status:', error)
+      error: (error) => console.error('Failed to update item status:', error),
     });
   }
 
   onTimerCreated(event: { orderId: string; itemId?: string; duration: number; name: string }): void {
-    this.kitchenService.createTimer({
-      orderId: event.orderId,
-      orderItemId: event.itemId,
-      name: event.name,
-      duration: event.duration,
-      remainingTime: event.duration,
-      status: TimerStatus.IDLE,
-      type: TimerType.COOKING,
-      priority: TimerPriority.MEDIUM,
-      sound: true,
-      vibration: false,
-    }).subscribe({
-      error: (error) => console.error('Failed to create timer:', error)
-    });
+    this.kitchenService
+      .createTimer({
+        orderId: event.orderId,
+        orderItemId: event.itemId,
+        name: event.name,
+        duration: event.duration,
+        remainingTime: event.duration,
+        status: TimerStatus.IDLE,
+        type: TimerType.COOKING,
+        priority: TimerPriority.MEDIUM,
+        sound: true,
+        vibration: false,
+      })
+      .subscribe({
+        error: (error) => console.error('Failed to create timer:', error),
+      });
   }
 
   onStaffAssigned(event: { orderId: string; staffId: string }): void {
     this.kitchenService.assignOrderToStaff(event.orderId, event.staffId).subscribe({
-      error: (error) => console.error('Failed to assign staff:', error)
+      error: (error) => console.error('Failed to assign staff:', error),
     });
   }
 
@@ -155,7 +151,7 @@ export class KitchenDisplayComponent {
         // Open quality check dialog
         console.log('Quality check created:', qualityControl);
       },
-      error: (error) => console.error('Failed to create quality check:', error)
+      error: (error) => console.error('Failed to create quality check:', error),
     });
   }
 
@@ -165,7 +161,7 @@ export class KitchenDisplayComponent {
       moveItemInArray(event.container.data, event.previousIndex, event.currentIndex);
     } else {
       // Handle moving between columns (status change)
-      const order = event.previousContainer.data[event.previousIndex]
+      const order = event.previousContainer.data[event.previousIndex];
       let newStatus: OrderStatus;
 
       switch (column) {
@@ -212,15 +208,15 @@ export class KitchenDisplayComponent {
   }
 
   markAllDelivered(): void {
-    const readyOrders = this.readyOrders()
-    readyOrders.forEach(order => {
+    const readyOrders = this.readyOrders();
+    readyOrders.forEach((order) => {
       this.onOrderStatusChanged({ orderId: order.id, status: OrderStatus.DELIVERED });
     });
   }
 
   qualityCheckAll(): void {
-    const readyOrders = this.readyOrders()
-    readyOrders.forEach(order => {
+    const readyOrders = this.readyOrders();
+    readyOrders.forEach((order) => {
       this.onQualityCheck({ orderId: order.id });
     });
   }
@@ -232,13 +228,13 @@ export class KitchenDisplayComponent {
 
   onAlertResolved(alertId: string): void {
     this.kitchenService.resolveAlert(alertId).subscribe({
-      error: (error) => console.error('Failed to resolve alert:', error)
+      error: (error) => console.error('Failed to resolve alert:', error),
     });
   }
 
   // Utility methods
   refreshData(): void {
-    this.kitchenService.refreshData()
+    this.kitchenService.refreshData();
   }
 
   trackByOrderId(index: number, order: Order): string {

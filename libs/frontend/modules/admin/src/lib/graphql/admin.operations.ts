@@ -155,6 +155,26 @@ export const ADMIN_SETTINGS_FRAGMENT = gql`
   }
 `;
 
+export const INVENTORY_ALERT_FRAGMENT = gql`
+  fragment InventoryAlertFields on InventoryAlert {
+    id
+    type
+    severity
+    title
+    message
+    itemName
+    currentStock
+    minimumStock
+    reorderLevel
+    resolved
+    acknowledged
+    createdAt
+    isActive
+    isCritical
+    requiresImmediateAction
+  }
+`;
+
 // Queries
 export const GET_ADMIN_DASHBOARD = gql`
   ${ADMIN_DASHBOARD_FRAGMENT}
@@ -264,6 +284,105 @@ export const GET_ADMIN_SETTINGS = gql`
   }
 `;
 
+export const GET_INVENTORY_ALERTS = gql`
+  ${INVENTORY_ALERT_FRAGMENT}
+  query GetInventoryAlerts($cafeId: ID!, $severity: String, $resolved: Boolean) {
+    inventoryAlerts(cafeId: $cafeId, severity: $severity, resolved: $resolved) {
+      ...InventoryAlertFields
+    }
+  }
+`;
+
+export const GET_LOW_STOCK_ITEMS = gql`
+  ${INVENTORY_ALERT_FRAGMENT}
+  query GetLowStockItems($cafeId: ID!) {
+    lowStockItems(cafeId: $cafeId) {
+      ...InventoryAlertFields
+    }
+  }
+`;
+
+export const GET_OUT_OF_STOCK_ITEMS = gql`
+  ${INVENTORY_ALERT_FRAGMENT}
+  query GetOutOfStockItems($cafeId: ID!) {
+    outOfStockItems(cafeId: $cafeId) {
+      ...InventoryAlertFields
+    }
+  }
+`;
+
+export const GET_EXPIRING_ITEMS = gql`
+  ${INVENTORY_ALERT_FRAGMENT}
+  query GetExpiringItems($cafeId: ID!, $daysAhead: Int) {
+    expiringItems(cafeId: $cafeId, daysAhead: $daysAhead) {
+      ...InventoryAlertFields
+    }
+  }
+`;
+
+export const EXPORT_SALES_REPORT = gql`
+  query ExportSalesReport($cafeId: ID!, $format: String!, $dateRange: DateRangeInput) {
+    exportSalesReport(cafeId: $cafeId, format: $format, dateRange: $dateRange)
+  }
+`;
+
+export const EXPORT_INVENTORY_REPORT = gql`
+  query ExportInventoryReport($cafeId: ID!, $format: String!) {
+    exportInventoryReport(cafeId: $cafeId, format: $format)
+  }
+`;
+
+export const GET_CAFE_ORDERS = gql`
+  query GetCafeOrders($cafeId: ID!) {
+    cafeOrders(cafeId: $cafeId) {
+      id
+      orderNumber
+      customerName
+      customerEmail
+      status
+      items {
+        id
+        menuItemName
+        quantity
+        unitPrice
+        totalPrice
+        status
+      }
+      totalAmount
+      paymentStatus
+      paymentMethod
+      createdAt
+      estimatedPrepTime
+      orderType
+      tableNumber
+    }
+  }
+`;
+
+export const GET_INVENTORY_ITEMS = gql`
+  query GetInventoryItems($cafeId: ID!) {
+    inventoryItems(cafeId: $cafeId) {
+      id
+      sku
+      itemName
+      description
+      category
+      currentStock
+      minimumStock
+      maximumStock
+      unitCost
+      unit
+      supplier
+      status
+      expiryDate
+      lastUpdated
+      isLowStock
+      isOutOfStock
+      stockValue
+    }
+  }
+`;
+
 // Mutations
 export const MARK_NOTIFICATION_READ = gql`
   ${ADMIN_NOTIFICATION_FRAGMENT}
@@ -313,6 +432,15 @@ export const ADMIN_NOTIFICATION_CREATED_SUBSCRIPTION = gql`
   subscription AdminNotificationCreated($cafeId: ID!) {
     adminNotificationCreated(cafeId: $cafeId) {
       ...AdminNotificationFields
+    }
+  }
+`;
+
+export const INVENTORY_ALERT_CREATED_SUBSCRIPTION = gql`
+  ${INVENTORY_ALERT_FRAGMENT}
+  subscription InventoryAlertCreated($cafeId: ID!) {
+    inventoryAlertCreated(cafeId: $cafeId) {
+      ...InventoryAlertFields
     }
   }
 `;

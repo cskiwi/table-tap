@@ -95,30 +95,35 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     },
   };
 
-  // Mock recent activities
-  recentActivities = [
-    {
-      type: 'order',
-      icon: 'pi pi-shopping-cart',
-      title: 'New Order #1234',
-      description: 'Order placed by John Doe - $24.50',
-      timestamp: new Date(Date.now() - 300000), // 5 minutes ago;
-    },
-    {
-      type: 'inventory',
-      icon: 'pi pi-exclamation-triangle',
-      title: 'Low Stock Alert',
-      description: 'Colombian Coffee Beans running low',
-      timestamp: new Date(Date.now() - 900000), // 15 minutes ago;
-    },
-    {
-      type: 'employee',
-      icon: 'pi pi-clock',
-      title: 'Employee Clock In',
-      description: 'Sarah Johnson clocked in for morning shift',
-      timestamp: new Date(Date.now() - 1800000), // 30 minutes ago;
-    },
-  ];
+  // Notifications from AdminService
+  notifications = this.adminService.notifications;
+
+  // Real recent activities from GraphQL subscriptions/queries
+  recentActivities = computed(() => {
+    const notifs = this.notifications();
+    const recentNotifs = notifs.slice(0, 5);
+    return recentNotifs.map((notif: any) => ({
+      type: notif.type.toLowerCase(),
+      icon: this.getIconForType(notif.type),
+      title: notif.title,
+      description: notif.message,
+      timestamp: notif.createdAt || notif.timestamp || new Date(),
+    }));
+  });
+
+  private getIconForType(type: string): string {
+    const iconMap: Record<string, string> = {
+      'ORDER_ALERT': 'pi pi-shopping-cart',
+      'INVENTORY_ALERT': 'pi pi-exclamation-triangle',
+      'LOW_STOCK': 'pi pi-exclamation-triangle',
+      'EMPLOYEE_ALERT': 'pi pi-clock',
+      'SYSTEM_ALERT': 'pi pi-info-circle',
+      'REVENUE_MILESTONE': 'pi pi-chart-line',
+      'PAYMENT_ISSUE': 'pi pi-dollar',
+      'QUALITY_ALERT': 'pi pi-star',
+    };
+    return iconMap[type] || 'pi pi-bell';
+  }
   // Computed values
   criticalAlerts = computed(() => this.inventoryAlerts().filter((alert) => alert.severity === 'CRITICAL' || alert.severity === 'HIGH'));
 

@@ -1,15 +1,22 @@
+// Core employee models
 export * from './employee.model';
-export * from './time-entry.model';
-export * from './time-sheet.model';
-export * from './scheduled-shift.model';
-export * from './training-record.model';
-export * from './certification-record.model';
-export * from './skill-assessment.model';
-export * from './employee-goal.model';
-export * from './employee-review.model';
-export * from './shift-swap-request.model';
-export * from './attendance-record.model';
-export * from './schedule-conflict.model';
-export * from './performance-metrics.model';
-export * from './payroll-data.model';
-export * from './employee-analytics.model';
+export * from './employee-emergency-contact.model';
+
+// Attendance - time tracking, attendance records, time sheets
+export * from './attendance';
+
+// Certification - certification records and skill assessments
+export * from './certification';
+
+// Payroll - payroll data and compensation
+export * from './payroll';
+
+// Performance - analytics, goals, reviews, metrics
+export * from './performance';
+
+// Scheduling - shifts, conflicts, swap requests, working hours
+export * from './scheduling';
+
+// Training - training records and development
+export * from './training';
+

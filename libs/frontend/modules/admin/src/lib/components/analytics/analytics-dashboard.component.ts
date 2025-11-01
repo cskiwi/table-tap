@@ -92,33 +92,23 @@ export class AnalyticsDashboardComponent implements OnInit {
     }
   }
 
-  // Mock analytics data
-  salesMetrics = computed(() => ({
-    totalRevenue: 16789.45,
-    orderCount: 542,
-    averageOrderValue: 30.98,
-  }));
+  // Real analytics data from AdminService
+  salesMetrics = this.adminService.salesAnalytics;
+  topProducts = computed(() => this.adminService.salesAnalytics()?.topProducts || []);
 
-  topProducts = computed(() => [
-    { productId: '1', productName: 'Cappuccino', quantity: 89, revenue: 445.00 },
-  { productId: '2', productName: 'Americano', quantity: 76, revenue: 304.00 },
-  { productId: '3', productName: 'Latte', quantity: 65, revenue: 325.00 },
-  { productId: '4', productName: 'Espresso', quantity: 54, revenue: 162.00 },
-  { productId: '5', productName: 'Croissant', quantity: 43, revenue: 150.50 }
-  ]);
-
+  // These would come from separate analytics queries
   inventoryMetrics = computed(() => ({
-    totalValue: 15420.50,
-    turnoverRate: 4.2,
-    wastePercentage: 2.3,
-    stockAccuracy: 97.8,
+    totalValue: 0,
+    turnoverRate: 0,
+    wastePercentage: 0,
+    stockAccuracy: 0,
   }));
 
   customerMetrics = computed(() => ({
-    totalCustomers: 1247,
-    returningCustomers: 68,
-    lifetimeValue: 185.50,
-    visitFrequency: 2.3,
+    totalCustomers: 0,
+    returningCustomers: 0,
+    lifetimeValue: 0,
+    visitFrequency: 0,
   }));
 
   revenueChartData = computed(() => ({

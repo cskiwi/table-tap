@@ -14,9 +14,8 @@ import {
   JoinColumn,
   OneToMany
 } from 'typeorm';
-import { Cafe } from '../core/cafe.model';
-import { User } from '../core/user.model';
 import { PurchaseItem } from './purchase-item.model';
+import { Cafe, User } from '../core';
 
 @ObjectType('Purchase')
 @Entity('Purchases')
@@ -233,3 +232,31 @@ export class Purchase extends BaseEntity {
     return this.items?.reduce((sum, item) => sum + item.quantity, 0) ?? 0;
   }
 }
+
+// GraphQL Input Types
+import { InputType, PartialType, OmitType } from '@nestjs/graphql';
+
+@InputType()
+export class PurchaseUpdateInput extends PartialType(
+  OmitType(Purchase, [
+    'createdAt',
+    'updatedAt',
+    'deletedAt',
+    'cafe',
+    'createdBy',
+    'approvedBy',
+    'items',
+    'isComplete',
+    'isPending',
+    'isOverdue',
+    'itemCount',
+    'totalQuantity',
+  ] as const),
+  InputType
+) {}
+
+@InputType()
+export class PurchaseCreateInput extends PartialType(
+  OmitType(PurchaseUpdateInput, ['id'] as const),
+  InputType
+) {}

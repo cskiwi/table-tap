@@ -119,8 +119,20 @@ export class AdminService {
   }
 
   private loadInventoryAlerts(cafeId: string): void {
-    // TODO: Implement inventory alerts query once inventory system is complete
-    this._inventoryAlerts.set([]);
+    import('../graphql/admin.operations').then(({ GET_INVENTORY_ALERTS }) => {
+      this.apollo.watchQuery<{ inventoryAlerts: InventoryAlert[] }>({
+        query: GET_INVENTORY_ALERTS,
+        variables: { cafeId, resolved: false },
+      }).valueChanges.subscribe({
+        next: (result) => {
+          this._inventoryAlerts.set(result.data.inventoryAlerts);
+        },
+        error: (error) => {
+          console.error('Error loading inventory alerts:', error);
+          this._inventoryAlerts.set([]);
+        }
+      });
+    });
   }
 
   private loadEmployeePerformance(cafeId: string): void {
@@ -179,97 +191,82 @@ export class AdminService {
   // Sales analytics
   loadSalesAnalytics(cafeId: string, dateRange: AdminDateRange): Observable<SalesAnalytics> {
     return new Observable(observer => {
-      setTimeout(() => {
-        const analytics: SalesAnalytics = {
-          totalRevenue: 16789.45,
-          orderCount: 542,
-          averageOrderValue: 30.98,
-          topProducts: [
-            {
-              productId: '1',
-              productName: 'Cappuccino',
-              quantity: 89,
-              revenue: 445.00
-            },
-            {
-              productId: '2',
-              productName: 'Americano',
-              quantity: 76,
-              revenue: 304.00
+      import('../graphql/admin.operations').then(({ GET_SALES_ANALYTICS }) => {
+        this.apollo.query<{ salesAnalytics: SalesAnalytics }>({
+          query: GET_SALES_ANALYTICS,
+          variables: {
+            cafeId,
+            dateRange: {
+              startDate: dateRange.startDate,
+              endDate: dateRange.endDate
             }
-          ],
-          revenueByHour: Array.from({ length: 24 }, (_, hour) => ({
-            hour,
-            revenue: Math.random() * 500
-          })),
-          revenueByDay: Array.from({ length: 7 }, (_, i) => ({
-            date: new Date(Date.now() - i * 86400000).toISOString().split('T')[0],
-            revenue: Math.random() * 3000 + 1000
-          })),
-          paymentMethods: [
-            { method: 'Card', amount: 12567.34, percentage: 74.9 },
-            { method: 'Cash', amount: 3456.78, percentage: 20.6 },
-            { method: 'Digital', amount: 765.33, percentage: 4.5 }
-          ]
-        };
-        this._salesAnalytics.set(analytics);
-        observer.next(analytics);
-        observer.complete();
-      }, 1000);
+          },
+        }).subscribe({
+          next: (result) => {
+            const analytics = result.data.salesAnalytics;
+            this._salesAnalytics.set(analytics);
+            observer.next(analytics);
+            observer.complete();
+          },
+          error: (error) => {
+            console.error('Error loading sales analytics:', error);
+            this._error.set(error.message);
+            observer.error(error);
+          }
+        });
+      });
     });
   }
 
   // Settings management
   private loadSettings(cafeId: string): Observable<AdminSettings> {
     return new Observable(observer => {
-      setTimeout(() => {
-        const settings: AdminSettings = {
-          general: {
-            cafeName: 'TableTap Café',
-            timezone: 'America/New_York',
-            currency: 'USD',
-            taxRate: 8.25,
-            serviceCharge: 0,
+      import('../graphql/admin.operations').then(({ GET_ADMIN_SETTINGS }) => {
+        this.apollo.query<{ adminSettings: AdminSettings }>({
+          query: GET_ADMIN_SETTINGS,
+          variables: { cafeId },
+        }).subscribe({
+          next: (result) => {
+            const settings = result.data.adminSettings;
+            this._settings.set(settings);
+            observer.next(settings);
+            observer.complete();
           },
-          operations: {
-            orderTimeout: 30,
-            autoAssignOrders: true,
-            requirePaymentConfirmation: false,
-            allowCancellations: true,
-            maxOrdersPerCustomer: 5
-          },
-          notifications: {
-            emailNotifications: true,
-            smsNotifications: false,
-            pushNotifications: true,
-            lowStockThreshold: 10,
-            orderDelayThreshold: 15,
-          },
-          integrations: {
-            paymentGateway: 'stripe',
-            posSystem: 'square',
-            accountingSystem: 'quickbooks',
-            inventorySystem: 'internal',
+          error: (error) => {
+            console.error('Error loading admin settings:', error);
+            this._error.set(error.message);
+            observer.error(error);
           }
-        }
-        this._settings.set(settings);
-        observer.next(settings);
-        observer.complete()
-      }, 500);
+        });
+      });
     });
   }
 
   updateSettings(cafeId: string, settings: Partial<AdminSettings>): Observable<AdminSettings> {
     return new Observable(observer => {
-      setTimeout(() => {
-        const currentSettings = this._settings()
-        if (currentSettings) {
-          const updatedSettings = { ...currentSettings, ...settings }
-          this._settings.set(updatedSettings);
-          observer.next(updatedSettings);
-        }
-        observer.complete()
-      }, 500);
+      import('../graphql/admin.operations').then(({ UPDATE_ADMIN_SETTINGS }) => {
+        this.apollo.mutate<{ updateAdminSettings: AdminSettings }>({
+          mutation: UPDATE_ADMIN_SETTINGS,
+          variables: {
+            cafeId,
+            input: settings
+          },
+        }).subscribe({
+          next: (result) => {
+            if (result.data) {
+              const updatedSettings = result.data.updateAdminSettings;
+              this._settings.set(updatedSettings);
+              observer.next(updatedSettings);
+              observer.complete();
+            }
+          },
+          error: (error) => {
+            console.error('Error updating admin settings:', error);
+            this._error.set(error.message);
+            observer.error(error);
+          }
+        });
+      });
     });
   }
 
@@ -316,13 +313,51 @@ export class AdminService {
 
   // Export functionality
   exportData(type: 'orders' | 'inventory' | 'employees' | 'analytics', format: 'CSV' | 'PDF' | 'EXCEL'): Observable<Blob> {
+    const cafeId = this._selectedCafeId();
+    if (!cafeId) {
+      return new Observable(observer => {
+        observer.error(new Error('No cafe selected'));
+      });
+    }
+
     return new Observable(observer => {
-      // Mock implementation
-      setTimeout(() => {
-        const mockData = new Blob(['mock,export,data'], { type: 'text/csv' });
-        observer.next(mockData);
-        observer.complete()
-      }, 1000);
+      import('../graphql/admin.operations').then(({ EXPORT_SALES_REPORT, EXPORT_INVENTORY_REPORT }) => {
+        const query = type === 'inventory' ? EXPORT_INVENTORY_REPORT : EXPORT_SALES_REPORT;
+        const variables: any = { cafeId, format };
+
+        // Add dateRange for sales/analytics exports
+        if (type === 'analytics' || type === 'orders') {
+          const endDate = new Date();
+          const startDate = new Date();
+          startDate.setDate(startDate.getDate() - 30);
+          variables.dateRange = { startDate, endDate };
+        }
+
+        this.apollo.query<{ exportSalesReport?: string; exportInventoryReport?: string }>({
+          query,
+          variables,
+        }).subscribe({
+          next: (result) => {
+            // The resolver returns a file path, we'll need to convert it to a Blob
+            const filePath = result.data?.exportSalesReport || result.data?.exportInventoryReport;
+            if (filePath) {
+              // For now, create a simple response - in production, you'd fetch the actual file
+              const blob = new Blob([`Export completed: ${filePath}`], {
+                type: format === 'CSV' ? 'text/csv' :
+                      format === 'EXCEL' ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' :
+                      'application/pdf'
+              });
+              observer.next(blob);
+              observer.complete();
+            }
+          },
+          error: (error) => {
+            console.error('Error exporting data:', error);
+            this._error.set(error.message);
+            observer.error(error);
+          }
+        });
+      });
     });
   }
 }

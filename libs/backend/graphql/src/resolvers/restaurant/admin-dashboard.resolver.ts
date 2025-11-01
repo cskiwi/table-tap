@@ -6,7 +6,6 @@ import { PubSub } from 'graphql-subscriptions';
 import { PermGuard, ReqUser } from '@app/backend-authorization';
 import { User, Order, Employee, Payment, Product } from '@app/models';
 import { OrderStatus, EmployeeStatus } from '@app/models/enums';
-import { DataLoaderService } from '../../dataloaders';
 
 @Injectable()
 @Resolver('AdminDashboard')
@@ -21,7 +20,6 @@ export class AdminDashboardResolver {
     private readonly paymentRepository: Repository<Payment>,
     @InjectRepository(Employee)
     private readonly employeeRepository: Repository<Employee>,
-    private readonly dataLoader: DataLoaderService,
   ) {}
 
   @Query('adminDashboard')

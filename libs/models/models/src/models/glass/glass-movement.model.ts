@@ -12,9 +12,9 @@ import {
   JoinColumn,
   Relation
 } from 'typeorm';
-import { User } from '../core/user.model';
-import { Order } from '../order/order.model';
 import { Glass } from './glass.model';
+import { User } from '../core';
+import { Order } from '../order';
 
 @ObjectType('GlassMovement')
 @Entity('GlassMovements')
@@ -79,3 +79,24 @@ export class GlassMovement extends BaseEntity {
   @IsOptional()
   declare location: string; // Where the movement occurred
 }
+
+// GraphQL Input Types
+import { InputType, PartialType, OmitType } from '@nestjs/graphql';
+
+@InputType()
+export class GlassMovementUpdateInput extends PartialType(
+  OmitType(GlassMovement, [
+    'createdAt',
+    'glass',
+    'order',
+    'customer',
+    'employee',
+  ] as const),
+  InputType
+) {}
+
+@InputType()
+export class GlassMovementCreateInput extends PartialType(
+  OmitType(GlassMovementUpdateInput, ['id'] as const),
+  InputType
+) {}

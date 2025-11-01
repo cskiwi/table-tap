@@ -15,10 +15,9 @@ import {
   JoinColumn,
   OneToMany,
 } from 'typeorm';
-import { Cafe } from '../core/cafe.model';
-import { Product } from '../order/product.model';
-import { User } from '../core/user.model';
 import { StockMovement } from './stock-movement.model';
+import { Cafe } from '../core';
+import { Product } from '../order';
 
 @ObjectType('Stock')
 @Entity('Stock')
@@ -224,3 +223,15 @@ export class Stock extends BaseEntity {
     return 'in_stock';
   }
 }
+
+// GraphQL Input Types
+import { InputType, PartialType, OmitType } from '@nestjs/graphql';
+
+@InputType()
+export class InventoryUpdateInput extends PartialType(
+  OmitType(Stock, ['createdAt', 'updatedAt', 'cafe', 'product', 'isLowStock', 'isOutOfStock', 'stockValue'] as const),
+  InputType,
+) {}
+
+@InputType()
+export class InventoryCreateInput extends PartialType(OmitType(InventoryUpdateInput, ['id'] as const), InputType) {}

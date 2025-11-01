@@ -1,37 +1,20 @@
-export * from './counter-type.enum';
-export * from './employee-status.enum';
-export * from './loggingAction.enum';
-export * from './notificationType.enum';
-export * from './order-status.enum';
-export * from './payment-method.enum';
-export * from './period.enum';
-export * from './product-category.enum';
-export * from './security-types.enum';
-export * from './transaction-type.enum';
-export * from './user-role.enum';
-export * from './cafe-status.enum';
-export * from './inventory-status.enum';
-export * from './order-type.enum';
-export * from './menu-item-status.enum';
-export * from './attendance-status.enum';
-export * from './performance-rating.enum';
-export * from './training-status.enum';
-export * from './training-type.enum';
-export * from './certification-status.enum';
-export * from './recurring-pattern-type.enum';
-export * from './schedule-conflict-type.enum';
-export * from './alert-severity.enum';
-export * from './stock-alert-type.enum';
-export * from './reorder-priority.enum';
-export * from './preparation-status.enum';
-export * from './step-status.enum';
-export * from './timer-status.enum';
-export * from './timer-type.enum';
-export * from './timer-priority.enum';
-export * from './order-priority.enum';
-export * from './staff-status.enum';
-export * from './alert-type.enum';
-export * from './station-type.enum';
-export * from './station-status.enum';
-export * from './equipment-type.enum';
-export * from './equipment-status.enum';
+// Core enums - cafe, counter, user, security, logging
+export * from './core';
+
+// Employee enums - attendance, certification, performance, training, schedule, staff
+export * from './employee';
+
+// Inventory enums - inventory, equipment, stock, reorder, station
+export * from './inventory';
+
+// Loyalty enums - transactions, rewards, promotions, challenges
+export * from './loyalty';
+
+// Order enums - order, payment, preparation, timer, menu-item, product
+export * from './order';
+
+// Notification enums - alerts and notifications
+export * from './notification';
+
+// Timing enums - period, recurring patterns
+export * from './timing';

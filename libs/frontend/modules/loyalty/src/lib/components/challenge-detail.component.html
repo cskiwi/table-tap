@@ -96,10 +96,10 @@
                           <div class="milestone-tooltip">
                             <div class="tooltip-title">{{ milestone.title }}</div>
                             <div class="tooltip-description">{{ milestone.description }}</div>
-                            @if (milestone.reward) {
+                            @if (milestone.rewardPoints || milestone.rewardBadgeId || milestone.rewardMessage) {
                               <div class="tooltip-reward">
                                 <i class="fas fa-gift"></i>
-                                {{ getMilestoneRewardText(milestone.reward) }}
+                                {{ getMilestoneRewardText(milestone) }}
                               </div>
                             }
                           </div>
@@ -314,9 +314,9 @@
                       <div class="milestone-progress">{{ milestone.percentage }}%</div>
                       <div class="milestone-info">
                         <div class="milestone-name">{{ milestone.title }}</div>
-                        @if (milestone.reward) {
+                        @if (milestone.rewardPoints || milestone.rewardBadgeId || milestone.rewardMessage) {
                           <div class="milestone-reward-text">
-                            {{ getMilestoneRewardText(milestone.reward) }}
+                            {{ getMilestoneRewardText(milestone) }}
                           </div>
                         }
                       </div>

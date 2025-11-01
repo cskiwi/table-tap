@@ -175,10 +175,10 @@ export class OrderItemComponent {
 
   // Customization methods
   getCustomizationsList(): string[] {
-    if (!this.item.customizations) return [];
+    if (!this.item.customization) return [];
 
     const customizations: string[] = [];
-    const custom = this.item.customizations;
+    const custom = this.item.customization;
 
     if (custom.size) customizations.push(`Size: ${custom.size}`);
     if (custom.temperature) customizations.push(`Temp: ${custom.temperature}`);

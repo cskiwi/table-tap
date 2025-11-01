@@ -1,86 +1,26 @@
-import {
-  // Core entities
-  User,
-  Cafe,
-  Configuration,
-
-  // Order management
-  Product,
-  Order,
-  OrderItem,
-  Payment,
-
-  // Operations
-  Counter,
-  Employee,
-  TimeSheet,
-  TimeEntry,
-
-  // Stock
-  Stock,
-  StockMovement,
-  Purchase,
-  PurchaseItem,
-
-  // Glass management
-  Glass,
-  GlassMovement,
-
-  // Customer management
-  Credit,
-
-  // Loyalty system
-  LoyaltyAccount,
-  LoyaltyTier,
-  LoyaltyTransaction,
-  LoyaltyReward,
-  LoyaltyRewardRedemption,
-  LoyaltyChallenge,
-  LoyaltyPromotion
-} from '@app/models';
+import * as Models from '@app/models';
 import { ConfigService } from '@nestjs/config';
 import { DataSource, DataSourceOptions } from 'typeorm';
 
-const entities = [
-  // Core entities (no dependencies)
-  Cafe,
-  User,
-  Configuration,
+// Extract all entity classes from the models package
+// An entity class extends BaseEntity and is decorated with @Entity
+const entities = Object.values(Models).filter(
+  (value) => {
+    if (typeof value !== 'function' || !value.prototype) return false;
+    
+    // Check if it extends BaseEntity (TypeORM entity base class)
+    let proto = value.prototype;
+    while (proto) {
+      if (proto.constructor.name === 'BaseEntity') return true;
+      proto = Object.getPrototypeOf(proto);
+    }
+    return false;
+  }
+);
 
-  // Order management
-  Product,
-  Counter,
-  Order,
-  OrderItem,
-  Payment,
+console.log('Discovered entities:', entities.length, 'out of', Object.values(Models).length, 'exports');
+console.log('Entity names:', entities.map((e: any) => e.name).join(', '));
 
-  // Operations (depends on User, Cafe)
-  Employee,
-  TimeSheet,
-  TimeEntry,
-
-  // Stock (depends on Product, Cafe)
-  Stock,
-  StockMovement,
-  Purchase,
-  PurchaseItem,
-
-  // Glass management (depends on Cafe, User, Order)
-  Glass,
-  GlassMovement,
-
-  // Customer management (depends on User, Cafe)
-  Credit,
-
-  // Loyalty system (depends on User, Cafe)
-  LoyaltyTier,
-  LoyaltyAccount,
-  LoyaltyTransaction,
-  LoyaltyReward,
-  LoyaltyRewardRedemption,
-  LoyaltyChallenge,
-  LoyaltyPromotion
-];
 export function getDbConfig(configService?: ConfigService): DataSourceOptions {
   const getEnvVar = (key: string, defaultValue?: string) => (configService ? configService.get<string>(key) : process.env[key] || defaultValue);
 

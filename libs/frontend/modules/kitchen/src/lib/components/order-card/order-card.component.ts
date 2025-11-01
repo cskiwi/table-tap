@@ -10,8 +10,8 @@ import { TooltipModule } from 'primeng/tooltip';
 import { ProgressBarModule } from 'primeng/progressbar';
 import { CdkMenuModule } from '@angular/cdk/menu';
 
-import { Order, OrderItem, OrderStatus } from '@app/models';
-import { PreparationStatus, OrderPriority } from '@app/models/enums';
+import { Order, OrderItem } from '@app/models';
+import { PreparationStatus, OrderPriority, OrderStatus } from '@app/models/enums';
 import { OrderItemComponent } from '../order-item/order-item.component';
 // TODO: Re-implement dialog components with PrimeNG Dialog
 // import { TimerDialogComponent } from '../timer-dialog/timer-dialog.component';

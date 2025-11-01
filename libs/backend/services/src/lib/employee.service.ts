@@ -28,8 +28,7 @@ import { Repository, DataSource, EntityManager } from 'typeorm';
 import { RedisPubSubService, RedisCacheService } from '@app/backend-redis';
 import { User } from '@app/models';
 import { Employee, TimeSheet, Cafe } from '@app/models';
-import { UserRole, EmployeeStatus, CafeStatus } from '@app/models';
-import { ShiftStatus, TrainingStatus } from '@app/models/enums';
+import { UserRole, EmployeeStatus, CafeStatus, ShiftStatus, TrainingStatus } from '@app/models/enums';
 import {
   ScheduledShift,
   TrainingRecord,

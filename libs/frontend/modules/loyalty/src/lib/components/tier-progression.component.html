@@ -20,7 +20,7 @@
               <h4 class="tier-name">{{ currentTier()!.name }}</h4>
               <p class="tier-description">{{ currentTier()!.description }}</p>
             </div>
-            @if (currentTier()!.benefits) {
+            @if (currentTier()!.benefit) {
               <div class="tier-perks">
                 <button class="perks-btn" (click)="showPerks.set(!showPerks())">
                   <span>View Benefits</span>
@@ -32,11 +32,11 @@
         }
     
         <!-- Current Tier Benefits -->
-        @if (showPerks() && currentTier()?.benefits) {
+        @if (showPerks() && currentTier()?.benefit) {
           <div class="tier-benefits">
             <h5>Your Current Benefits</h5>
             <div class="benefits-list">
-              @for (benefit of parseBenefits(currentTier()!.benefits); track benefit) {
+              @for (benefit of parseBenefits(currentTier()!.benefit); track benefit) {
                 <div class="benefit-item">
                   <i class="fas fa-check-circle"></i>
                   <span>{{ benefit }}</span>
@@ -131,9 +131,9 @@
             <div class="preview-header">
               <h5>What you'll unlock at {{ nextTier()!.name }}</h5>
             </div>
-            @if (nextTier()!.benefits) {
+            @if (nextTier()!.benefit) {
               <div class="next-tier-benefits">
-                @for (benefit of parseBenefits(nextTier()!.benefits); track benefit) {
+                @for (benefit of parseBenefits(nextTier()!.benefit); track benefit) {
                   <div class="benefit-item">
                     <i class="fas fa-gift"></i>
                     <span>{{ benefit }}</span>

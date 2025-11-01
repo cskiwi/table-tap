@@ -295,7 +295,7 @@
       </ng-template>
 
       <div class="flex flex-col gap-4">
-        @for (activity of recentActivities; track activity) {
+        @for (activity of recentActivities(); track activity) {
           <div class="flex items-start gap-4">
             <div class="flex items-center justify-center w-10 h-10 rounded-full"
                  [class]="activity.type === 'order' ? 'bg-blue-100 dark:bg-blue-900/30' :

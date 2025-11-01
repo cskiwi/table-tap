@@ -3,7 +3,7 @@ import { Reflector } from '@nestjs/core';
 import { GqlExecutionContext } from '@nestjs/graphql';
 import { SetMetadata } from '@nestjs/common';
 import { User } from '@app/models';
-import { UserRole, EmployeeStatus } from '@app/models';
+import { UserRole, EmployeeStatus } from '@app/models/enums';
 
 // Decorator for setting required roles
 export const RequireRoles = (...roles: UserRole[]) => SetMetadata('roles', roles);
@@ -107,7 +107,9 @@ export class RoleBasedAccessGuard implements CanActivate {
       return true;
 
     } catch (error) {
-      this.logger.error(`Access control error for user ${user.id}: ${error.message}`, error.stack);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      this.logger.error(`Access control error for user ${user.id}: ${errorMessage}`, errorStack);
       throw error;
     }
   }
@@ -320,7 +322,9 @@ export class EmployeeContextEnhancer {
       return enhancedUser;
 
     } catch (error) {
-      this.logger.error(`Failed to enhance user context: ${error.message}`, error.stack);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      this.logger.error(`Failed to enhance user context: ${errorMessage}`, errorStack);
       return user as UserWithEmployeeInfo;
     }
   }

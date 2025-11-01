@@ -13,20 +13,47 @@ import { InventoryResolver } from './resolvers/restaurant/inventory.resolver';
 import { EmployeeResolver } from './resolvers/restaurant/employee.resolver';
 import { KitchenDashboardResolver } from './resolvers/restaurant/kitchen-dashboard.resolver';
 import { AdminDashboardResolver } from './resolvers/restaurant/admin-dashboard.resolver';
-// Loyalty resolvers temporarily disabled due to missing DTOs and service methods
-// import { LoyaltyAccountResolver } from './resolvers/restaurant/loyalty-account.resolver';
-// import { LoyaltyRewardResolver } from './resolvers/restaurant/loyalty-reward.resolver';
-// import { LoyaltyTransactionResolver } from './resolvers/restaurant/loyalty-transaction.resolver';
-// import { LoyaltyTierResolver } from './resolvers/restaurant/loyalty-tier.resolver';
-// import { LoyaltyPromotionResolver } from './resolvers/restaurant/loyalty-promotion.resolver';
-// import { LoyaltyChallengeResolver } from './resolvers/restaurant/loyalty-challenge.resolver';
-import { DataLoaderService } from './dataloaders';
+import { SalesAnalyticsResolver } from './resolvers/restaurant/sales-analytics.resolver';
+import { InventoryAlertsResolver } from './resolvers/restaurant/inventory-alerts.resolver';
+import { AdminNotificationsResolver } from './resolvers/restaurant/admin-notifications.resolver';
+import { AdminSettingsResolver } from './resolvers/restaurant/admin-settings.resolver';
+import { ExportResolver } from './resolvers/restaurant/export.resolver';
+import { MenuResolver } from './resolvers/restaurant/menu.resolver';
+import { PaymentResolver } from './resolvers/restaurant/payment.resolver';
+import { CafeResolver } from './resolvers/restaurant/cafe.resolver';
+import { LoyaltyAccountResolver } from './resolvers/restaurant/loyalty-account.resolver';
+import { LoyaltyRewardResolver } from './resolvers/restaurant/loyalty-reward.resolver';
+import { LoyaltyTransactionResolver } from './resolvers/restaurant/loyalty-transaction.resolver';
+import { LoyaltyTierResolver } from './resolvers/restaurant/loyalty-tier.resolver';
+import { LoyaltyPromotionResolver } from './resolvers/restaurant/loyalty-promotion.resolver';
+import { LoyaltyChallengeResolver } from './resolvers/restaurant/loyalty-challenge.resolver';
 import { QueryComplexityPlugin } from './middleware/query-complexity.middleware';
 import { RequestLoggingPlugin } from './middleware/request-logging.middleware';
 import { RoleBasedAccessGuard, EmployeeContextEnhancer } from './middleware/role-access-control.middleware';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Order, OrderItem, Payment, Cafe, Counter, Stock as Stock, Employee, TimeSheet, Product as Menu, User, LoyaltyAccount, LoyaltyReward, LoyaltyTransaction, LoyaltyTier, LoyaltyPromotion, LoyaltyChallenge, LoyaltyRewardRedemption } from '@app/models';
-// import { OrderService, InventoryService, EmployeeService, LoyaltyService } from '@app/backend-services'; // Temporarily disabled due to compilation errors
+import {
+  Order,
+  OrderItem,
+  Payment,
+  Cafe,
+  Counter,
+  Stock as Stock,
+  Employee,
+  TimeSheet,
+  Product as Menu,
+  User,
+  LoyaltyAccount,
+  LoyaltyReward,
+  LoyaltyTransaction,
+  LoyaltyTier,
+  LoyaltyPromotion,
+  LoyaltyChallenge,
+  LoyaltyRewardRedemption,
+  InventoryAlert,
+  AdminNotification,
+  AdminSettings,
+  SalesAnalytics,
+} from '@app/models';
 import { ConfigModule } from '@nestjs/config';
 import { CacheModule } from '@nestjs/cache-manager';
 
@@ -59,13 +86,18 @@ import { CacheModule } from '@nestjs/cache-manager';
       LoyaltyPromotion,
       LoyaltyChallenge,
       LoyaltyRewardRedemption,
+      // Admin entities
+      InventoryAlert,
+      AdminNotification,
+      AdminSettings,
+      SalesAnalytics,
     ]),
     NestJsGql.forRootAsync({
       driver: ApolloDriver,
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: async (config: ConfigService) => {
-        const plugins = []
+        const plugins = [];
         const env = config.get<string>('NODE_ENV');
 
         if (env !== 'production') {
@@ -97,7 +129,7 @@ import { CacheModule } from '@nestjs/cache-manager';
             enableQueryLogging: env !== 'production',
             slowQueryThreshold: config.get<number>('GRAPHQL_SLOW_QUERY_THRESHOLD') || 1000,
             logVariables: env === 'development',
-          })
+          }),
         );
 
         return {
@@ -115,7 +147,7 @@ import { CacheModule } from '@nestjs/cache-manager';
               message: error.message,
               code: error.extensions?.code,
               timestamp: new Date().toISOString(),
-            }
+            };
           },
         } as Omit<GqlModuleOptions, 'driver'>;
       },
@@ -127,29 +159,26 @@ import { CacheModule } from '@nestjs/cache-manager';
     OrderResolver,
     InventoryResolver,
     EmployeeResolver,
+    MenuResolver,
+    PaymentResolver,
+    CafeResolver,
     KitchenDashboardResolver,
     AdminDashboardResolver,
-    // Loyalty resolvers temporarily disabled
-    // LoyaltyAccountResolver,
-    // LoyaltyRewardResolver,
-    // LoyaltyTransactionResolver,
-    // LoyaltyTierResolver,
-    // LoyaltyPromotionResolver,
-    // LoyaltyChallengeResolver,
-    // Services
-    DataLoaderService,
-    // OrderService, // Temporarily disabled due to backend-services compilation errors
-    // InventoryService, // Temporarily disabled due to backend-services compilation errors
-    // EmployeeService, // Temporarily disabled due to backend-services compilation errors
-    // LoyaltyService, // Temporarily disabled due to backend-services compilation errors
+    SalesAnalyticsResolver,
+    InventoryAlertsResolver,
+    AdminNotificationsResolver,
+    AdminSettingsResolver,
+    ExportResolver,
+    LoyaltyAccountResolver,
+    LoyaltyRewardResolver,
+    LoyaltyTransactionResolver,
+    LoyaltyTierResolver,
+    LoyaltyPromotionResolver,
+    LoyaltyChallengeResolver,
     // Guards and Middleware
     RoleBasedAccessGuard,
     EmployeeContextEnhancer,
   ],
-  exports: [
-    DataLoaderService,
-    RoleBasedAccessGuard,
-    EmployeeContextEnhancer,
-  ],
+  exports: [RoleBasedAccessGuard, EmployeeContextEnhancer],
 })
 export class GraphQLModule {}

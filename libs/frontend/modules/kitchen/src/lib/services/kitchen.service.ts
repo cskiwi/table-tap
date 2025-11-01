@@ -4,7 +4,7 @@ import { Observable, interval, BehaviorSubject, Subject, merge, timer } from 'rx
 import { map, filter, tap, catchError, switchMap, takeUntil, distinctUntilChanged } from 'rxjs/operators';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { Apollo, gql } from 'apollo-angular';
-import { Order, OrderItem, Product, Employee, Counter, OrderStatus } from '@app/models';
+import { Order, OrderItem, Product, Employee, Counter } from '@app/models';
 import {
   PreparationStatus,
   StepStatus,
@@ -20,6 +20,7 @@ import {
   StationStatus,
   EquipmentType,
   EquipmentStatus,
+  OrderStatus
 } from '@app/models/enums';
 
 @Injectable({

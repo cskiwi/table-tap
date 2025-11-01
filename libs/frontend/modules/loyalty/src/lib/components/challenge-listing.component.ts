@@ -5,11 +5,9 @@ import { Subject, takeUntil, debounceTime, distinctUntilChanged } from 'rxjs';
 import { LoyaltyService } from '../services/loyalty.service';
 import {
   LoyaltyChallenge,
-  LoyaltyAccount,
-  LoyaltyChallengeType,
-  LoyaltyChallengeStatus,
-  LoyaltyChallengeDifficulty
+  LoyaltyAccount
 } from '@app/models';
+import { LoyaltyChallengeType, LoyaltyChallengeStatus, LoyaltyChallengeDifficulty } from '@app/models/enums';
 
 export interface ChallengeFilter {
   type?: LoyaltyChallengeType;

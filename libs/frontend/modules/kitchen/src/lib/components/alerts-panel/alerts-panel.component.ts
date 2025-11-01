@@ -39,8 +39,8 @@ export class AlertsPanelComponent {
   unreadAlerts = () => this.alerts().filter(alert => !alert.resolved);
   resolvedAlerts = () => this.alerts().filter(alert => alert.resolved);
   criticalCount = () => this.alerts().filter(alert => alert.severity === AlertSeverity.CRITICAL && !alert.resolved).length;
-  warningCount = () => this.alerts().filter(alert => alert.severity === AlertSeverity.WARNING && !alert.resolved).length;
-  infoCount = () => this.alerts().filter(alert => alert.severity === AlertSeverity.INFO && !alert.resolved).length;
+  warningCount = () => this.alerts().filter(alert => (alert.severity === AlertSeverity.HIGH || alert.severity === AlertSeverity.MEDIUM) && !alert.resolved).length;
+  infoCount = () => this.alerts().filter(alert => (alert.severity === AlertSeverity.INFO || alert.severity === AlertSeverity.LOW) && !alert.resolved).length;
 
   sortedAlerts = () => {
     const alerts = [...this.alerts()];
@@ -53,9 +53,10 @@ export class AlertsPanelComponent {
       // Sort by severity
       const severityOrder: Record<AlertSeverity, number> = {
         [AlertSeverity.CRITICAL]: 0,
-        [AlertSeverity.ERROR]: 1,
-        [AlertSeverity.WARNING]: 2,
-        [AlertSeverity.INFO]: 3
+        [AlertSeverity.HIGH]: 1,
+        [AlertSeverity.MEDIUM]: 2,
+        [AlertSeverity.LOW]: 3,
+        [AlertSeverity.INFO]: 4
       }
 
       const severityA = severityOrder[a.severity as AlertSeverity] ?? 999;
@@ -91,7 +92,7 @@ export class AlertsPanelComponent {
         return 'thermostat';
       case AlertType.EQUIPMENT:
         return 'build';
-      case AlertType.QUALITY:
+      case AlertType.QUALITY_ISSUE:
         return 'verified';
       default:
         return this.getSeverityIcon(alert.severity);
@@ -102,10 +103,11 @@ export class AlertsPanelComponent {
     switch (severity) {
       case AlertSeverity.CRITICAL:
         return 'error';
-      case AlertSeverity.ERROR:
+      case AlertSeverity.HIGH:
         return 'error_outline';
-      case AlertSeverity.WARNING:
+      case AlertSeverity.MEDIUM:
         return 'warning';
+      case AlertSeverity.LOW:
       case AlertSeverity.INFO:
         return 'info';
       default:
@@ -125,7 +127,7 @@ export class AlertsPanelComponent {
         return 'Temperature Alert';
       case AlertType.EQUIPMENT:
         return 'Equipment Issue';
-      case AlertType.QUALITY:
+      case AlertType.QUALITY_ISSUE:
         return 'Quality Control';
       default:
         return 'Kitchen Alert';

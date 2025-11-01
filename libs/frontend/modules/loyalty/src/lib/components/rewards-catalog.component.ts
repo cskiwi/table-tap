@@ -3,7 +3,8 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subject, takeUntil } from 'rxjs';
 import { LoyaltyService } from '../services/loyalty.service';
-import { LoyaltyAccount, LoyaltyReward, LoyaltyRewardCategory, LoyaltyRewardType } from '@app/models';
+import { LoyaltyAccount, LoyaltyReward } from '@app/models';
+import { LoyaltyRewardCategory, LoyaltyRewardType } from '@app/models/enums';
 
 @Component({
   selector: 'app-rewards-catalog',

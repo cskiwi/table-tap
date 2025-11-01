@@ -25,6 +25,7 @@ import { ToggleButtonModule } from 'primeng/togglebutton';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { AdminService } from '../../services/admin.service';
 import { InventoryAlert } from '../../types/admin.types';
+import { Apollo } from 'apollo-angular';
 
 interface InventoryItem {
   id: string,
@@ -77,6 +78,7 @@ interface InventoryItem {
 })
 export class InventoryManagementComponent implements OnInit, OnDestroy {
   private adminService = inject(AdminService);
+  private apollo = inject(Apollo);
   private fb = inject(FormBuilder);
   private confirmationService = inject(ConfirmationService);
   private messageService = inject(MessageService);
@@ -118,64 +120,8 @@ export class InventoryManagementComponent implements OnInit, OnDestroy {
     expiryDate: [''],
   });
 
-  // Mock inventory data
-  private allItems = signal<InventoryItem[]>([
-    {
-      id: '1',
-      sku: 'COF-001',
-      itemName: 'Colombian Coffee Beans',
-      description: 'Premium Colombian coffee beans, medium roast',
-      category: 'Coffee',
-      currentStock: 2,
-      minimumStock: 10,
-      maximumStock: 50,
-      unitCost: 12.50,
-      unit: 'kg',
-      supplier: 'Premium Coffee Co.',
-      status: 'ACTIVE',
-      expiryDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
-      lastUpdated: new Date(),
-      isLowStock: true,
-      isOutOfStock: false,
-      stockValue: 25.00,
-    },
-  {
-      id: '2',
-      sku: 'MLK-003',
-      itemName: 'Oat Milk',
-      description: 'Organic oat milk for beverages',
-      category: 'Dairy',
-      currentStock: 0,
-      minimumStock: 5,
-      maximumStock: 20,
-      unitCost: 3.50,
-      unit: 'liters',
-      supplier: 'Dairy Fresh',
-      status: 'ACTIVE',
-      expiryDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000), // 5 days
-      lastUpdated: new Date(),
-      isLowStock: false,
-      isOutOfStock: true,
-      stockValue: 0,
-    },
-  {
-      id: '3',
-      sku: 'SUG-001',
-      itemName: 'White Sugar',
-      category: 'Sweeteners',
-      currentStock: 25,
-      minimumStock: 10,
-      maximumStock: 100,
-      unitCost: 2.00,
-      unit: 'kg',
-      supplier: 'Sweet Supply Co.',
-      status: 'ACTIVE',
-      lastUpdated: new Date(),
-      isLowStock: false,
-      isOutOfStock: false,
-      stockValue: 50.00,
-    }
-  ]);
+  // Real inventory data from GraphQL
+  private allItems = signal<InventoryItem[]>([]);
 
   // Filter options
   categoryOptions = [
@@ -290,10 +236,34 @@ export class InventoryManagementComponent implements OnInit, OnDestroy {
 
   loadInventory(): void {
     this.loading.set(true);
-    // Simulate API call
-    setTimeout(() => {
+
+    // Get cafeId from adminService
+    const cafeId = this.adminService.selectedCafeId();
+    if (!cafeId) {
       this.loading.set(false);
-    }, 1000);
+      return;
+    }
+
+    import('../../graphql/admin.operations').then(({ GET_INVENTORY_ITEMS }) => {
+      this.apollo.query<{ inventoryItems: InventoryItem[] }>({
+        query: GET_INVENTORY_ITEMS,
+        variables: { cafeId },
+      }).subscribe({
+        next: (result) => {
+          this.allItems.set(result.data.inventoryItems);
+          this.loading.set(false);
+        },
+        error: (error) => {
+          console.error('Error loading inventory:', error);
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: 'Failed to load inventory items'
+          });
+          this.loading.set(false);
+        }
+      });
+    });
   }
 
   refreshInventory(): void {
