@@ -159,7 +159,7 @@ export class AuthService {
       .query<{
         me: User;
       }>({
-        query: gql`;
+        query: gql`
           query {
             me {
               id
