@@ -5,7 +5,6 @@ import {
   Logger,
   VERSION_NEUTRAL,
 } from '@nestjs/common';
-import { Args } from '@nestjs/graphql';
 import {
   HealthCheck,
   HealthCheckService,
@@ -36,7 +35,7 @@ export class HealthController {
   }
 
   @Get('test')
-  randomTest(@Headers('X-MY-APP-CLIENT') auth: any) {
+  randomTest(@Headers('X-MY-APP-CLIENT') auth: string) {
     this._logger.log(`Received key: ${auth}`);
 
     // create typorm trnasaction

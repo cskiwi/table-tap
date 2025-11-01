@@ -23,6 +23,7 @@ export class ExportResolver {
     @InjectRepository(Stock)
     private readonly stockRepository: Repository<Stock>,
   ) {
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
     mkdir(this.exportDir, { recursive: true }).catch(() => {});
   }
 

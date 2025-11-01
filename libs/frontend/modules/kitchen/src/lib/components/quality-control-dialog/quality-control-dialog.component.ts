@@ -1,4 +1,4 @@
-import { Component, Inject, signal, computed } from '@angular/core';
+import { Component, signal, computed, input } from '@angular/core';
 
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, FormArray } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
@@ -11,9 +11,17 @@ import { DividerModule } from 'primeng/divider';
 import { ChipModule } from 'primeng/chip';
 import { ListboxModule } from 'primeng/listbox';
 import { ProgressBarModule } from 'primeng/progressbar';
+import { DynamicDialogRef, DynamicDialogConfig } from 'primeng/dynamicdialog';
 
 import { Order } from '@app/models';
-// Using native types for quality control data - no need for interfaces
+
+export interface QualityCheckItem {
+  id: string;
+  name: string;
+  description: string;
+  passed: boolean;
+  required: boolean;
+}
 
 export interface QualityControlDialogData {
   order: Order;
@@ -23,12 +31,11 @@ export interface QualityControlDialogData {
 export interface QualityControlDialogResult {
   orderId: string;
   orderItemId?: string;
-  checklistItems: any[];
+  checklistItems: Partial<QualityCheckItem>[];
   overallScore: number;
   comments?: string;
   approved: boolean;
   rejectionReason?: string;
-  // Additional fields for the result
 }
 
 @Component({
@@ -57,35 +64,35 @@ export class QualityControlDialogComponent {
       description: 'Exceeds expectations',
       icon: 'star',
       level: 'excellent',
-    }
+    },
     {
       value: 4,
       label: 'Good',
       description: 'Meets standards',
       icon: 'thumb_up',
       level: 'good',
-    }
+    },
     {
       value: 3,
       label: 'Acceptable',
       description: 'Minimum standards',
       icon: 'remove',
       level: 'acceptable',
-    }
+    },
     {
       value: 2,
       label: 'Poor',
       description: 'Below standards',
       icon: 'thumb_down',
       level: 'poor',
-    }
+    },
     {
       value: 1,
       label: 'Unacceptable',
       description: 'Major issues',
       icon: 'error',
       level: 'unacceptable',
-  }
+    }
   ];
   readonly defaultChecklistItems: QualityCheckItem[] = [
     {
@@ -94,61 +101,62 @@ export class QualityControlDialogComponent {
       description: 'Food is served at proper temperature (hot items hot, cold items cold)',
       passed: false,
       required: true,
-    }
+    },
     {
       id: '2',
       name: 'Presentation',
       description: 'Food is properly plated and visually appealing',
       passed: false,
       required: true,
-    }
+    },
     {
       id: '3',
       name: 'Portion Size',
       description: 'Portion meets standard size requirements',
       passed: false,
       required: true,
-    }
+    },
     {
       id: '4',
       name: 'Freshness',
       description: 'Ingredients are fresh and properly prepared',
       passed: false,
       required: true,
-    }
+    },
     {
       id: '5',
       name: 'Order Accuracy',
       description: 'Order matches customer specifications and customizations',
       passed: false,
       required: true,
-    }
+    },
     {
       id: '6',
       name: 'Hygiene Standards',
       description: 'Food safety and hygiene protocols followed',
       passed: false,
       required: true,
-    }
+    },
     {
       id: '7',
       name: 'Garnish & Sides',
       description: 'Appropriate garnishes and sides included',
       passed: false,
       required: false,
-    }
+    },
     {
       id: '8',
       name: 'Packaging Quality',
       description: 'For takeaway: proper packaging and secure containers',
       passed: false,
       required: false,
-  }
+    }
   ];
   readonly qualityForm: FormGroup;
   private readonly _qualityScore = signal(0);
+  readonly data: QualityControlDialogData;
 
-  readonly qualityScore = this._qualityScore.asReadonly()
+  readonly qualityScore = this._qualityScore.asReadonly();
 
   readonly selectedItem = computed(() => {
     if (this.data.orderItemId) {
@@ -162,18 +170,21 @@ export class QualityControlDialogComponent {
   }
 
   constructor(
-    private readonly fb: FormBuilder
+    private readonly fb: FormBuilder,
+    public dialogRef: DynamicDialogRef,
+    public config: DynamicDialogConfig<QualityControlDialogData>
   ) {
+    this.data = this.config.data as QualityControlDialogData;
     this.qualityForm = this.fb.group({
       overallRating: [null, Validators.required],
-      checklistItems: this.fb.array(;
-        this.defaultChecklistItems.map(item =>
+      checklistItems: this.fb.array(
+        this.defaultChecklistItems.map(() =>
           this.fb.group({
             passed: [false],
             notes: [''],
           })
         )
-      )
+      ),
       comments: [''],
     });
 
@@ -184,7 +195,7 @@ export class QualityControlDialogComponent {
   }
 
   getChecklistItem(index: number): QualityCheckItem {
-    return this.defaultChecklistItems[index]
+    return this.defaultChecklistItems[index];
   }
 
   getCheckboxColor(index: number): string {
@@ -321,17 +332,17 @@ export class QualityControlDialogComponent {
   onApprove(): void {
     if (this.canApprove()) {
       const result: QualityControlDialogResult = {
-        orderId: this.data.order.id;
-        orderItemId: this.data.orderItemId;
-        checklistItems: this.checklistItemsArray.value.map((item: any, index: number) => ({
-          ...this.getChecklistItem(index)
-          passed: item.passed;
-          notes: item.notes;
-        }))
-        overallScore: this.qualityScore()
-        comments: this.qualityForm.get('comments')?.value;
+        orderId: this.data.order.id,
+        orderItemId: this.data.orderItemId,
+        checklistItems: this.checklistItemsArray.value.map((item: { passed: boolean; notes: string }, index: number) => ({
+          ...this.getChecklistItem(index),
+          passed: item.passed,
+          notes: item.notes,
+        })),
+        overallScore: this.qualityScore(),
+        comments: this.qualityForm.get('comments')?.value,
         approved: true,
-      }
+      };
 
       this.dialogRef.close(result);
     }
@@ -340,18 +351,18 @@ export class QualityControlDialogComponent {
   onReject(): void {
     if (this.canReject()) {
       const result: QualityControlDialogResult = {
-        orderId: this.data.order.id;
-        orderItemId: this.data.orderItemId;
-        checklistItems: this.checklistItemsArray.value.map((item: any, index: number) => ({
-          ...this.getChecklistItem(index)
-          passed: item.passed;
-          notes: item.notes;
-        }))
-        overallScore: this.qualityScore()
-        comments: this.qualityForm.get('comments')?.value;
+        orderId: this.data.order.id,
+        orderItemId: this.data.orderItemId,
+        checklistItems: this.checklistItemsArray.value.map((item: { passed: boolean; notes: string }, index: number) => ({
+          ...this.getChecklistItem(index),
+          passed: item.passed,
+          notes: item.notes,
+        })),
+        overallScore: this.qualityScore(),
+        comments: this.qualityForm.get('comments')?.value,
         approved: false,
-        rejectionReason: this.generateRejectionReason()
-      }
+        rejectionReason: this.generateRejectionReason(),
+      };
 
       this.dialogRef.close(result);
     }
@@ -375,6 +386,6 @@ export class QualityControlDialogComponent {
   }
 
   onCancel(): void {
-    this.dialogRef.close()
+    this.dialogRef.close();
   }
 }
