@@ -1,7 +1,6 @@
 import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, JoinColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm';
 import { Employee } from '../employee.model';
 import { ShiftStatus, UserRole } from '@app/models/enums';
-import { RecurringPatternType } from '@app/models/enums';
 import { Counter, User } from '../../core';
 
 @Entity('scheduled_shifts')

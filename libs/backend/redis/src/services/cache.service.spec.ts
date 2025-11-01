@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ConfigService } from '@nestjs/config';
 import { RedisCacheService } from './cache.service';
-import { REDIS_CONNECTION_TOKEN } from '../config/redis.config';
+import { REDIS_CONNECTION_TOKEN } from '../config';
 
 describe('RedisCacheService', () => {
   let service: RedisCacheService;

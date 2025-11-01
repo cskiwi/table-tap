@@ -1,6 +1,6 @@
 import { SortableField } from '@app/utils';
 import { Field, ID, ObjectType } from '@nestjs/graphql';
-import { IsString, IsOptional, IsEnum, IsBoolean, IsObject } from 'class-validator';
+import { IsString, IsOptional, IsEnum, IsBoolean } from 'class-validator';
 import {
   BaseEntity,
   Column,

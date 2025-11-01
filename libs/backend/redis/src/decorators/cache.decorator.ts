@@ -1,5 +1,5 @@
 import { SetMetadata, Injectable, Inject } from '@nestjs/common';
-import { RedisCacheService } from '../services/cache.service';
+import { RedisCacheService } from '../services';
 
 export const CACHE_KEY_METADATA = 'cache:key';
 export const CACHE_TTL_METADATA = 'cache:ttl';
@@ -41,7 +41,7 @@ export function Cacheable(key?: string, ttl?: number, namespace?: string) {
         console.error('Cache operation failed, executing method:', error);
         return method.apply(this, args);
       }
-    }
+    };
 
     // Set metadata for reflection
     SetMetadata(CACHE_KEY_METADATA, key)(target, propertyName, descriptor);
@@ -49,7 +49,7 @@ export function Cacheable(key?: string, ttl?: number, namespace?: string) {
     SetMetadata(CACHE_NAMESPACE_METADATA, namespace)(target, propertyName, descriptor);
 
     return descriptor;
-  }
+  };
 }
 
 /**
@@ -80,10 +80,10 @@ export function CacheEvict(key?: string, namespace?: string, condition?: (result
       }
 
       return result;
-    }
+    };
 
     return descriptor;
-  }
+  };
 }
 
 /**
@@ -110,10 +110,10 @@ export function CacheEvictPattern(patterns: string[], namespace?: string) {
       }
 
       return result;
-    }
+    };
 
     return descriptor;
-  }
+  };
 }
 
 /**
@@ -156,10 +156,10 @@ export function CacheUserContext(keyBuilder?: (userId: string, ...args: any[]) =
         console.error('User context cache operation failed:', error);
         return method.apply(this, args);
       }
-    }
+    };
 
     return descriptor;
-  }
+  };
 }
 
 /**
@@ -177,7 +177,7 @@ export function CacheCafeContext(keyBuilder?: (cafeId: string, ...args: any[]) =
       }
 
       // Extract cafe ID from context
-      const cafeId = this.getCurrentCafeId ? this.getCurrentCafeId() : args[0]?.cafeId || args[0]
+      const cafeId = this.getCurrentCafeId ? this.getCurrentCafeId() : args[0]?.cafeId || args[0];
       if (!cafeId) {
         return method.apply(this, args);
       }
@@ -202,10 +202,10 @@ export function CacheCafeContext(keyBuilder?: (cafeId: string, ...args: any[]) =
         console.error('Cafe context cache operation failed:', error);
         return method.apply(this, args);
       }
-    }
+    };
 
     return descriptor;
-  }
+  };
 }
 
 /**
@@ -243,8 +243,8 @@ export function WithCache<T extends new (...args: any[]) => object>(constructor:
 // Utility function to create cache key with arguments
 export function createCacheKey(prefix: string, ...args: any[]): string {
   const argsString = args
-    .filter(arg => arg !== undefined && arg !== null)
-    .map(arg => typeof arg === 'object' ? JSON.stringify(arg) : String(arg))
+    .filter((arg) => arg !== undefined && arg !== null)
+    .map((arg) => (typeof arg === 'object' ? JSON.stringify(arg) : String(arg)))
     .join(':');
 
   return `${prefix}:${argsString}`;
@@ -252,9 +252,9 @@ export function createCacheKey(prefix: string, ...args: any[]): string {
 
 // Common cache TTL constants
 export const CacheTTL = {
-  SHORT: 300,      // 5 minutes
-  MEDIUM: 1800,    // 30 minutes
-  LONG: 3600,      // 1 hour
-  DAY: 86400,      // 24 hours
-  WEEK: 604800,    // 7 days
+  SHORT: 300, // 5 minutes
+  MEDIUM: 1800, // 30 minutes
+  LONG: 3600, // 1 hour
+  DAY: 86400, // 24 hours
+  WEEK: 604800, // 7 days
 } as const;

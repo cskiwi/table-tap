@@ -3,32 +3,25 @@
   "$schema": "../../../node_modules/nx/schemas/project-schema.json",
   "sourceRoot": "libs/backend/redis/src",
   "projectType": "library",
+  "tags": [],
   "targets": {
+    "test": {
+      "executor": "@nx/jest:jest",
+      "outputs": ["{workspaceRoot}/coverage/libs/backend/redis"],
+      "options": {
+        "jestConfig": "libs/backend/redis/jest.config.ts"
+      }
+    },
     "build": {
       "executor": "@nx/js:tsc",
       "outputs": ["{options.outputPath}"],
       "options": {
-        "outputPath": "dist/libs/backend/redis",
-        "main": "libs/backend/redis/src/index.ts",
+        "outputPath": "{workspaceRoot}/dist/libs/backend/redis",
         "tsConfig": "libs/backend/redis/tsconfig.lib.json",
-        "assets": ["libs/backend/redis/*.md"]
-      }
-    },
-    "lint": {
-      "executor": "@nx/eslint:lint",
-      "outputs": ["{options.outputFile}"],
-      "options": {
-        "lintFilePatterns": ["libs/backend/redis/**/*.ts"]
-      }
-    },
-    "test": {
-      "executor": "@nx/jest:jest",
-      "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
-      "options": {
-        "jestConfig": "libs/backend/redis/jest.config.ts",
-        "testPathPattern": ["libs/backend/redis"]
+        "packageJson": "libs/backend/redis/package.json",
+        "main": "libs/backend/redis/src/index.ts",
+        "assets": ["{projectRoot/*.md"]
       }
     }
-  },
-  "tags": ["scope:backend", "type:lib"]
+  }
 }

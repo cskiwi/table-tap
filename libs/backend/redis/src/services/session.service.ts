@@ -1,8 +1,8 @@
-import { Injectable, Inject, Logger } from '@nestjs/common';
-import { Redis, Cluster } from 'ioredis';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { REDIS_CONNECTION_TOKEN } from '../config/redis.config';
-import { SessionData } from '../interfaces/redis-config.interface';
+import { Cluster, Redis } from 'ioredis';
+import { REDIS_CONNECTION_TOKEN } from '../config';
+import { SessionData } from '../interfaces';
 
 export interface SessionCreateOptions {
   ttl?: number;
@@ -26,11 +26,7 @@ export class RedisSessionService {
   /**
    * Create a new session
    */
-  async createSession(
-    sessionId: string,
-    sessionData: SessionData,
-    options?: SessionCreateOptions
-  ): Promise<void> {
+  async createSession(sessionId: string, sessionData: SessionData, options?: SessionCreateOptions): Promise<void> {
     try {
       const key = this.buildSessionKey(sessionId);
       const ttl = options?.ttl || this.defaultTTL;
@@ -40,7 +36,7 @@ export class RedisSessionService {
         createdAt: new Date(),
         lastActivity: new Date(),
         slidingExpiration: options?.slidingExpiration || false,
-      }
+      };
 
       await this.redis.setex(key, ttl, JSON.stringify(sessionPayload));
 
@@ -70,7 +66,7 @@ export class RedisSessionService {
       const parsed = JSON.parse(sessionData) as SessionData & {
         createdAt: Date;
         slidingExpiration: boolean;
-      }
+      };
 
       // Update last activity if sliding expiration is enabled
       if (parsed.slidingExpiration) {
@@ -87,10 +83,7 @@ export class RedisSessionService {
   /**
    * Update session data
    */
-  async updateSession(
-    sessionId: string,
-    updates: Partial<SessionData>
-  ): Promise<boolean> {
+  async updateSession(sessionId: string, updates: Partial<SessionData>): Promise<boolean> {
     try {
       const existing = await this.getSession(sessionId);
       if (!existing) {
@@ -104,7 +97,7 @@ export class RedisSessionService {
         ...existing,
         ...updates,
         lastActivity: new Date(),
-      }
+      };
 
       if (ttl > 0) {
         await this.redis.setex(key, ttl, JSON.stringify(updatedSession));
@@ -136,7 +129,7 @@ export class RedisSessionService {
       const updatedSession = {
         ...existing,
         lastActivity: new Date(),
-      }
+      };
 
       if (ttl > 0) {
         await this.redis.setex(key, ttl, JSON.stringify(updatedSession));
@@ -266,7 +259,7 @@ export class RedisSessionService {
         return null;
       }
 
-      return { sessionId, data: sessionData }
+      return { sessionId, data: sessionData };
     } catch (error) {
       this.logger.error(`Failed to get session for user ${userId}:`, error);
       return null;
@@ -307,7 +300,7 @@ export class RedisSessionService {
     try {
       const pattern = `${this.keyPrefix}*`;
       const keys = await this.redis.keys(pattern);
-      const sessions: Array<{ sessionId: string; data: SessionData }> = []
+      const sessions: Array<{ sessionId: string; data: SessionData }> = [];
 
       for (const key of keys) {
         if (key.includes(':user:')) continue; // Skip user mapping keys
@@ -327,7 +320,7 @@ export class RedisSessionService {
       return sessions;
     } catch (error) {
       this.logger.error('Failed to get active sessions:', error);
-      return []
+      return [];
     }
   }
 
@@ -342,7 +335,8 @@ export class RedisSessionService {
 
       for (const key of keys) {
         const ttl = await this.redis.ttl(key);
-        if (ttl === -2) { // Key doesn't exist (expired)
+        if (ttl === -2) {
+          // Key doesn't exist (expired)
           cleanedCount++;
         }
       }
@@ -369,11 +363,11 @@ export class RedisSessionService {
    */
   async getCafeSessions(cafeId: string): Promise<Array<{ sessionId: string; data: SessionData }>> {
     try {
-      const allSessions = await this.getActiveSessions()
-      return allSessions.filter(session => session.data.cafeId === cafeId);
+      const allSessions = await this.getActiveSessions();
+      return allSessions.filter((session) => session.data.cafeId === cafeId);
     } catch (error) {
       this.logger.error(`Failed to get sessions for cafe ${cafeId}:`, error);
-      return []
+      return [];
     }
   }
 

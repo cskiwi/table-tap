@@ -1,8 +1,8 @@
-import { Injectable, Inject, Logger } from '@nestjs/common';
-import { Redis, Cluster } from 'ioredis';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { REDIS_CONNECTION_TOKEN } from '../config/redis.config';
-import { CacheOptions } from '../interfaces/redis-config.interface';
+import { Cluster, Redis } from 'ioredis';
+import { REDIS_CONNECTION_TOKEN } from '../config';
+import { CacheOptions } from '../interfaces';
 
 export interface CacheKeyInfo {
   key: string;
@@ -73,7 +73,7 @@ export class RedisCacheService {
    */
   async mget<T>(keys: string[], namespace?: string): Promise<(T | null)[]> {
     try {
-      const fullKeys = keys.map(key => this.buildKey(key, namespace));
+      const fullKeys = keys.map((key) => this.buildKey(key, namespace));
       const values = await this.redis.mget(...fullKeys);
 
       return values.map((value, index) => {
@@ -115,7 +115,7 @@ export class RedisCacheService {
     try {
       if (keys.length === 0) return 0;
 
-      const fullKeys = keys.map(key => this.buildKey(key, namespace));
+      const fullKeys = keys.map((key) => this.buildKey(key, namespace));
       const result = await this.redis.del(...fullKeys);
       this.logger.debug(`Deleted ${result} cache keys`);
       return result;
@@ -210,9 +210,7 @@ export class RedisCacheService {
    */
   async clear(pattern?: string): Promise<number> {
     try {
-      const searchPattern = pattern
-        ? this.buildKey(pattern, undefined)
-        : `${this.keyPrefix}*`;
+      const searchPattern = pattern ? this.buildKey(pattern, undefined) : `${this.keyPrefix}*`;
 
       const keys = await this.redis.keys(searchPattern);
       if (keys.length === 0) return 0;
@@ -242,10 +240,10 @@ export class RedisCacheService {
         totalKeys: keys.length,
         memoryUsage: this.extractFromInfo(info, 'used_memory_human'),
         hitRate: this.extractFromInfo(info, 'keyspace_hits'),
-      }
+      };
     } catch (error) {
       this.logger.error('Failed to get cache stats:', error);
-      return { totalKeys: 0, memoryUsage: '0B' }
+      return { totalKeys: 0, memoryUsage: '0B' };
     }
   }
 
@@ -319,13 +317,8 @@ export class RedisCacheService {
    * Invalidate cafe-related cache
    */
   async invalidateCafeCache(cafeId: string): Promise<void> {
-    const patterns = [
-      `menu:${cafeId}`,
-      `cafe:${cafeId}`,
-      `inventory:${cafeId}`,];
-    await Promise.all(
-      patterns.map(pattern => this.del(pattern, 'restaurant'))
-    );
+    const patterns = [`menu:${cafeId}`, `cafe:${cafeId}`, `inventory:${cafeId}`];
+    await Promise.all(patterns.map((pattern) => this.del(pattern, 'restaurant')));
 
     this.logger.log(`Invalidated cache for cafe: ${cafeId}`);
   }
@@ -334,12 +327,8 @@ export class RedisCacheService {
    * Invalidate user-related cache
    */
   async invalidateUserCache(userId: string): Promise<void> {
-    const patterns = [
-      `permissions:${userId}`,
-      `profile:${userId}`,];
-    await Promise.all(
-      patterns.map(pattern => this.del(pattern, 'auth'))
-    );
+    const patterns = [`permissions:${userId}`, `profile:${userId}`];
+    await Promise.all(patterns.map((pattern) => this.del(pattern, 'auth')));
 
     this.logger.log(`Invalidated cache for user: ${userId}`);
   }
@@ -351,7 +340,7 @@ export class RedisCacheService {
 
   private extractFromInfo(info: string, key: string): string {
     const lines = info.split('\r\n');
-    const line = lines.find(l => l.startsWith(`${key}:`));
+    const line = lines.find((l) => l.startsWith(`${key}:`));
     return line ? line.split(':')[1] : '0';
   }
 }

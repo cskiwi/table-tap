@@ -1,34 +1,32 @@
-import { existsSync } from 'fs';
-import { resolve } from 'path';
-import { config as loadEnvConfig } from 'dotenv';
-import { EntityTarget, ObjectLiteral } from 'typeorm';
-import dataSource from './datasource';
 import {
-  User,
-  Cafe,
-  Product,
-  Order,
-  OrderItem,
-  Stock,
-  Employee,
-  InventoryAlert,
   AdminNotification,
   AdminSettings,
+  Cafe,
+  Employee,
+  InventoryAlert,
+  Order,
+  OrderItem,
+  Product,
   SalesAnalytics,
+  Stock,
+  User,
 } from '@app/models';
 import {
-  UserRole,
-  UserStatus,
-  OrderStatus,
-  OrderPriority,
-  PaymentStatus,
   AlertSeverity,
   AlertType,
-  NotificationType,
-  NotificationSeverity,
-  ProductCategory,
   EmployeeStatus,
+  NotificationSeverity,
+  NotificationType,
+  OrderStatus,
+  ProductCategory,
+  UserRole,
+  UserStatus,
 } from '@app/models/enums';
+import { config as loadEnvConfig } from 'dotenv';
+import { existsSync } from 'fs';
+import { resolve } from 'path';
+import { EntityTarget, ObjectLiteral } from 'typeorm';
+import dataSource from './datasource';
 
 /**
  * Comprehensive seed data for TableTap development and testing

@@ -1,36 +1,30 @@
-import { Injectable, Inject, Logger, OnModuleDestroy } from '@nestjs/common';
-import { Redis, Cluster } from 'ioredis';
-import { Observable, Subject, fromEvent, merge } from 'rxjs';
-import { map, filter, share, takeUntil } from 'rxjs/operators';
-import { REDIS_PUBSUB_TOKEN, REDIS_SUBSCRIBER_TOKEN } from '../config/redis.config';
-import {
-  PubSubMessage,
-  RedisEventType,
-  OrderEvent,
-  KitchenNotification,
-  CounterAssignment
-} from '../interfaces/redis-config.interface';
+import { Inject, Injectable, Logger, OnModuleDestroy } from '@nestjs/common';
+import { Cluster, Redis } from 'ioredis';
+import { Observable, Subject } from 'rxjs';
+import { filter, map, share, takeUntil } from 'rxjs/operators';
+import { REDIS_PUBSUB_TOKEN, REDIS_SUBSCRIBER_TOKEN } from '../config';
+import { CounterAssignment, KitchenNotification, OrderEvent, PubSubMessage, RedisEventType } from '../interfaces';
 
 @Injectable()
 export class RedisPubSubService implements OnModuleDestroy {
   private readonly logger = new Logger(RedisPubSubService.name);
-  private readonly destroy$ = new Subject<void>()
-  private readonly messageSubject = new Subject<PubSubMessage>()
-  private subscribedChannels = new Set<string>()
-  private subscribedPatterns = new Set<string>()
+  private readonly destroy$ = new Subject<void>();
+  private readonly messageSubject = new Subject<PubSubMessage>();
+  private subscribedChannels = new Set<string>();
+  private subscribedPatterns = new Set<string>();
 
   constructor(
     @Inject(REDIS_PUBSUB_TOKEN) private readonly publisher: Redis | Cluster,
     @Inject(REDIS_SUBSCRIBER_TOKEN) private readonly subscriber: Redis | Cluster,
   ) {
-    this.setupSubscriberListeners()
+    this.setupSubscriberListeners();
   }
 
   onModuleDestroy() {
-    this.destroy$.next()
-    this.destroy$.complete()
-    this.publisher.disconnect()
-    this.subscriber.disconnect()
+    this.destroy$.next();
+    this.destroy$.complete();
+    this.publisher.disconnect();
+    this.subscriber.disconnect();
   }
 
   /**
@@ -44,7 +38,7 @@ export class RedisPubSubService implements OnModuleDestroy {
         data,
         timestamp: new Date(),
         messageId: messageId || this.generateMessageId(),
-      }
+      };
 
       const serializedMessage = JSON.stringify(message);
       const result = await this.publisher.publish(channel, serializedMessage);
@@ -121,10 +115,7 @@ export class RedisPubSubService implements OnModuleDestroy {
    * Get observable for all messages
    */
   getMessages(): Observable<PubSubMessage> {
-    return this.messageSubject.asObservable().pipe(
-      takeUntil(this.destroy$),
-      share()
-    );
+    return this.messageSubject.asObservable().pipe(takeUntil(this.destroy$), share());
   }
 
   /**
@@ -132,8 +123,8 @@ export class RedisPubSubService implements OnModuleDestroy {
    */
   getChannelMessages<T = any>(channel: string): Observable<PubSubMessage<T>> {
     return this.getMessages().pipe(
-      filter(message => message.channel === channel),
-      map(message => message as PubSubMessage<T>)
+      filter((message) => message.channel === channel),
+      map((message) => message as PubSubMessage<T>),
     );
   }
 
@@ -142,8 +133,8 @@ export class RedisPubSubService implements OnModuleDestroy {
    */
   getPatternMessages<T = any>(pattern: string): Observable<PubSubMessage<T>> {
     return this.getMessages().pipe(
-      filter(message => message.pattern === pattern),
-      map(message => message as PubSubMessage<T>)
+      filter((message) => message.pattern === pattern),
+      map((message) => message as PubSubMessage<T>),
     );
   }
 
@@ -164,16 +155,14 @@ export class RedisPubSubService implements OnModuleDestroy {
    * Publish order status update
    */
   async publishOrderStatusUpdated(orderEvent: OrderEvent): Promise<number> {
-    const channels = [
-      `cafe:${orderEvent.cafeId}:orders`,
-      `order:${orderEvent.orderId}:status`,];
+    const channels = [`cafe:${orderEvent.cafeId}:orders`, `order:${orderEvent.orderId}:status`];
     const results = await Promise.all(
-      channels.map(channel =>
+      channels.map((channel) =>
         this.publish(channel, {
           type: RedisEventType.ORDER_STATUS_UPDATED,
           ...orderEvent,
-        })
-      )
+        }),
+      ),
     );
 
     return results.reduce((sum, result) => sum + result, 0);
@@ -186,15 +175,15 @@ export class RedisPubSubService implements OnModuleDestroy {
     const channels = [
       `cafe:${notification.cafeId}:kitchen`,
       notification.counterId ? `counter:${notification.counterId}:notifications` : null,
-    ].filter(Boolean) as string[]
+    ].filter(Boolean) as string[];
 
     const results = await Promise.all(
-      channels.map(channel =>
+      channels.map((channel) =>
         this.publish(channel, {
           type: RedisEventType.KITCHEN_NOTIFICATION,
           ...notification,
-        })
-      )
+        }),
+      ),
     );
 
     return results.reduce((sum, result) => sum + result, 0);
@@ -207,14 +196,15 @@ export class RedisPubSubService implements OnModuleDestroy {
     const channels = [
       `cafe:${assignment.cafeId}:assignments`,
       `counter:${assignment.counterId}:assignments`,
-      `order:${assignment.orderId}:assignment`,];
+      `order:${assignment.orderId}:assignment`,
+    ];
     const results = await Promise.all(
-      channels.map(channel =>
+      channels.map((channel) =>
         this.publish(channel, {
           type: RedisEventType.COUNTER_ASSIGNMENT,
           ...assignment,
-        })
-      )
+        }),
+      ),
     );
 
     return results.reduce((sum, result) => sum + result, 0);
@@ -224,27 +214,24 @@ export class RedisPubSubService implements OnModuleDestroy {
    * Subscribe to cafe-specific events
    */
   async subscribeToCafeEvents(cafeId: string): Promise<void> {
-    const patterns = [
-      `cafe:${cafeId}:*`,];
-    await Promise.all(patterns.map(pattern => this.psubscribe(pattern)));
+    const patterns = [`cafe:${cafeId}:*`];
+    await Promise.all(patterns.map((pattern) => this.psubscribe(pattern)));
   }
 
   /**
    * Subscribe to counter-specific events
    */
   async subscribeToCounterEvents(counterId: string): Promise<void> {
-    const patterns = [
-      `counter:${counterId}:*`,];
-    await Promise.all(patterns.map(pattern => this.psubscribe(pattern)));
+    const patterns = [`counter:${counterId}:*`];
+    await Promise.all(patterns.map((pattern) => this.psubscribe(pattern)));
   }
 
   /**
    * Subscribe to order-specific events
    */
   async subscribeToOrderEvents(orderId: string): Promise<void> {
-    const patterns = [
-      `order:${orderId}:*`,];
-    await Promise.all(patterns.map(pattern => this.psubscribe(pattern)));
+    const patterns = [`order:${orderId}:*`];
+    await Promise.all(patterns.map((pattern) => this.psubscribe(pattern)));
   }
 
   /**
@@ -252,11 +239,8 @@ export class RedisPubSubService implements OnModuleDestroy {
    */
   getCafeEvents<T = any>(cafeId: string): Observable<PubSubMessage<T>> {
     return this.getMessages().pipe(
-      filter(message =>
-        message.channel.startsWith(`cafe:${cafeId}:`) ||
-        message.pattern.startsWith(`cafe:${cafeId}:`)
-      ),
-      map(message => message as PubSubMessage<T>)
+      filter((message) => message.channel.startsWith(`cafe:${cafeId}:`) || message.pattern.startsWith(`cafe:${cafeId}:`)),
+      map((message) => message as PubSubMessage<T>),
     );
   }
 
@@ -265,11 +249,8 @@ export class RedisPubSubService implements OnModuleDestroy {
    */
   getCounterEvents<T = any>(counterId: string): Observable<PubSubMessage<T>> {
     return this.getMessages().pipe(
-      filter(message =>
-        message.channel.startsWith(`counter:${counterId}:`) ||
-        message.pattern.startsWith(`counter:${counterId}:`)
-      ),
-      map(message => message as PubSubMessage<T>)
+      filter((message) => message.channel.startsWith(`counter:${counterId}:`) || message.pattern.startsWith(`counter:${counterId}:`)),
+      map((message) => message as PubSubMessage<T>),
     );
   }
 
@@ -278,11 +259,8 @@ export class RedisPubSubService implements OnModuleDestroy {
    */
   getOrderEvents<T = any>(orderId: string): Observable<PubSubMessage<T>> {
     return this.getMessages().pipe(
-      filter(message =>
-        message.channel.startsWith(`order:${orderId}:`) ||
-        message.pattern.startsWith(`order:${orderId}:`)
-      ),
-      map(message => message as PubSubMessage<T>)
+      filter((message) => message.channel.startsWith(`order:${orderId}:`) || message.pattern.startsWith(`order:${orderId}:`)),
+      map((message) => message as PubSubMessage<T>),
     );
   }
 

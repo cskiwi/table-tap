@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { RedisPubSubService } from './pubsub.service';
-import { REDIS_PUBSUB_TOKEN, REDIS_SUBSCRIBER_TOKEN } from '../config/redis.config';
-import { RedisEventType } from '../interfaces/redis-config.interface';
+import { REDIS_PUBSUB_TOKEN, REDIS_SUBSCRIBER_TOKEN } from '../config';
+import { RedisEventType } from '../interfaces';
 
 describe('RedisPubSubService', () => {
   let service: RedisPubSubService;

@@ -1,9 +1,9 @@
-import { Resolver, Subscription, Args } from '@nestjs/graphql';
 import { Injectable } from '@nestjs/common';
+import { Args, Resolver, Subscription } from '@nestjs/graphql';
 import { Observable } from 'rxjs';
-import { map, filter } from 'rxjs/operators';
-import { RedisPubSubService } from '../services/pubsub.service';
-import { PubSubMessage, RedisEventType, OrderEvent, KitchenNotification, CounterAssignment } from '../interfaces/redis-config.interface';
+import { filter, map } from 'rxjs/operators';
+import { CounterAssignment, KitchenNotification, OrderEvent, PubSubMessage, RedisEventType } from '../interfaces';
+import { RedisPubSubService } from '../services';
 
 // GraphQL Types (these would be defined in your schema)
 class OrderUpdate {
@@ -24,7 +24,7 @@ class KitchenNotificationUpdate {
     menuItemId: string;
     name: string;
     quantity: number;
-    customizations?: string[]
+    customizations?: string[];
   }>;
   priority!: string;
   estimatedReadyTime?: Date;
@@ -51,20 +51,16 @@ export class OrderSubscriptionsResolver {
   @Subscription(() => OrderUpdate, {
     description: 'Subscribe to real-time order updates for a cafe',
   })
-  async orderUpdates(
-    @Args('cafeId') cafeId: string,
-    @Args('status', { nullable: true }) status?: string
-  ): Promise<Observable<OrderUpdate>> {
+  async orderUpdates(@Args('cafeId') cafeId: string, @Args('status', { nullable: true }) status?: string): Promise<Observable<OrderUpdate>> {
     // Subscribe to cafe events
     await this.pubsub.subscribeToCafeEvents(cafeId);
 
     return this.pubsub.getCafeEvents<OrderEvent>(cafeId).pipe(
       filter((message: PubSubMessage<OrderEvent>) => {
         // Filter for order events
-        const isOrderEvent = [
-          RedisEventType.ORDER_CREATED,
-          RedisEventType.ORDER_STATUS_UPDATED
-        ].includes(message.pattern.split(':')[0] + ':' + message.pattern.split(':')[1] as RedisEventType);
+        const isOrderEvent = [RedisEventType.ORDER_CREATED, RedisEventType.ORDER_STATUS_UPDATED].includes(
+          (message.pattern.split(':')[0] + ':' + message.pattern.split(':')[1]) as RedisEventType,
+        );
 
         // Filter by status if provided
         if (status && message.data.status) {
@@ -80,7 +76,7 @@ export class OrderSubscriptionsResolver {
         cafeId: message.data.cafeId,
         customerId: message.data.customerId,
         timestamp: message.timestamp,
-      }))
+      })),
     );
   }
 
@@ -92,7 +88,7 @@ export class OrderSubscriptionsResolver {
   })
   async kitchenNotifications(
     @Args('cafeId') cafeId: string,
-    @Args('priority', { nullable: true }) priority?: string
+    @Args('priority', { nullable: true }) priority?: string,
   ): Promise<Observable<KitchenNotificationUpdate>> {
     await this.pubsub.subscribeToCafeEvents(cafeId);
 
@@ -114,7 +110,7 @@ export class OrderSubscriptionsResolver {
         items: message.data.items,
         priority: message.data.priority,
         estimatedReadyTime: message.data.estimatedReadyTime,
-      }))
+      })),
     );
   }
 
@@ -124,15 +120,11 @@ export class OrderSubscriptionsResolver {
   @Subscription(() => CounterAssignmentUpdate, {
     description: 'Subscribe to counter assignments for a specific counter',
   })
-  async counterAssignments(
-    @Args('counterId') counterId: string
-  ): Promise<Observable<CounterAssignmentUpdate>> {
+  async counterAssignments(@Args('counterId') counterId: string): Promise<Observable<CounterAssignmentUpdate>> {
     await this.pubsub.subscribeToCounterEvents(counterId);
 
     return this.pubsub.getCounterEvents<CounterAssignment>(counterId).pipe(
-      filter((message: PubSubMessage<CounterAssignment>) =>
-        message.pattern === RedisEventType.COUNTER_ASSIGNMENT
-      ),
+      filter((message: PubSubMessage<CounterAssignment>) => message.pattern === RedisEventType.COUNTER_ASSIGNMENT),
       map((message: PubSubMessage<CounterAssignment>) => ({
         orderId: message.data.orderId,
         orderNumber: message.data.orderNumber,
@@ -141,7 +133,7 @@ export class OrderSubscriptionsResolver {
         cafeId: message.data.cafeId,
         assignedBy: message.data.assignedBy,
         assignedAt: message.data.assignedAt,
-      }))
+      })),
     );
   }
 
@@ -151,9 +143,7 @@ export class OrderSubscriptionsResolver {
   @Subscription(() => OrderUpdate, {
     description: 'Subscribe to updates for a specific order',
   })
-  async orderUpdate(
-    @Args('orderId') orderId: string
-  ): Promise<Observable<OrderUpdate>> {
+  async orderUpdate(@Args('orderId') orderId: string): Promise<Observable<OrderUpdate>> {
     await this.pubsub.subscribeToOrderEvents(orderId);
 
     return this.pubsub.getOrderEvents<OrderEvent>(orderId).pipe(
@@ -164,7 +154,7 @@ export class OrderSubscriptionsResolver {
         cafeId: message.data.cafeId,
         customerId: message.data.customerId,
         timestamp: message.timestamp,
-      }))
+      })),
     );
   }
 
@@ -176,7 +166,7 @@ export class OrderSubscriptionsResolver {
   })
   async cafeEvents(
     @Args('cafeId') cafeId: string,
-    @Args('eventTypes', { type: () => [String], nullable: true }) eventTypes?: string[]
+    @Args('eventTypes', { type: () => [String], nullable: true }) eventTypes?: string[],
   ): Promise<Observable<string>> {
     await this.pubsub.subscribeToCafeEvents(cafeId);
 
@@ -187,12 +177,14 @@ export class OrderSubscriptionsResolver {
         }
         return eventTypes.includes(message.data.type);
       }),
-      map((message: PubSubMessage) => JSON.stringify({
-        type: message.data.type,
-        data: message.data,
-        timestamp: message.timestamp,
-        channel: message.channel,
-      }))
+      map((message: PubSubMessage) =>
+        JSON.stringify({
+          type: message.data.type,
+          data: message.data,
+          timestamp: message.timestamp,
+          channel: message.channel,
+        }),
+      ),
     );
   }
 
@@ -206,11 +198,13 @@ export class OrderSubscriptionsResolver {
     await this.pubsub.psubscribe('system:*');
 
     return this.pubsub.getPatternMessages('system:*').pipe(
-      map((message: PubSubMessage) => JSON.stringify({
-        type: 'SYSTEM_ALERT',
-        alert: message.data,
-        timestamp: message.timestamp,
-      }))
+      map((message: PubSubMessage) =>
+        JSON.stringify({
+          type: 'SYSTEM_ALERT',
+          alert: message.data,
+          timestamp: message.timestamp,
+        }),
+      ),
     );
   }
 
@@ -220,22 +214,20 @@ export class OrderSubscriptionsResolver {
   @Subscription(() => String, {
     description: 'Subscribe to inventory level updates',
   })
-  async inventoryUpdates(
-    @Args('cafeId') cafeId: string
-  ): Promise<Observable<string>> {
+  async inventoryUpdates(@Args('cafeId') cafeId: string): Promise<Observable<string>> {
     const inventoryChannel = `cafe:${cafeId}:inventory`;
     await this.pubsub.subscribe(inventoryChannel);
 
     return this.pubsub.getChannelMessages(inventoryChannel).pipe(
-      filter((message: PubSubMessage) =>
-        message.data.type === RedisEventType.INVENTORY_UPDATED
+      filter((message: PubSubMessage) => message.data.type === RedisEventType.INVENTORY_UPDATED),
+      map((message: PubSubMessage) =>
+        JSON.stringify({
+          type: 'INVENTORY_UPDATE',
+          cafeId,
+          items: message.data.items,
+          timestamp: message.timestamp,
+        }),
       ),
-      map((message: PubSubMessage) => JSON.stringify({
-        type: 'INVENTORY_UPDATE',
-        cafeId,
-        items: message.data.items,
-        timestamp: message.timestamp,
-      }))
     );
   }
 }

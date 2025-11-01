@@ -5,6 +5,7 @@ import { Args, Mutation, Parent, Query, ResolveField, Resolver, Subscription } f
 import { InjectRepository } from '@nestjs/typeorm';
 import { PubSub } from 'graphql-subscriptions';
 import { Repository } from 'typeorm';
+// not working
 import { CafeArgs } from '../../args';
 
 @Injectable()
@@ -21,15 +22,15 @@ export class CafeResolver {
   @Query(() => [Cafe])
   @UseGuards(PermGuard)
   async cafes(
-    @Args('skip', { nullable: true }) skip?: number,
-    @Args('take', { nullable: true }) take?: number,
-    @Args('where', { nullable: true }) where?: any,
-    @ReqUser() user?: User
+    @Args('args', { type: () => CafeArgs, nullable: true })
+    inputArgs?: InstanceType<typeof CafeArgs>,
+    @ReqUser()
+    user?: User,
   ): Promise<Cafe[]> {
+    const args = CafeArgs.toFindOneOptions(inputArgs);
+
     return this.cafeRepository.find({
-      skip,
-      take,
-      where
+      ...args,
     });
   }
 
@@ -38,7 +39,7 @@ export class CafeResolver {
   async cafe(@Args('id') id: string, @ReqUser() user: User): Promise<Cafe | null> {
     // Use repository directly for simple CRUD
     return this.cafeRepository.findOne({
-      where: { id }
+      where: { id },
     });
   }
 
@@ -47,7 +48,7 @@ export class CafeResolver {
   async myCafes(@ReqUser() user: User): Promise<Cafe[]> {
     // Use repository directly - get user's cafe
     return this.cafeRepository.find({
-      where: { id: user.cafeId }
+      where: { id: user.cafeId },
     });
   }
 
@@ -71,7 +72,7 @@ export class CafeResolver {
     // Use repository directly for simple CRUD
     await this.cafeRepository.update({ id }, input);
     const updatedCafe = await this.cafeRepository.findOne({
-      where: { id }
+      where: { id },
     });
 
     // Publish cafe update event

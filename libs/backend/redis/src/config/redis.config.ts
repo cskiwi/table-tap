@@ -1,5 +1,5 @@
 import { ConfigService } from '@nestjs/config';
-import { RedisModuleOptions } from '../interfaces/redis-config.interface';
+import { RedisModuleOptions } from '../interfaces';
 
 export const redisConfigFactory = (configService: ConfigService): RedisModuleOptions => {
   const isProduction = configService.get('NODE_ENV') === 'production';
@@ -15,11 +15,11 @@ export const redisConfigFactory = (configService: ConfigService): RedisModuleOpt
 
   // Parse cluster nodes if provided
   const parsedClusterNodes = clusterNodes
-    ? clusterNodes.split(',').map(node => {
+    ? clusterNodes.split(',').map((node) => {
         const [host, port] = node.trim().split(':');
-        return { host, port: parseInt(port, 10) }
+        return { host, port: parseInt(port, 10) };
       })
-    : []
+    : [];
 
   const baseConfig = {
     host: redisHost,
@@ -44,7 +44,7 @@ export const redisConfigFactory = (configService: ConfigService): RedisModuleOpt
       const targetError = 'READONLY';
       return err.message.includes(targetError);
     },
-  }
+  };
 
   // Use Redis URL if provided, otherwise use individual config
   if (redisUrl) {
@@ -57,25 +57,25 @@ export const redisConfigFactory = (configService: ConfigService): RedisModuleOpt
 
   return {
     redis: baseConfig,
-    cluster: clusterEnabled ? {
-      enabled: true,
-      nodes: parsedClusterNodes.length > 0 ? parsedClusterNodes : [
-        { host: redisHost, port: redisPort }
-      ],
-      options: {
-        redisOptions: {
-          password: redisPassword,
-          connectTimeout: 10000,
-          commandTimeout: 5000,
-          lazyConnect: true,
-        },
-        enableReadyCheck: false,
-        maxRetriesPerRequest: 3,
-        retryDelayOnFailover: 100,
-        slotsRefreshTimeout: 10000,
-        slotsRefreshInterval: 5000,
-      }
-    } : undefined,
+    cluster: clusterEnabled
+      ? {
+          enabled: true,
+          nodes: parsedClusterNodes.length > 0 ? parsedClusterNodes : [{ host: redisHost, port: redisPort }],
+          options: {
+            redisOptions: {
+              password: redisPassword,
+              connectTimeout: 10000,
+              commandTimeout: 5000,
+              lazyConnect: true,
+            },
+            enableReadyCheck: false,
+            maxRetriesPerRequest: 3,
+            retryDelayOnFailover: 100,
+            slotsRefreshTimeout: 10000,
+            slotsRefreshInterval: 5000,
+          },
+        }
+      : undefined,
     pubsub: {
       retryDelayOnFailover: 100,
       maxRetriesPerRequest: undefined, // No limit for pubsub
@@ -89,9 +89,9 @@ export const redisConfigFactory = (configService: ConfigService): RedisModuleOpt
     session: {
       ttl: configService.get<number>('REDIS_SESSION_TTL', 86400), // 24 hours
       keyPrefix: configService.get<string>('REDIS_SESSION_PREFIX', 'tabletap:session:'),
-    }
-  }
-}
+    },
+  };
+};
 
 export const REDIS_CONNECTION_TOKEN = 'REDIS_CONNECTION';
 export const REDIS_CLUSTER_TOKEN = 'REDIS_CLUSTER';

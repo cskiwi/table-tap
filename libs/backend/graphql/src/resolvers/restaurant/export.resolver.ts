@@ -1,15 +1,15 @@
-import { Resolver, Query, Args } from '@nestjs/graphql';
-import { UseGuards, Injectable, Logger } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Between } from 'typeorm';
 import { PermGuard, ReqUser } from '@app/backend-authorization';
-import { User, Order, Stock } from '@app/models';
-import * as XLSX from 'xlsx';
-import * as PDFDocument from 'pdfkit';
+import { Order, Stock, User } from '@app/models';
+import { Injectable, Logger, UseGuards } from '@nestjs/common';
+import { Args, Query, Resolver } from '@nestjs/graphql';
+import { InjectRepository } from '@nestjs/typeorm';
 import { createObjectCsvWriter } from 'csv-writer';
-import { writeFile, mkdir } from 'fs/promises';
-import { join } from 'path';
 import { createWriteStream } from 'fs';
+import { mkdir } from 'fs/promises';
+import { join } from 'path';
+import PDFDocument from 'pdfkit';
+import { Between, Repository } from 'typeorm';
+import * as XLSX from 'xlsx';
 
 @Injectable()
 @Resolver('ExportData')
@@ -47,7 +47,7 @@ export class ExportResolver {
         order: { createdAt: 'ASC' },
       });
 
-      const salesData = orders.map(order => ({
+      const salesData = orders.map((order) => ({
         orderNumber: order.orderNumber,
         date: order.createdAt.toISOString(),
         customer: order.customer?.email || 'Guest',
@@ -78,7 +78,10 @@ export class ExportResolver {
 
       return filePath;
     } catch (error: unknown) {
-      this.logger.error(`Failed to export sales report: ${error instanceof Error ? error.message : 'Unknown error'}`, error instanceof Error ? error.stack : undefined);
+      this.logger.error(
+        `Failed to export sales report: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        error instanceof Error ? error.stack : undefined,
+      );
       throw error;
     }
   }
@@ -97,7 +100,7 @@ export class ExportResolver {
         order: { currentQuantity: 'ASC' },
       });
 
-      const inventoryData = inventory.map(item => ({
+      const inventoryData = inventory.map((item) => ({
         sku: item.sku || 'N/A',
         productName: item.product?.name || 'Unknown',
         category: item.category || 'N/A',
@@ -131,7 +134,10 @@ export class ExportResolver {
 
       return filePath;
     } catch (error: unknown) {
-      this.logger.error(`Failed to export inventory report: ${error instanceof Error ? error.message : 'Unknown error'}`, error instanceof Error ? error.stack : undefined);
+      this.logger.error(
+        `Failed to export inventory report: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        error instanceof Error ? error.stack : undefined,
+      );
       throw error;
     }
   }
@@ -142,7 +148,7 @@ export class ExportResolver {
     }
 
     const filePath = join(this.exportDir, filename);
-    const headers = Object.keys(data[0]).map(key => ({ id: key, title: key }));
+    const headers = Object.keys(data[0]).map((key) => ({ id: key, title: key }));
 
     const csvWriter = createObjectCsvWriter({
       path: filePath,
@@ -164,12 +170,7 @@ export class ExportResolver {
     return filePath;
   }
 
-  private async exportToPDF(
-    data: any[],
-    filename: string,
-    title: string,
-    dateRange?: { startDate: Date; endDate: Date }
-  ): Promise<string> {
+  private async exportToPDF(data: any[], filename: string, title: string, dateRange?: { startDate: Date; endDate: Date }): Promise<string> {
     const filePath = join(this.exportDir, filename);
 
     return new Promise((resolve, reject) => {
@@ -182,10 +183,7 @@ export class ExportResolver {
       doc.moveDown();
 
       if (dateRange) {
-        doc.fontSize(12).text(
-          `Period: ${dateRange.startDate.toLocaleDateString()} - ${dateRange.endDate.toLocaleDateString()}`,
-          { align: 'center' }
-        );
+        doc.fontSize(12).text(`Period: ${dateRange.startDate.toLocaleDateString()} - ${dateRange.endDate.toLocaleDateString()}`, { align: 'center' });
         doc.moveDown();
       }
 
