@@ -65,13 +65,13 @@ export class OrderItemCustomization extends BaseEntity {
   @IsOptional()
   declare sweetness: string;
 
-  @Field({ nullable: true })
+  @Field(() => [String], { nullable: true })
   @Column('simple-array', { nullable: true })
   @IsArray()
   @IsOptional()
   declare extras: string[];
 
-  @Field({ nullable: true })
+  @Field(() => [String], { nullable: true })
   @Column('simple-array', { nullable: true })
   @IsArray()
   @IsOptional()

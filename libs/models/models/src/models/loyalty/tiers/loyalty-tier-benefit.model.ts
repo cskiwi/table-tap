@@ -47,7 +47,7 @@ export class LoyaltyTierBenefit extends BaseEntity {
   @IsOptional()
   declare freeItemsPerMonth: number;
 
-  @Field({ nullable: true })
+  @Field(() => [String], { nullable: true })
   @Column('simple-array', { nullable: true })
   @IsArray()
   @IsOptional()
@@ -86,7 +86,7 @@ export class LoyaltyTierBenefit extends BaseEntity {
   declare birthdayFreeItem: boolean;
 
   // Other perks
-  @Field({ nullable: true })
+  @Field(() => [String], { nullable: true })
   @Column('simple-array', { nullable: true })
   @IsArray()
   @IsOptional()

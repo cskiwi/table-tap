@@ -6,9 +6,10 @@ import { PubSub } from 'graphql-subscriptions';
 import { PermGuard, ReqUser } from '@app/backend-authorization';
 import { User, Order, Employee, Payment, Product } from '@app/models';
 import { OrderStatus, EmployeeStatus } from '@app/models/enums';
+import { DateRangeInput } from '../../inputs/date-range.input';
 
 @Injectable()
-@Resolver('AdminDashboard')
+@Resolver()
 export class AdminDashboardResolver {
   private readonly logger = new Logger(AdminDashboardResolver.name);
   private pubSub: any = new PubSub();
@@ -22,7 +23,7 @@ export class AdminDashboardResolver {
     private readonly employeeRepository: Repository<Employee>,
   ) {}
 
-  @Query('adminDashboard')
+  @Query(() => Object, { name: 'adminDashboard' })
   @UseGuards(PermGuard)
   async adminDashboard(
     @Args('cafeId') cafeId: string,
@@ -84,11 +85,11 @@ export class AdminDashboardResolver {
     }
   }
 
-  @Query('revenueMetrics')
+  @Query(() => Object, { name: 'revenueMetrics' })
   @UseGuards(PermGuard)
   async revenueMetrics(
     @Args('cafeId') cafeId: string,
-    @Args('dateRange') dateRange?: { startDate: Date; endDate: Date },
+    @Args({ name: 'dateRange', nullable: true, type: () => DateRangeInput }) dateRange?: DateRangeInput,
     @ReqUser() user?: User,
   ): Promise<any> {
     try {
@@ -160,11 +161,11 @@ export class AdminDashboardResolver {
     }
   }
 
-  @Query('orderMetrics')
+  @Query(() => Object, { name: 'orderMetrics' })
   @UseGuards(PermGuard)
   async orderMetrics(
     @Args('cafeId') cafeId: string,
-    @Args('dateRange') dateRange?: { startDate: Date; endDate: Date },
+    @Args({ name: 'dateRange', nullable: true, type: () => DateRangeInput }) dateRange?: DateRangeInput,
     @ReqUser() user?: User,
   ): Promise<any> {
     try {
@@ -210,12 +211,12 @@ export class AdminDashboardResolver {
     }
   }
 
-  @Query('employeePerformance')
+  @Query(() => [Object], { name: 'employeePerformance' })
   @UseGuards(PermGuard)
   async employeePerformance(
     @Args('cafeId') cafeId: string,
-    @Args('dateRange') dateRange?: { startDate: Date; endDate: Date },
-    @Args('limit') limit?: number,
+    @Args({ name: 'dateRange', nullable: true, type: () => DateRangeInput }) dateRange?: DateRangeInput,
+    @Args({ name: 'limit', nullable: true }) limit?: number,
     @ReqUser() user?: User,
   ): Promise<any[]> {
     try {
@@ -248,11 +249,11 @@ export class AdminDashboardResolver {
     }
   }
 
-  @Query('salesAnalytics')
+  @Query(() => Object, { name: 'salesAnalytics' })
   @UseGuards(PermGuard)
   async salesAnalytics(
     @Args('cafeId') cafeId: string,
-    @Args('dateRange') dateRange?: { startDate: Date; endDate: Date },
+    @Args({ name: 'dateRange', nullable: true, type: () => DateRangeInput }) dateRange?: DateRangeInput,
     @ReqUser() user?: User,
   ): Promise<any> {
     try {
@@ -289,7 +290,8 @@ export class AdminDashboardResolver {
     return Number(result?.total || 0);
   }
 
-  @Subscription('revenueUpdated', {
+  @Subscription(() => Object, {
+    name: 'revenueUpdated',
     filter: (payload, variables) => {
       if (variables.cafeId) {
         return payload.revenueUpdated.cafeId === variables.cafeId;

@@ -12,6 +12,7 @@ import {
   Cafe,
   Counter,
 } from '@app/models';
+import { OrderCreateInput, OrderUpdateInput } from '../../inputs/order.input';
 
 @Injectable()
 @Resolver(() => Order)
@@ -119,7 +120,7 @@ export class OrderResolver {
   @Mutation(() => Order)
   @UseGuards(PermGuard)
   async createOrder(
-    @Args('input') input: any,
+    @Args('input') input: OrderCreateInput,
     @ReqUser() user: User,
   ): Promise<Order> {
     try {
@@ -157,7 +158,7 @@ export class OrderResolver {
   @UseGuards(PermGuard)
   async updateOrderStatus(
     @Args('id') id: string,
-    @Args('input') input: any,
+    @Args('input') input: OrderUpdateInput,
     @ReqUser() user: User,
   ): Promise<Order> {
     try {
@@ -184,7 +185,7 @@ export class OrderResolver {
   @UseGuards(PermGuard)
   async updateOrder(
     @Args('id') id: string,
-    @Args('input') input: any,
+    @Args('input') input: OrderUpdateInput,
     @ReqUser() user: User,
   ): Promise<Order> {
     // Simple update - can go directly to repository

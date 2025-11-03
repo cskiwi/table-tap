@@ -6,6 +6,7 @@ import { Repository } from 'typeorm';
 import { PubSub } from 'graphql-subscriptions';
 import { PermGuard, ReqUser } from '@app/backend-authorization';
 import { User, Stock, Cafe } from '@app/models';
+import { InventoryCreateInput, InventoryUpdateInput, InventoryStockUpdateInput } from '../../inputs/inventory.input';
 
 @Injectable()
 @Resolver(() => Stock)
@@ -153,7 +154,7 @@ export class InventoryResolver {
   @UseGuards(PermGuard)
   async updateInventoryItem(
     @Args('id') id: string,
-    @Args('input') input: Partial<Stock>,
+    @Args('input') input: InventoryUpdateInput,
     @ReqUser() user: User,
   ): Promise<Stock> {
     // Use service for validation logic
@@ -175,7 +176,7 @@ export class InventoryResolver {
   @UseGuards(PermGuard)
   async updateInventoryStock(
     @Args('id') id: string,
-    @Args('input') input: Partial<Stock> & { operation?: 'ADD' | 'SUBTRACT' | 'SET' },
+    @Args('input') input: InventoryStockUpdateInput,
     @ReqUser() user: User,
   ): Promise<Stock> {
     try {

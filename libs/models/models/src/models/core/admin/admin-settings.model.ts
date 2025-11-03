@@ -162,7 +162,7 @@ export class AdminSettings extends BaseEntity {
   declare orderDelayThreshold: number;
 
   // Integration Settings
-  @Field({ nullable: true })
+  @Field(() => [String], { nullable: true })
   @Column('simple-array', { nullable: true })
   declare paymentProviders: string[];
 
@@ -178,7 +178,7 @@ export class AdminSettings extends BaseEntity {
   @IsOptional()
   declare accountingSystem: string;
 
-  @Field({ nullable: true })
+  @Field(() => [String], { nullable: true })
   @Column('simple-array', { nullable: true })
   declare deliveryProviders: string[];
 
@@ -224,7 +224,7 @@ export class AdminSettings extends BaseEntity {
     return this.smsEnabled && !!this.notificationPhone;
   }
 
-  @Field()
+  @Field(() => Boolean)
   get hasIntegrations(): boolean {
     return !!(
       this.paymentProviders?.length ||

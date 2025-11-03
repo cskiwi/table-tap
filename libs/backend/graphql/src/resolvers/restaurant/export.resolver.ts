@@ -10,9 +10,10 @@ import { join } from 'path';
 import PDFDocument from 'pdfkit';
 import { Between, Repository } from 'typeorm';
 import * as XLSX from 'xlsx';
+import { DateRangeInput } from '../../inputs/date-range.input';
 
 @Injectable()
-@Resolver('ExportData')
+@Resolver()
 export class ExportResolver {
   private readonly logger = new Logger(ExportResolver.name);
   private readonly exportDir = join(process.cwd(), 'exports');
@@ -27,12 +28,12 @@ export class ExportResolver {
     mkdir(this.exportDir, { recursive: true }).catch(() => {});
   }
 
-  @Query('exportSalesReport')
+  @Query(() => String, { name: 'exportSalesReport' })
   @UseGuards(PermGuard)
   async exportSalesReport(
     @Args('cafeId') cafeId: string,
-    @Args('dateRange') dateRange: { startDate: Date; endDate: Date },
-    @Args('format') format: 'csv' | 'excel' | 'pdf',
+    @Args({ name: 'dateRange', type: () => DateRangeInput }) dateRange: DateRangeInput,
+    @Args({ name: 'format', type: () => String }) format: 'csv' | 'excel' | 'pdf',
     @ReqUser() user?: User,
   ): Promise<string> {
     try {
@@ -86,11 +87,11 @@ export class ExportResolver {
     }
   }
 
-  @Query('exportInventoryReport')
+  @Query(() => String, { name: 'exportInventoryReport' })
   @UseGuards(PermGuard)
   async exportInventoryReport(
     @Args('cafeId') cafeId: string,
-    @Args('format') format: 'csv' | 'excel' | 'pdf',
+    @Args({ name: 'format', type: () => String }) format: 'csv' | 'excel' | 'pdf',
     @ReqUser() user?: User,
   ): Promise<string> {
     try {

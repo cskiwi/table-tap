@@ -4,9 +4,10 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Between } from 'typeorm';
 import { PermGuard, ReqUser } from '@app/backend-authorization';
 import { User, Order, OrderItem, Payment, Product } from '@app/models';
+import { DateRangeInput } from '../../inputs/date-range.input';
 
 @Injectable()
-@Resolver('SalesAnalytics')
+@Resolver()
 export class SalesAnalyticsResolver {
   private readonly logger = new Logger(SalesAnalyticsResolver.name);
 
@@ -21,12 +22,12 @@ export class SalesAnalyticsResolver {
     private readonly productRepository: Repository<Product>,
   ) {}
 
-  @Query('topProducts')
+  @Query(() => [Object], { name: 'topProducts' })
   @UseGuards(PermGuard)
   async topProducts(
     @Args('cafeId') cafeId: string,
-    @Args('dateRange') dateRange?: { startDate: Date; endDate: Date },
-    @Args('limit') limit?: number,
+    @Args({ name: 'dateRange', nullable: true, type: () => DateRangeInput }) dateRange?: DateRangeInput,
+    @Args({ name: 'limit', nullable: true }) limit?: number,
     @ReqUser() user?: User,
   ): Promise<any[]> {
     try {
@@ -82,11 +83,11 @@ export class SalesAnalyticsResolver {
     }
   }
 
-  @Query('categoryBreakdown')
+  @Query(() => [Object], { name: 'categoryBreakdown' })
   @UseGuards(PermGuard)
   async categoryBreakdown(
     @Args('cafeId') cafeId: string,
-    @Args('dateRange') dateRange?: { startDate: Date; endDate: Date },
+    @Args({ name: 'dateRange', nullable: true, type: () => DateRangeInput }) dateRange?: DateRangeInput,
     @ReqUser() user?: User,
   ): Promise<any[]> {
     try {
@@ -125,11 +126,11 @@ export class SalesAnalyticsResolver {
     }
   }
 
-  @Query('hourlyRevenue')
+  @Query(() => [Object], { name: 'hourlyRevenue' })
   @UseGuards(PermGuard)
   async hourlyRevenue(
     @Args('cafeId') cafeId: string,
-    @Args('dateRange') dateRange?: { startDate: Date; endDate: Date },
+    @Args({ name: 'dateRange', nullable: true, type: () => DateRangeInput }) dateRange?: DateRangeInput,
     @ReqUser() user?: User,
   ): Promise<any[]> {
     try {
@@ -167,11 +168,11 @@ export class SalesAnalyticsResolver {
     }
   }
 
-  @Query('dailyRevenue')
+  @Query(() => [Object], { name: 'dailyRevenue' })
   @UseGuards(PermGuard)
   async dailyRevenue(
     @Args('cafeId') cafeId: string,
-    @Args('dateRange') dateRange?: { startDate: Date; endDate: Date },
+    @Args({ name: 'dateRange', nullable: true, type: () => DateRangeInput }) dateRange?: DateRangeInput,
     @ReqUser() user?: User,
   ): Promise<any[]> {
     try {

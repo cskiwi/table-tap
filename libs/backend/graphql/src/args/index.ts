@@ -4,19 +4,17 @@ import { appendSortableObjects, SortOrderType } from '../utils/sort-order';
 
 // Extract all entity classes from the models package
 // An entity class extends BaseEntity and is decorated with @Entity
-const entities = Object.entries(Models).filter(
-  ([name, value]) => {
-    if (typeof value !== 'function' || !value.prototype) return false;
-    
-    // Check if it extends BaseEntity (TypeORM entity base class)
-    let proto = value.prototype;
-    while (proto) {
-      if (proto.constructor.name === 'BaseEntity') return true;
-      proto = Object.getPrototypeOf(proto);
-    }
-    return false;
+const entities = Object.entries(Models).filter(([name, value]) => {
+  if (typeof value !== 'function' || !value.prototype) return false;
+
+  // Check if it extends BaseEntity (TypeORM entity base class)
+  let proto = value.prototype;
+  while (proto) {
+    if (proto.constructor.name === 'BaseEntity') return true;
+    proto = Object.getPrototypeOf(proto);
   }
-) as Array<[string, new () => any]>;
+  return false;
+}) as Array<[string, new () => any]>;
 
 // Register all SortOrderTypes and append sortable objects
 entities.forEach(([name, EntityClass]) => {
@@ -40,10 +38,22 @@ const createEntityArgs = (): EntityArgsMap => {
 
 const argsMap = createEntityArgs();
 
-// Re-export all properties from argsMap as named exports
-// This works by assigning to module.exports at runtime while maintaining types
-Object.assign(exports, argsMap);
-
-// Declare exports for TypeScript
-declare const exports: EntityArgsMap;
-export = exports;
+// Export all args as named exports (ESM compatible)
+// This creates exports like: export const CafeArgs = args('Cafe');
+export const {
+  AdminNotificationArgs,
+  CafeArgs,
+  EmployeeArgs,
+  LoyaltyAccountArgs,
+  LoyaltyChallengeArgs,
+  LoyaltyPromotionArgs,
+  LoyaltyRewardArgs,
+  LoyaltyTierArgs,
+  LoyaltyTransactionArgs,
+  OrderArgs,
+  OrderItemArgs,
+  PaymentArgs,
+  ProductArgs,
+  StockArgs,
+  UserArgs,
+} = argsMap;

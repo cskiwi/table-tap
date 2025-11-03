@@ -11,9 +11,10 @@ import {
   UpdateDateColumn,
   OneToOne,
   JoinColumn,
-  Relation
+  Relation,
 } from 'typeorm';
 import { Payment } from './payment.model';
+import { GraphQLJSONObject } from 'graphql-type-json';
 
 @ObjectType('PaymentMetadata')
 @Entity('PaymentMetadata')
@@ -36,7 +37,7 @@ export class PaymentMetadata extends BaseEntity {
   @Column('uuid')
   declare paymentId: string;
 
-  @OneToOne(() => Payment, payment => payment.metadata, { onDelete: 'CASCADE' })
+  @OneToOne(() => Payment, (payment) => payment.metadata, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'paymentId' })
   declare payment: Relation<Payment>;
 
@@ -156,7 +157,7 @@ export class PaymentMetadata extends BaseEntity {
   declare lastRetryAt: Date;
 
   // Audit trail (keeping as JSON since it's a log of multiple events)
-  @Field({ nullable: true })
+  @Field(() => GraphQLJSONObject, { nullable: true })
   @Column('json', { nullable: true })
   @IsOptional()
   declare auditTrail: Array<{

@@ -5,6 +5,7 @@ import { Repository, In, MoreThan, LessThan, Between } from 'typeorm';
 import { PubSub } from 'graphql-subscriptions';
 import { PermGuard, ReqUser } from '@app/backend-authorization';
 import { User, Order, OrderItem, Employee, Counter } from '@app/models';
+import { DateRangeInput } from '../../inputs/date-range.input';
 import {
   OrderStatus,
   PreparationStatus,
@@ -23,7 +24,7 @@ import {
 } from '@app/models/enums';
 
 @Injectable()
-@Resolver('KitchenDashboard')
+@Resolver()
 export class KitchenDashboardResolver {
   private readonly logger = new Logger(KitchenDashboardResolver.name);
   private pubSub: any = new PubSub();
@@ -35,7 +36,7 @@ export class KitchenDashboardResolver {
     private readonly employeeRepository: Repository<Employee>,
   ) {}
 
-  @Query('kitchenDashboard')
+  @Query(() => Object, { name: 'kitchenDashboard' })
   @UseGuards(PermGuard)
   async kitchenDashboard(
     @Args('cafeId') cafeId: string,
@@ -92,14 +93,14 @@ export class KitchenDashboardResolver {
     }
   }
 
-  @Query('kitchenOrders')
+  @Query(() => [Order], { name: 'kitchenOrders' })
   @UseGuards(PermGuard)
   async kitchenOrders(
     @Args('cafeId') cafeId: string,
-    @Args('status') status?: OrderStatus[],
-    @Args('priority') priority?: string[],
-    @Args('counter') counter?: string,
-    @Args('dateRange') dateRange?: { startDate: Date; endDate: Date },
+    @Args({ name: 'status', nullable: true, type: () => [String] }) status?: OrderStatus[],
+    @Args({ name: 'priority', nullable: true, type: () => [String] }) priority?: string[],
+    @Args({ name: 'counter', nullable: true }) counter?: string,
+    @Args({ name: 'dateRange', nullable: true, type: () => DateRangeInput }) dateRange?: DateRangeInput,
     @ReqUser() user?: User,
   ): Promise<Order[]> {
     try {
@@ -131,7 +132,7 @@ export class KitchenDashboardResolver {
     }
   }
 
-  @Query('kitchenOrder')
+  @Query(() => Order, { name: 'kitchenOrder', nullable: true })
   @UseGuards(PermGuard)
   async kitchenOrder(
     @Args('id') id: string,
@@ -148,11 +149,11 @@ export class KitchenDashboardResolver {
     }
   }
 
-  @Query('kitchenMetrics')
+  @Query(() => Object, { name: 'kitchenMetrics' })
   @UseGuards(PermGuard)
   async kitchenMetrics(
     @Args('cafeId') cafeId: string,
-    @Args('dateRange') dateRange?: { startDate: Date; endDate: Date },
+    @Args({ name: 'dateRange', nullable: true, type: () => DateRangeInput }) dateRange?: DateRangeInput,
     @ReqUser() user?: User,
   ): Promise<any> {
     try {
@@ -220,11 +221,11 @@ export class KitchenDashboardResolver {
     }
   }
 
-  @Mutation('updateKitchenOrderStatus')
+  @Mutation(() => Order, { name: 'updateKitchenOrderStatus' })
   @UseGuards(PermGuard)
   async updateKitchenOrderStatus(
     @Args('id') id: string,
-    @Args('status') status: OrderStatus,
+    @Args({ name: 'status', type: () => String }) status: OrderStatus,
     @ReqUser() user: User,
   ): Promise<Order> {
     try {
@@ -259,11 +260,11 @@ export class KitchenDashboardResolver {
     }
   }
 
-  @Mutation('updateOrderItemStatus')
+  @Mutation(() => OrderItem, { name: 'updateOrderItemStatus' })
   @UseGuards(PermGuard)
   async updateOrderItemStatus(
     @Args('id') id: string,
-    @Args('status') status: PreparationStatus,
+    @Args({ name: 'status', type: () => String }) status: PreparationStatus,
     @ReqUser() user: User,
   ): Promise<OrderItem> {
     try {
@@ -275,7 +276,7 @@ export class KitchenDashboardResolver {
     }
   }
 
-  @Mutation('assignOrderToStaff')
+  @Mutation(() => Order, { name: 'assignOrderToStaff' })
   @UseGuards(PermGuard)
   async assignOrderToStaff(
     @Args('orderId') orderId: string,
@@ -301,7 +302,8 @@ export class KitchenDashboardResolver {
     }
   }
 
-  @Subscription('kitchenOrderUpdated', {
+  @Subscription(() => Order, {
+    name: 'kitchenOrderUpdated',
     filter: (payload, variables) => {
       if (variables.cafeId) {
         return payload.kitchenOrderUpdated.cafeId === variables.cafeId;

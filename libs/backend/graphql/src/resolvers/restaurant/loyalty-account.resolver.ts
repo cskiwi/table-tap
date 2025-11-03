@@ -1,16 +1,10 @@
-import { Resolver, Query, Mutation, Args, Subscription, ResolveField, Parent, Context } from '@nestjs/graphql';
-import { UseGuards, Injectable, Logger } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { PubSub } from 'graphql-subscriptions';
 import { PermGuard, ReqUser } from '@app/backend-authorization';
-import { User } from '@app/models';
-import {
-  LoyaltyAccount,
-  LoyaltyTier,
-  LoyaltyTransaction,
-  LoyaltyReward,
-} from '@app/models';
+import { LoyaltyAccount, User } from '@app/models';
+import { Injectable, Logger, UseGuards } from '@nestjs/common';
+import { Args, Query, Resolver, Subscription } from '@nestjs/graphql';
+import { InjectRepository } from '@nestjs/typeorm';
+import { PubSub } from 'graphql-subscriptions';
+import { Repository } from 'typeorm';
 import { LoyaltyAccountArgs } from '../../args';
 
 @Injectable()
@@ -28,49 +22,51 @@ export class LoyaltyAccountResolver {
   @Query(() => [LoyaltyAccount])
   @UseGuards(PermGuard)
   async loyaltyAccounts(
-    @Args('skip', { nullable: true }) skip?: number,
-    @Args('take', { nullable: true }) take?: number,
-    @Args('where', { nullable: true }) where?: any,
+    @Args('args', { type: () => LoyaltyAccountArgs, nullable: true })
+    inputArgs?: InstanceType<typeof LoyaltyAccountArgs>,
     @ReqUser() user?: User,
   ): Promise<LoyaltyAccount[]> {
     try {
-      return await this.loyaltyAccountRepository.find({
-        skip,
-        take,
-        where
+      const args = LoyaltyAccountArgs.toFindOneOptions(inputArgs);
+
+      return this.loyaltyAccountRepository.find({
+        ...args,
       });
     } catch (error: unknown) {
-      this.logger.error(`Failed to fetch loyalty accounts: ${error instanceof Error ? error.message : 'Unknown error'}`, error instanceof Error ? error.stack : undefined);
+      this.logger.error(
+        `Failed to fetch loyalty accounts: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        error instanceof Error ? error.stack : undefined,
+      );
       throw error;
     }
   }
 
   @Query(() => LoyaltyAccount, { nullable: true })
   @UseGuards(PermGuard)
-  async loyaltyAccount(
-    @Args('id') id: string,
-    @ReqUser() user: User,
-  ): Promise<LoyaltyAccount | null> {
+  async loyaltyAccount(@Args('id') id: string, @ReqUser() user: User): Promise<LoyaltyAccount | null> {
     try {
       return await this.loyaltyAccountRepository.findOne({ where: { id } });
     } catch (error: unknown) {
-      this.logger.error(`Failed to fetch loyalty account ${id}: ${error instanceof Error ? error.message : 'Unknown error'}`, error instanceof Error ? error.stack : undefined);
+      this.logger.error(
+        `Failed to fetch loyalty account ${id}: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        error instanceof Error ? error.stack : undefined,
+      );
       throw error;
     }
   }
 
   @Query(() => LoyaltyAccount, { nullable: true })
   @UseGuards(PermGuard)
-  async myLoyaltyAccount(
-    @Args('cafeId') cafeId: string,
-    @ReqUser() user: User,
-  ): Promise<LoyaltyAccount | null> {
+  async myLoyaltyAccount(@Args('cafeId') cafeId: string, @ReqUser() user: User): Promise<LoyaltyAccount | null> {
     try {
       return await this.loyaltyAccountRepository.findOne({
-        where: { userId: user.id, cafeId }
+        where: { userId: user.id, cafeId },
       });
     } catch (error: unknown) {
-      this.logger.error(`Failed to fetch user loyalty account: ${error instanceof Error ? error.message : 'Unknown error'}`, error instanceof Error ? error.stack : undefined);
+      this.logger.error(
+        `Failed to fetch user loyalty account: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        error instanceof Error ? error.stack : undefined,
+      );
       throw error;
     }
   }
@@ -85,10 +81,13 @@ export class LoyaltyAccountResolver {
     try {
       // Use repository directly for simple query
       return await this.loyaltyAccountRepository.findOne({
-        where: { loyaltyNumber, cafeId }
+        where: { loyaltyNumber, cafeId },
       });
     } catch (error: unknown) {
-      this.logger.error(`Failed to fetch loyalty account by number: ${error instanceof Error ? error.message : 'Unknown error'}`, error instanceof Error ? error.stack : undefined);
+      this.logger.error(
+        `Failed to fetch loyalty account by number: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        error instanceof Error ? error.stack : undefined,
+      );
       throw error;
     }
   }
@@ -103,9 +102,7 @@ export class LoyaltyAccountResolver {
   }
 
   @Subscription(() => LoyaltyAccount)
-  loyaltyAccountUpdated(
-    @Args('accountId', { nullable: true }) accountId?: string,
-  ) {
+  loyaltyAccountUpdated(@Args('accountId', { nullable: true }) accountId?: string) {
     if (accountId) {
       return this.pubSub.asyncIterator(`loyaltyAccountUpdated_${accountId}`);
     }
@@ -113,9 +110,7 @@ export class LoyaltyAccountResolver {
   }
 
   @Subscription(() => Object)
-  loyaltyPointsAdded(
-    @Args('accountId', { nullable: true }) accountId?: string,
-  ) {
+  loyaltyPointsAdded(@Args('accountId', { nullable: true }) accountId?: string) {
     if (accountId) {
       return this.pubSub.asyncIterator(`loyaltyPointsAdded_${accountId}`);
     }
@@ -123,9 +118,7 @@ export class LoyaltyAccountResolver {
   }
 
   @Subscription(() => LoyaltyAccount)
-  loyaltyTierUpdated(
-    @Args('accountId', { nullable: true }) accountId?: string,
-  ) {
+  loyaltyTierUpdated(@Args('accountId', { nullable: true }) accountId?: string) {
     if (accountId) {
       return this.pubSub.asyncIterator(`loyaltyTierUpdated_${accountId}`);
     }

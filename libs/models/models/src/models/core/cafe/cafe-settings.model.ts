@@ -79,13 +79,13 @@ export class CafeSettings extends BaseEntity {
   declare enableCredits: boolean;
 
   // Workflow settings
-  @Field({ nullable: true })
+  @Field(() => [String], { nullable: true })
   @Column('simple-array', { nullable: true })
   @IsArray()
   @IsOptional()
   declare workflowSteps: string[];
 
-  @Field({ nullable: true })
+  @Field(() => [String], { nullable: true })
   @Column('simple-array', { nullable: true })
   @IsArray()
   @IsOptional()

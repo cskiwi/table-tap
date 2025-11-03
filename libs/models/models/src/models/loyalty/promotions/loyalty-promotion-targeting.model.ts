@@ -14,6 +14,7 @@ import {
   Relation
 } from 'typeorm';
 import { LoyaltyPromotion } from './loyalty-promotion.model';
+import { GraphQLJSONObject } from 'graphql-type-json';
 
 @ObjectType('LoyaltyPromotionTargeting')
 @Entity('LoyaltyPromotionTargeting')
@@ -116,7 +117,7 @@ export class LoyaltyPromotionTargeting extends BaseEntity {
   declare lastOrderDaysMax: number;
 
   // Custom attributes (keeping as JSON since it's truly dynamic)
-  @Field({ nullable: true })
+  @Field(() => GraphQLJSONObject,{ nullable: true })
   @Column('json', { nullable: true })
   @IsOptional()
   declare customAttributes: Record<string, any>;

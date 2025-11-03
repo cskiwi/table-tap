@@ -8,7 +8,7 @@ import { PubSub } from 'graphql-subscriptions';
 import { Repository } from 'typeorm';
 
 @Injectable()
-@Resolver('AdminNotification')
+@Resolver(() => AdminNotification)
 export class AdminNotificationsResolver {
   private readonly logger = new Logger(AdminNotificationsResolver.name);
   private pubSub: any = new PubSub();
@@ -18,12 +18,12 @@ export class AdminNotificationsResolver {
     private readonly notificationRepository: Repository<AdminNotification>,
   ) {}
 
-  @Query('adminNotifications')
+  @Query(() => [AdminNotification], { name: 'adminNotifications' })
   @UseGuards(PermGuard)
   async adminNotifications(
     @Args('cafeId') cafeId: string,
-    @Args('unreadOnly') unreadOnly?: boolean,
-    @Args('limit') limit?: number,
+    @Args({ name: 'unreadOnly', nullable: true }) unreadOnly?: boolean,
+    @Args({ name: 'limit', nullable: true }) limit?: number,
     @ReqUser() user?: User,
   ): Promise<AdminNotification[]> {
     try {
@@ -43,7 +43,7 @@ export class AdminNotificationsResolver {
     }
   }
 
-  @Mutation('markNotificationRead')
+  @Mutation(() => AdminNotification, { name: 'markNotificationRead' })
   @UseGuards(PermGuard)
   async markNotificationRead(@Args('id') id: string, @ReqUser() user?: User): Promise<AdminNotification> {
     try {
@@ -61,7 +61,7 @@ export class AdminNotificationsResolver {
     }
   }
 
-  @Mutation('markAllNotificationsRead')
+  @Mutation(() => Boolean, { name: 'markAllNotificationsRead' })
   @UseGuards(PermGuard)
   async markAllNotificationsRead(@Args('cafeId') cafeId: string, @ReqUser() user?: User): Promise<boolean> {
     try {
@@ -80,7 +80,8 @@ export class AdminNotificationsResolver {
     }
   }
 
-  @Subscription('adminNotificationCreated', {
+  @Subscription(() => AdminNotification, {
+    name: 'adminNotificationCreated',
     filter: (payload, variables) => {
       if (variables.cafeId) {
         return payload.adminNotificationCreated.cafeId === variables.cafeId;

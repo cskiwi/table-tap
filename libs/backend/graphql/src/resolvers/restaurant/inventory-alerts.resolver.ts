@@ -7,7 +7,7 @@ import { PermGuard, ReqUser } from '@app/backend-authorization';
 import { User, Stock } from '@app/models';
 
 @Injectable()
-@Resolver('InventoryAlerts')
+@Resolver()
 export class InventoryAlertsResolver {
   private readonly logger = new Logger(InventoryAlertsResolver.name);
   private pubSub: any = new PubSub();
@@ -17,11 +17,11 @@ export class InventoryAlertsResolver {
     private readonly stockRepository: Repository<Stock>,
   ) {}
 
-  @Query('lowStockItems')
+  @Query(() => [Stock], { name: 'lowStockItems' })
   @UseGuards(PermGuard)
   async lowStockItems(
     @Args('cafeId') cafeId: string,
-    @Args('limit') limit?: number,
+    @Args({ name: 'limit', nullable: true }) limit?: number,
     @ReqUser() user?: User,
   ): Promise<Stock[]> {
     try {
@@ -45,11 +45,11 @@ export class InventoryAlertsResolver {
     }
   }
 
-  @Query('outOfStockItems')
+  @Query(() => [Stock], { name: 'outOfStockItems' })
   @UseGuards(PermGuard)
   async outOfStockItems(
     @Args('cafeId') cafeId: string,
-    @Args('limit') limit?: number,
+    @Args({ name: 'limit', nullable: true }) limit?: number,
     @ReqUser() user?: User,
   ): Promise<Stock[]> {
     try {
@@ -68,12 +68,12 @@ export class InventoryAlertsResolver {
     }
   }
 
-  @Query('expiringItems')
+  @Query(() => [Stock], { name: 'expiringItems' })
   @UseGuards(PermGuard)
   async expiringItems(
     @Args('cafeId') cafeId: string,
-    @Args('daysAhead') daysAhead?: number,
-    @Args('limit') limit?: number,
+    @Args({ name: 'daysAhead', nullable: true }) daysAhead?: number,
+    @Args({ name: 'limit', nullable: true }) limit?: number,
     @ReqUser() user?: User,
   ): Promise<Stock[]> {
     try {
@@ -98,7 +98,7 @@ export class InventoryAlertsResolver {
     }
   }
 
-  @Query('inventoryAlertsSummary')
+  @Query(() => Object, { name: 'inventoryAlertsSummary' })
   @UseGuards(PermGuard)
   async inventoryAlertsSummary(
     @Args('cafeId') cafeId: string,
@@ -148,7 +148,8 @@ export class InventoryAlertsResolver {
     }
   }
 
-  @Subscription('inventoryAlertCreated', {
+  @Subscription(() => Object, {
+    name: 'inventoryAlertCreated',
     filter: (payload, variables) => {
       if (variables.cafeId) {
         return payload.inventoryAlertCreated.cafeId === variables.cafeId;
