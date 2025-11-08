@@ -16,15 +16,15 @@ export class AdminSettingsResolver {
     private readonly settingsRepository: Repository<AdminSettings>,
   ) {}
 
-  @Query(() => AdminSettings)
+  @Query(() => AdminSettings, { name: 'adminSettings', nullable: true })
   @UseGuards(PermGuard)
-  async adminSettings(@Args('cafeId') cafeId: string, @ReqUser() user?: User): Promise<any> {
+  async adminSettings(@Args('cafeId') cafeId: string, @ReqUser() user?: User): Promise<AdminSettings | null> {
     try {
-      let settings = await this.settingsRepository.findOne({
+      const settings = await this.settingsRepository.findOne({
         where: { cafeId },
       });
 
-      return settings;
+      return settings || null;
     } catch (error: unknown) {
       this.logger.error(
         `Failed to fetch admin settings: ${error instanceof Error ? error.message : 'Unknown error'}`,
@@ -34,19 +34,29 @@ export class AdminSettingsResolver {
     }
   }
 
-  @Mutation(() => AdminSettings)
+  @Mutation(() => AdminSettings, { name: 'updateAdminSettings' })
   @UseGuards(PermGuard)
-  async updateAdminSettings(@Args('cafeId') cafeId: string, @Args('input') input: AdminSettingsUpdateInput, @ReqUser() user?: User): Promise<any> {
+  async updateAdminSettings(
+    @Args('cafeId') cafeId: string,
+    @Args('input') input: AdminSettingsUpdateInput,
+    @ReqUser() user?: User,
+  ): Promise<AdminSettings> {
     try {
       let settings = await this.settingsRepository.findOne({
         where: { cafeId },
       });
 
       if (!settings) {
-        settings = this.settingsRepository.create({ cafeId });
+        settings = this.settingsRepository.create({ cafeId, ...input });
+        return await this.settingsRepository.save(settings);
       }
 
-      return await this.settingsRepository.update(settings.id, input);
+      await this.settingsRepository.update(settings.id, input);
+      const updated = await this.settingsRepository.findOne({
+        where: { id: settings.id },
+      });
+
+      return updated!;
     } catch (error: unknown) {
       this.logger.error(
         `Failed to update admin settings: ${error instanceof Error ? error.message : 'Unknown error'}`,

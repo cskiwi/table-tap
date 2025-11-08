@@ -1,4 +1,5 @@
 import { Resolver, Query, Args } from '@nestjs/graphql';
+import { GraphQLJSONObject } from 'graphql-type-json';
 import { UseGuards, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Between } from 'typeorm';
@@ -22,7 +23,7 @@ export class SalesAnalyticsResolver {
     private readonly productRepository: Repository<Product>,
   ) {}
 
-  @Query(() => [Object], { name: 'topProducts' })
+  @Query(() => [GraphQLJSONObject], { name: 'topProducts' })
   @UseGuards(PermGuard)
   async topProducts(
     @Args('cafeId') cafeId: string,
@@ -83,7 +84,7 @@ export class SalesAnalyticsResolver {
     }
   }
 
-  @Query(() => [Object], { name: 'categoryBreakdown' })
+  @Query(() => [GraphQLJSONObject], { name: 'categoryBreakdown' })
   @UseGuards(PermGuard)
   async categoryBreakdown(
     @Args('cafeId') cafeId: string,
@@ -126,7 +127,7 @@ export class SalesAnalyticsResolver {
     }
   }
 
-  @Query(() => [Object], { name: 'hourlyRevenue' })
+  @Query(() => [GraphQLJSONObject], { name: 'hourlyRevenue' })
   @UseGuards(PermGuard)
   async hourlyRevenue(
     @Args('cafeId') cafeId: string,
@@ -168,7 +169,7 @@ export class SalesAnalyticsResolver {
     }
   }
 
-  @Query(() => [Object], { name: 'dailyRevenue' })
+  @Query(() => [GraphQLJSONObject], { name: 'dailyRevenue' })
   @UseGuards(PermGuard)
   async dailyRevenue(
     @Args('cafeId') cafeId: string,

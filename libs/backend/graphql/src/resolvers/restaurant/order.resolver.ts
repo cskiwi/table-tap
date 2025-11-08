@@ -4,6 +4,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { PubSub } from 'graphql-subscriptions';
 import { PermGuard, ReqUser } from '@app/backend-authorization';
+import { GraphQLJSONObject } from 'graphql-type-json';
 import { User } from '@app/models';
 import {
   Order,
@@ -275,7 +276,7 @@ export class OrderResolver {
     return this.pubSub.asyncIterator('orderStatusUpdated');
   }
 
-  @Subscription(() => Object, {
+  @Subscription(() => GraphQLJSONObject, {
     filter: (payload, variables) => {
       if (variables.counterId) {
         return payload.counterNotification.counterId === variables.counterId;

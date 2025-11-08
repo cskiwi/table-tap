@@ -4,6 +4,7 @@ import { CacheInterceptor } from '@nestjs/cache-manager';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { PubSub } from 'graphql-subscriptions';
+import { GraphQLJSONObject } from 'graphql-type-json';
 import { PermGuard, ReqUser } from '@app/backend-authorization';
 import { User, Stock, Cafe } from '@app/models';
 import { InventoryCreateInput, InventoryUpdateInput, InventoryStockUpdateInput } from '../../inputs/inventory.input';
@@ -129,10 +130,10 @@ export class InventoryResolver {
   }
 
   // Mutations - Use service ONLY for business logic (validation, alerts)
-  @Mutation(() => Stock)
+  @Mutation(() => Stock, { name: 'createInventoryItem' })
   @UseGuards(PermGuard)
   async createInventoryItem(
-    @Args('input') input: Stock,
+    @Args('input') input: InventoryCreateInput,
     @ReqUser() user: User,
   ): Promise<Stock> {
     // Use service for validation and business logic
@@ -150,7 +151,7 @@ export class InventoryResolver {
     return item;
   }
 
-  @Mutation(() => Stock)
+  @Mutation(() => Stock, { name: 'updateInventoryItem' })
   @UseGuards(PermGuard)
   async updateInventoryItem(
     @Args('id') id: string,
@@ -172,7 +173,7 @@ export class InventoryResolver {
     return item;
   }
 
-  @Mutation(() => Stock)
+  @Mutation(() => Stock, { name: 'updateInventoryStock' })
   @UseGuards(PermGuard)
   async updateInventoryStock(
     @Args('id') id: string,
@@ -217,7 +218,7 @@ export class InventoryResolver {
     }
   }
 
-  @Mutation(() => Boolean)
+  @Mutation(() => Boolean, { name: 'deleteInventoryItem' })
   @UseGuards(PermGuard)
   async deleteInventoryItem(
     @Args('id') id: string,
@@ -244,7 +245,7 @@ export class InventoryResolver {
   // Field Resolvers removed - DataLoader not available
 
   // Subscriptions
-  @Subscription(() => Object, {
+  @Subscription(() => GraphQLJSONObject, {
     filter: (payload, variables) => {
       if (variables.cafeId) {
         return payload.inventoryUpdated.cafeId === variables.cafeId;
@@ -256,7 +257,7 @@ export class InventoryResolver {
     return this.pubSub.asyncIterator('inventoryUpdated');
   }
 
-  @Subscription(() => Object, {
+  @Subscription(() => GraphQLJSONObject, {
     filter: (payload, variables) => {
       if (variables.cafeId) {
         return payload.stockAlert.cafeId === variables.cafeId;

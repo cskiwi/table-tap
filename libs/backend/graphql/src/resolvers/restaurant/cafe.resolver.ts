@@ -2,6 +2,7 @@ import { PermGuard, ReqUser } from '@app/backend-authorization';
 import { Cafe, User, CafeCreateInput, CafeUpdateInput } from '@app/models';
 import { Injectable, UseGuards } from '@nestjs/common';
 import { Args, Mutation, Parent, Query, ResolveField, Resolver, Subscription } from '@nestjs/graphql';
+import { GraphQLJSONObject } from 'graphql-type-json';
 import { InjectRepository } from '@nestjs/typeorm';
 import { PubSub } from 'graphql-subscriptions';
 import { Repository } from 'typeorm';
@@ -106,7 +107,7 @@ export class CafeResolver {
     return this.pubSub.asyncIterator('cafeUpdated');
   }
 
-  @Subscription(() => Object)
+  @Subscription(() => GraphQLJSONObject)
   cafeDeleted() {
     return this.pubSub.asyncIterator('cafeDeleted');
   }

@@ -3,6 +3,7 @@ import { UseGuards, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In, MoreThan, LessThan, Between } from 'typeorm';
 import { PubSub } from 'graphql-subscriptions';
+import { GraphQLJSONObject } from 'graphql-type-json';
 import { PermGuard, ReqUser } from '@app/backend-authorization';
 import { User, Order, OrderItem, Employee, Counter } from '@app/models';
 import { DateRangeInput } from '../../inputs/date-range.input';
@@ -36,7 +37,7 @@ export class KitchenDashboardResolver {
     private readonly employeeRepository: Repository<Employee>,
   ) {}
 
-  @Query(() => Object, { name: 'kitchenDashboard' })
+  @Query(() => GraphQLJSONObject, { name: 'kitchenDashboard' })
   @UseGuards(PermGuard)
   async kitchenDashboard(
     @Args('cafeId') cafeId: string,
@@ -149,7 +150,7 @@ export class KitchenDashboardResolver {
     }
   }
 
-  @Query(() => Object, { name: 'kitchenMetrics' })
+  @Query(() => GraphQLJSONObject, { name: 'kitchenMetrics' })
   @UseGuards(PermGuard)
   async kitchenMetrics(
     @Args('cafeId') cafeId: string,

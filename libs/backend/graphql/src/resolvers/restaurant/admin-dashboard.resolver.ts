@@ -1,4 +1,5 @@
 import { Resolver, Query, Mutation, Args, Subscription } from '@nestjs/graphql';
+import { GraphQLJSONObject } from 'graphql-type-json';
 import { UseGuards, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Between, MoreThan } from 'typeorm';
@@ -23,7 +24,7 @@ export class AdminDashboardResolver {
     private readonly employeeRepository: Repository<Employee>,
   ) {}
 
-  @Query(() => Object, { name: 'adminDashboard' })
+  @Query(() => GraphQLJSONObject, { name: 'adminDashboard' })
   @UseGuards(PermGuard)
   async adminDashboard(
     @Args('cafeId') cafeId: string,
@@ -85,7 +86,7 @@ export class AdminDashboardResolver {
     }
   }
 
-  @Query(() => Object, { name: 'revenueMetrics' })
+  @Query(() => GraphQLJSONObject, { name: 'revenueMetrics' })
   @UseGuards(PermGuard)
   async revenueMetrics(
     @Args('cafeId') cafeId: string,
@@ -161,7 +162,7 @@ export class AdminDashboardResolver {
     }
   }
 
-  @Query(() => Object, { name: 'orderMetrics' })
+  @Query(() => GraphQLJSONObject, { name: 'orderMetrics' })
   @UseGuards(PermGuard)
   async orderMetrics(
     @Args('cafeId') cafeId: string,
@@ -211,7 +212,7 @@ export class AdminDashboardResolver {
     }
   }
 
-  @Query(() => [Object], { name: 'employeePerformance' })
+  @Query(() => [GraphQLJSONObject], { name: 'employeePerformance' })
   @UseGuards(PermGuard)
   async employeePerformance(
     @Args('cafeId') cafeId: string,
@@ -249,7 +250,7 @@ export class AdminDashboardResolver {
     }
   }
 
-  @Query(() => Object, { name: 'salesAnalytics' })
+  @Query(() => GraphQLJSONObject, { name: 'salesAnalytics' })
   @UseGuards(PermGuard)
   async salesAnalytics(
     @Args('cafeId') cafeId: string,
@@ -290,7 +291,7 @@ export class AdminDashboardResolver {
     return Number(result?.total || 0);
   }
 
-  @Subscription(() => Object, {
+  @Subscription(() => GraphQLJSONObject, {
     name: 'revenueUpdated',
     filter: (payload, variables) => {
       if (variables.cafeId) {

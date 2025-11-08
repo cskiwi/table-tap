@@ -1,4 +1,5 @@
 import { Resolver, Query, Mutation, Args, Subscription, ResolveField, Parent } from '@nestjs/graphql';
+import { GraphQLJSONObject } from 'graphql-type-json';
 import { UseGuards, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -108,7 +109,7 @@ export class LoyaltyTransactionResolver {
     return this.pubSub.asyncIterator('loyaltyTransactionAdjusted');
   }
 
-  @Subscription(() => Object)
+  @Subscription(() => GraphQLJSONObject)
   loyaltyPointsEarned(
     @Args('accountId', { nullable: true }) accountId?: string,
   ) {
@@ -118,7 +119,7 @@ export class LoyaltyTransactionResolver {
     return this.pubSub.asyncIterator('loyaltyPointsEarned');
   }
 
-  @Subscription(() => Object)
+  @Subscription(() => GraphQLJSONObject)
   loyaltyPointsRedeemed(
     @Args('accountId', { nullable: true }) accountId?: string,
   ) {

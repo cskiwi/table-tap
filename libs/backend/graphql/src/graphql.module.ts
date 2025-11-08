@@ -1,5 +1,5 @@
 import { ApolloDriver } from '@nestjs/apollo';
-import { Module } from '@nestjs/common';
+import { Logger, Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { GqlModuleOptions, GraphQLModule as NestJsGql } from '@nestjs/graphql';
 import { GraphQLError, GraphQLFormattedError } from 'graphql';
@@ -100,6 +100,9 @@ import { CacheModule } from '@nestjs/cache-manager';
       useFactory: async (config: ConfigService) => {
         const plugins = [];
         const env = config.get<string>('NODE_ENV');
+        const logger = new Logger(GraphQLModule.name);
+
+        logger.log(`GraphQL Module initialized in ${env} mode.`);
 
         if (env !== 'production') {
           plugins.push(ApolloServerPluginLandingPageLocalDefault({ footer: false }));
@@ -134,7 +137,7 @@ import { CacheModule } from '@nestjs/cache-manager';
         );
 
         return {
-          playground: env !== 'production',
+          playground: false,
           debug: env !== 'production',
           autoSchemaFile: true,
           sortSchema: true,

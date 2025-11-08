@@ -1,4 +1,5 @@
 import { Resolver, Query, Mutation, Args, Subscription, ResolveField, Parent } from '@nestjs/graphql';
+import { GraphQLJSONObject } from 'graphql-type-json';
 import { UseGuards, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -64,7 +65,7 @@ export class LoyaltyTierResolver {
     return tier.minPoints || 0;
   }
 
-  @ResolveField(() => Object)
+  @ResolveField(() => GraphQLJSONObject)
   async benefits(@Parent() tier: LoyaltyTier): Promise<any> {
     return tier.benefit || {};
   }
@@ -105,7 +106,7 @@ export class LoyaltyTierResolver {
     return this.pubSub.asyncIterator('loyaltyTierPromotion');
   }
 
-  @Subscription(() => Object)
+  @Subscription(() => GraphQLJSONObject)
   tierEligibilityRecalculated() {
     return this.pubSub.asyncIterator('tierEligibilityRecalculated');
   }

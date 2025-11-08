@@ -1,4 +1,5 @@
 import { Resolver, Query, Mutation, Args, Subscription, ResolveField, Parent } from '@nestjs/graphql';
+import { GraphQLJSONObject } from 'graphql-type-json';
 import { UseGuards, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -87,7 +88,7 @@ export class LoyaltyPromotionResolver {
     return this.pubSub.asyncIterator('loyaltyPromotionDeactivated');
   }
 
-  @Subscription(() => Object)
+  @Subscription(() => GraphQLJSONObject)
   promotionApplied(
     @Args('accountId', { nullable: true }) accountId?: string,
   ) {

@@ -1,4 +1,5 @@
 import { Resolver, Query, Subscription, Args } from '@nestjs/graphql';
+import { GraphQLJSONObject } from 'graphql-type-json';
 import { UseGuards, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, LessThanOrEqual, LessThan, MoreThan } from 'typeorm';
@@ -98,7 +99,7 @@ export class InventoryAlertsResolver {
     }
   }
 
-  @Query(() => Object, { name: 'inventoryAlertsSummary' })
+  @Query(() => GraphQLJSONObject, { name: 'inventoryAlertsSummary' })
   @UseGuards(PermGuard)
   async inventoryAlertsSummary(
     @Args('cafeId') cafeId: string,
@@ -148,7 +149,7 @@ export class InventoryAlertsResolver {
     }
   }
 
-  @Subscription(() => Object, {
+  @Subscription(() => GraphQLJSONObject, {
     name: 'inventoryAlertCreated',
     filter: (payload, variables) => {
       if (variables.cafeId) {

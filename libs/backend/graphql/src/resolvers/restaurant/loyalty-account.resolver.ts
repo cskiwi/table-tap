@@ -2,6 +2,7 @@ import { PermGuard, ReqUser } from '@app/backend-authorization';
 import { LoyaltyAccount, User } from '@app/models';
 import { Injectable, Logger, UseGuards } from '@nestjs/common';
 import { Args, Query, Resolver, Subscription } from '@nestjs/graphql';
+import { GraphQLJSONObject } from 'graphql-type-json';
 import { InjectRepository } from '@nestjs/typeorm';
 import { PubSub } from 'graphql-subscriptions';
 import { Repository } from 'typeorm';
@@ -109,7 +110,7 @@ export class LoyaltyAccountResolver {
     return this.pubSub.asyncIterator('loyaltyAccountUpdated');
   }
 
-  @Subscription(() => Object)
+  @Subscription(() => GraphQLJSONObject)
   loyaltyPointsAdded(@Args('accountId', { nullable: true }) accountId?: string) {
     if (accountId) {
       return this.pubSub.asyncIterator(`loyaltyPointsAdded_${accountId}`);

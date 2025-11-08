@@ -1,4 +1,5 @@
 import { Resolver, Query, Mutation, Args, Subscription, ResolveField, Parent } from '@nestjs/graphql';
+import { GraphQLJSONObject } from 'graphql-type-json';
 import { UseGuards, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -77,7 +78,7 @@ export class LoyaltyChallengeResolver {
     return this.pubSub.asyncIterator('loyaltyChallengeUpdated');
   }
 
-  @Subscription(() => Object)
+  @Subscription(() => GraphQLJSONObject)
   challengeJoined(
     @Args('challengeId', { nullable: true }) challengeId?: string,
   ) {
@@ -87,7 +88,7 @@ export class LoyaltyChallengeResolver {
     return this.pubSub.asyncIterator('challengeJoined');
   }
 
-  @Subscription(() => Object)
+  @Subscription(() => GraphQLJSONObject)
   challengeProgressUpdated(
     @Args('accountId', { nullable: true }) accountId?: string,
   ) {
@@ -97,7 +98,7 @@ export class LoyaltyChallengeResolver {
     return this.pubSub.asyncIterator('challengeProgressUpdated');
   }
 
-  @Subscription(() => Object)
+  @Subscription(() => GraphQLJSONObject)
   challengeCompleted(
     @Args('accountId', { nullable: true }) accountId?: string,
   ) {
