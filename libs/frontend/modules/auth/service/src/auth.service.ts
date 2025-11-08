@@ -167,6 +167,7 @@ export class AuthService {
               lastName
               fullName
               slug
+              role
             }
           }
         `

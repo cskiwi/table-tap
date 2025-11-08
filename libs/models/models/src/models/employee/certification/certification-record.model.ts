@@ -112,14 +112,3 @@ export class CertificationRecord extends BaseEntity {
   }
 }
 
-// GraphQL Input Types
-import { InputType, PartialType, OmitType } from '@nestjs/graphql';
-
-@InputType()
-export class CertificationRecordUpdateInput extends PartialType(
-  OmitType(CertificationRecord, ['createdAt', 'updatedAt', 'employee', 'isActive', 'isExpired', 'isExpiringSoon'] as const),
-  InputType,
-) {}
-
-@InputType()
-export class CertificationRecordCreateInput extends PartialType(OmitType(CertificationRecordUpdateInput, ['id'] as const), InputType) {}

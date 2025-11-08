@@ -222,27 +222,3 @@ export class Configuration extends BaseEntity {
   //   defaultSupplier: 'supplier-uuid'
   // }
 }
-
-// GraphQL Input Types
-import { InputType, PartialType, OmitType } from '@nestjs/graphql';
-
-@InputType()
-export class ConfigurationUpdateInput extends PartialType(
-  OmitType(Configuration, [
-    'createdAt',
-    'updatedAt',
-    'cafe',
-    'lastModifiedBy',
-    'isDefault',
-    'hasChanged',
-    'canEdit',
-    'displayValue',
-  ] as const),
-  InputType
-) {}
-
-@InputType()
-export class ConfigurationCreateInput extends PartialType(
-  OmitType(ConfigurationUpdateInput, ['id'] as const),
-  InputType
-) {}

@@ -273,32 +273,3 @@ export class Employee extends BaseEntity {
     return Math.round((new Date().getTime() - this.lastClockIn.getTime()) / 60000); // in minutes
   }
 }
-
-// GraphQL Input Types
-import { InputType, PartialType, OmitType } from '@nestjs/graphql';
-
-@InputType()
-export class EmployeeUpdateInput extends PartialType(
-  OmitType(Employee, [
-    'createdAt',
-    'updatedAt',
-    'deletedAt',
-    'cafe',
-    'user',
-    'timeSheets',
-    'employeeId',
-    'role',
-    'fullName',
-    'isActive',
-    'displayName',
-    'canWorkToday',
-    'currentShiftDuration',
-  ] as const),
-  InputType
-) {}
-
-@InputType()
-export class EmployeeCreateInput extends PartialType(
-  OmitType(EmployeeUpdateInput, ['id'] as const),
-  InputType
-) {}

@@ -175,29 +175,3 @@ export class Cafe extends BaseEntity {
   @OneToMany(() => LoyaltyPromotion, (promotion) => promotion.cafe, { cascade: true })
   declare loyaltyPromotions: Relation<LoyaltyPromotion[]>;
 }
-
-@InputType()
-export class CafeUpdateInput extends PartialType(
-  OmitType(Cafe, [
-    'createdAt',
-    'updatedAt',
-    'deletedAt',
-    'users',
-    'products',
-    'orders',
-    'counters',
-    'employees',
-    'configurations',
-    'loyaltyAccounts',
-    'loyaltyTiers',
-    'loyaltyTransactions',
-    'loyaltyRewards',
-    'loyaltyRedemptions',
-    'loyaltyChallenges',
-    'loyaltyPromotions',
-  ] as const),
-  InputType,
-) {}
-
-@InputType()
-export class CafeCreateInput extends PartialType(OmitType(CafeUpdateInput, ['id'] as const), InputType) {}

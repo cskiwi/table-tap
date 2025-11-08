@@ -3,7 +3,8 @@ import { UseGuards, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { PermGuard, ReqUser } from '@app/backend-authorization';
-import { User, Product, Cafe, ProductUpdateInput, ProductCreateInput } from '@app/models';
+import { User, Product, Cafe } from '@app/models';
+import { ProductCreateInput, ProductUpdateInput } from '../../inputs';
 
 @Injectable()
 @Resolver(() => Product)

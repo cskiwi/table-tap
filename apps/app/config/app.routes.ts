@@ -1,6 +1,6 @@
 import { Route } from '@angular/router';
 import { pageHomeRoutes } from '@app/frontend-pages-home';
-import { roleGuard } from '@app/frontend-modules-auth/guard';
+import { RoleGuard } from '@app/frontend-modules-auth/guard';
 
 export const appRoutes: Route[] = [
   {
@@ -20,21 +20,21 @@ export const appRoutes: Route[] = [
   {
     path: 'order',
     loadChildren: () => import('@app/frontend-modules-order').then((m) => m.orderRoutes),
-    canActivate: [roleGuard],
+    canActivate: [RoleGuard],
     data: { roles: ['customer'] },
     title: 'Orders - TableTap',
   },
   {
     path: 'kitchen',
     loadChildren: () => import('@app/frontend-modules-kitchen').then((m) => m.kitchenRoutes),
-    canActivate: [roleGuard],
+    canActivate: [RoleGuard],
     data: { roles: ['kitchen_staff', 'admin'] },
     title: 'Kitchen - TableTap',
   },
   {
     path: 'admin',
     loadChildren: () => import('@app/frontend-modules-admin').then((m) => m.adminRoutes),
-    canActivate: [roleGuard],
+    canActivate: [RoleGuard],
     data: { roles: ['admin'] },
     title: 'Admin - TableTap',
   },

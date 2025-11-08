@@ -174,28 +174,3 @@ export class User extends BaseEntity {
     ].includes(this.role);
   }
 }
-
-// GraphQL Input Types
-import { InputType, PartialType, OmitType } from '@nestjs/graphql';
-
-@InputType()
-export class UserUpdateInput extends PartialType(
-  OmitType(User, [
-    'createdAt',
-    'updatedAt',
-    'deletedAt',
-    'cafe',
-    'employeeProfiles',
-    'orders',
-    'ordersCreatedByEmployee',
-    'credits',
-    'loyaltyAccount',
-    'fullName',
-    'displayName',
-    'isEmployee',
-  ] as const),
-  InputType,
-) {}
-
-@InputType()
-export class UserCreateInput extends PartialType(OmitType(UserUpdateInput, ['id'] as const), InputType) {}

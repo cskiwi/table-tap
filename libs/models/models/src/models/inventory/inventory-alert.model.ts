@@ -178,7 +178,7 @@ export class InventoryAlert extends BaseEntity {
   declare acknowledgedByUser: Relation<User>;
 
   // Additional metadata
-  @OneToOne(() => InventoryAlertMetadata, metadata => metadata.alert, { cascade: true })
+  @OneToOne(() => InventoryAlertMetadata, (metadata) => metadata.alert, { cascade: true })
   declare metadata: Relation<InventoryAlertMetadata>;
 
   // Computed fields
@@ -197,7 +197,7 @@ export class InventoryAlert extends BaseEntity {
     return !this.acknowledged && this.severity === AlertSeverity.CRITICAL;
   }
 
-  @Field({ nullable: true })
+  @Field(() => Number, { nullable: true })
   get daysUntilExpiry(): number | null {
     if (!this.expiryDate) return null;
     const now = new Date();

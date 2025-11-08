@@ -159,26 +159,3 @@ export class StockMovement extends BaseEntity {
   }
 }
 
-// GraphQL Input Types
-import { InputType, PartialType, OmitType } from '@nestjs/graphql';
-
-@InputType()
-export class StockMovementUpdateInput extends PartialType(
-  OmitType(StockMovement, [
-    'createdAt',
-    'updatedAt',
-    'cafe',
-    'product',
-    'performedBy',
-    'isIncrease',
-    'isDecrease',
-    'absoluteQuantity',
-  ] as const),
-  InputType
-) {}
-
-@InputType()
-export class StockMovementCreateInput extends PartialType(
-  OmitType(StockMovementUpdateInput, ['id'] as const),
-  InputType
-) {}

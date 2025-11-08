@@ -144,24 +144,3 @@ export class ScheduledShift extends BaseEntity {
   }
 }
 
-// GraphQL Input Types
-import { InputType, PartialType, OmitType } from '@nestjs/graphql';
-
-@InputType()
-export class ScheduledShiftUpdateInput extends PartialType(
-  OmitType(ScheduledShift, [
-    'createdAt',
-    'modifiedAt',
-    'employee',
-    'counter',
-    'creator',
-    'durationHours',
-    'isPast',
-    'isCurrent',
-    'isFuture',
-  ] as const),
-  InputType,
-) {}
-
-@InputType()
-export class ScheduledShiftCreateInput extends PartialType(OmitType(ScheduledShiftUpdateInput, ['id'] as const), InputType) {}

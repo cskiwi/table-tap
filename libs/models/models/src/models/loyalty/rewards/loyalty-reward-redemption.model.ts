@@ -12,7 +12,7 @@ import {
   ManyToOne,
   OneToOne,
   JoinColumn,
-  Relation
+  Relation,
 } from 'typeorm';
 import { LoyaltyRedemptionStatus } from '@app/models/enums';
 import { LoyaltyReward } from './loyalty-reward.model';
@@ -43,7 +43,7 @@ export class LoyaltyRewardRedemption extends BaseEntity {
   @Index()
   declare cafeId: string;
 
-  @ManyToOne(() => Cafe, cafe => cafe.loyaltyRedemptions, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Cafe, (cafe) => cafe.loyaltyRedemptions, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'cafeId' })
   declare cafe: Relation<Cafe>;
 
@@ -63,7 +63,7 @@ export class LoyaltyRewardRedemption extends BaseEntity {
   @Index()
   declare rewardId: string;
 
-  @ManyToOne(() => LoyaltyReward, reward => reward.redemptions, { onDelete: 'CASCADE' })
+  @ManyToOne(() => LoyaltyReward, (reward) => reward.redemptions, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'rewardId' })
   declare reward: Relation<LoyaltyReward>;
 
@@ -153,7 +153,7 @@ export class LoyaltyRewardRedemption extends BaseEntity {
   @IsOptional()
   declare cancellationReason: string;
 
-  @OneToOne(() => LoyaltyRewardRedemptionMetadata, metadata => metadata.redemption, { cascade: true })
+  @OneToOne(() => LoyaltyRewardRedemptionMetadata, (metadata) => metadata.redemption, { cascade: true })
   declare metadata: Relation<LoyaltyRewardRedemptionMetadata>;
 
   // Computed fields
@@ -179,21 +179,18 @@ export class LoyaltyRewardRedemption extends BaseEntity {
 
   @Field()
   get isExpired(): boolean {
-    return this.status === LoyaltyRedemptionStatus.EXPIRED ||
-           (this.expiresAt && this.expiresAt < new Date());
+    return this.status === LoyaltyRedemptionStatus.EXPIRED || (this.expiresAt && this.expiresAt < new Date());
   }
 
   @Field()
   get canBeCancelled(): boolean {
-    return this.status === LoyaltyRedemptionStatus.PENDING ||
-           this.status === LoyaltyRedemptionStatus.APPROVED;
+    return this.status === LoyaltyRedemptionStatus.PENDING || this.status === LoyaltyRedemptionStatus.APPROVED;
   }
 
   @Field(() => Number, { nullable: true })
   get daysUntilExpiry(): number | null {
     if (!this.expiresAt) return null;
-    const now = new Date()
-    const diff = this.expiresAt.getTime() - now.getTime()
+    const diff = this.expiresAt.getTime() - new Date().getTime();
     return Math.ceil(diff / (1000 * 60 * 60 * 24));
   }
 
@@ -221,36 +218,3 @@ export class LoyaltyRewardRedemption extends BaseEntity {
     return Math.round((this.approvedAt.getTime() - this.createdAt.getTime()) / (1000 * 60)); // minutes
   }
 }
-
-// GraphQL Input Types
-import { InputType, PartialType, OmitType } from '@nestjs/graphql';
-
-@InputType()
-export class LoyaltyRewardRedemptionUpdateInput extends PartialType(
-  OmitType(LoyaltyRewardRedemption, [
-    'createdAt',
-    'updatedAt',
-    'cafe',
-    'loyaltyAccount',
-    'reward',
-    'order',
-    'approvedByUser',
-    'redeemedByUser',
-    'isPending',
-    'isApproved',
-    'isRedeemed',
-    'isCancelled',
-    'isExpired',
-    'canBeCancelled',
-    'daysUntilExpiry',
-    'statusDisplay',
-    'processingTime',
-  ] as const),
-  InputType
-) {}
-
-@InputType()
-export class LoyaltyRewardRedemptionCreateInput extends PartialType(
-  OmitType(LoyaltyRewardRedemptionUpdateInput, ['id'] as const),
-  InputType
-) {}

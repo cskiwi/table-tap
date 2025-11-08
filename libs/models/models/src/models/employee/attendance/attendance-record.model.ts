@@ -5,6 +5,7 @@ import { IsString, IsOptional, IsEnum, IsNumber, IsDate, IsObject } from 'class-
 import { BaseEntity, Column, CreateDateColumn, Entity, Index, PrimaryGeneratedColumn, UpdateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
 import { Employee } from '../employee.model';
 import { ScheduledShift } from '../scheduling';
+import { GraphQLJSONObject } from 'graphql-type-json';
 
 @ObjectType('AttendanceRecord')
 @Entity('attendance_records')
@@ -126,15 +127,3 @@ export class AttendanceRecord extends BaseEntity {
   }
 }
 
-// GraphQL Input Types
-import { InputType, PartialType, OmitType } from '@nestjs/graphql';
-import { GraphQLJSONObject } from 'graphql-type-json';
-
-@InputType()
-export class AttendanceRecordUpdateInput extends PartialType(
-  OmitType(AttendanceRecord, ['createdAt', 'updatedAt', 'employee', 'shift', 'isClockedIn', 'isComplete', 'actualHours'] as const),
-  InputType,
-) {}
-
-@InputType()
-export class AttendanceRecordCreateInput extends PartialType(OmitType(AttendanceRecordUpdateInput, ['id'] as const), InputType) {}

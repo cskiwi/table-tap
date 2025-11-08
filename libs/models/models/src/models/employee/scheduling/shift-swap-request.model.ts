@@ -124,25 +124,3 @@ export class ShiftSwapRequest extends BaseEntity {
   }
 }
 
-// GraphQL Input Types
-import { InputType, PartialType, OmitType } from '@nestjs/graphql';
-
-@InputType()
-export class ShiftSwapRequestUpdateInput extends PartialType(
-  OmitType(ShiftSwapRequest, [
-    'createdAt',
-    'updatedAt',
-    'requestingEmployee',
-    'targetEmployee',
-    'requestingShift',
-    'targetShift',
-    'approver',
-    'isPending',
-    'isApproved',
-    'isRejected',
-  ] as const),
-  InputType,
-) {}
-
-@InputType()
-export class ShiftSwapRequestCreateInput extends PartialType(OmitType(ShiftSwapRequestUpdateInput, ['id'] as const), InputType) {}

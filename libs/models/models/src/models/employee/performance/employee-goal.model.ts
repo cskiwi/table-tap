@@ -1,19 +1,10 @@
 import { SortableField } from '@app/utils';
 import { Field, ID, ObjectType } from '@nestjs/graphql';
 import { IsString, IsOptional, IsNumber, IsDate, IsArray, IsObject } from 'class-validator';
-import {
-  BaseEntity,
-  Column,
-  CreateDateColumn,
-  Entity,
-  Index,
-  PrimaryGeneratedColumn,
-  UpdateDateColumn,
-  ManyToOne,
-  JoinColumn,
-} from 'typeorm';
+import { BaseEntity, Column, CreateDateColumn, Entity, Index, PrimaryGeneratedColumn, UpdateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
 import { Employee } from '../employee.model';
 import { User } from '../../core';
+import { GraphQLJSONObject } from 'graphql-type-json';
 
 @ObjectType('EmployeeGoal')
 @Entity('employee_goals')
@@ -115,7 +106,7 @@ export class EmployeeGoal extends BaseEntity {
   @Field(() => Number)
   get completedMilestones(): number {
     if (!this.milestones) return 0;
-    return this.milestones.filter(m => m.completed).length;
+    return this.milestones.filter((m) => m.completed).length;
   }
 
   @Field(() => Number)
@@ -123,25 +114,3 @@ export class EmployeeGoal extends BaseEntity {
     return this.milestones?.length || 0;
   }
 }
-
-// GraphQL Input Types
-import { InputType, PartialType, OmitType } from '@nestjs/graphql';
-import { GraphQLJSONObject } from 'graphql-type-json';
-
-@InputType()
-export class EmployeeGoalUpdateInput extends PartialType(
-  OmitType(EmployeeGoal, [
-    'createdAt',
-    'updatedAt',
-    'employee',
-    'assigner',
-    'isComplete',
-    'isOverdue',
-    'completedMilestones',
-    'totalMilestones',
-  ] as const),
-  InputType,
-) {}
-
-@InputType()
-export class EmployeeGoalCreateInput extends PartialType(OmitType(EmployeeGoalUpdateInput, ['id'] as const), InputType) {}

@@ -304,29 +304,3 @@ export class LoyaltyChallenge extends BaseEntity {
     }
   }
 }
-
-// GraphQL Input Types
-import { InputType, OmitType, PartialType } from '@nestjs/graphql';
-
-@InputType()
-export class LoyaltyChallengeUpdateInput extends PartialType(
-  OmitType(LoyaltyChallenge, [
-    'createdAt',
-    'updatedAt',
-    'deletedAt',
-    'cafe',
-    'isCurrentlyActive',
-    'isExpired',
-    'completionRate',
-    'averagePointsPerCompletion',
-    'daysUntilStart',
-    'daysUntilEnd',
-    'difficultyColor',
-    'difficultyStars',
-    'displayType',
-  ] as const),
-  InputType,
-) {}
-
-@InputType()
-export class LoyaltyChallengeCreateInput extends PartialType(OmitType(LoyaltyChallengeUpdateInput, ['id'] as const), InputType) {}

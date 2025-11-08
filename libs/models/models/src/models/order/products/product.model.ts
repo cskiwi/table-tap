@@ -142,7 +142,7 @@ export class Product extends BaseEntity {
   declare minStockLevel: number;
 
   // Product properties
-  @OneToOne(() => ProductAttribute, attributes => attributes.product, { cascade: true })
+  @OneToOne(() => ProductAttribute, (attributes) => attributes.product, { cascade: true })
   declare attributes: Relation<ProductAttribute>;
 
   @Field(() => [String], { nullable: true })
@@ -194,30 +194,3 @@ export class Product extends BaseEntity {
     return this.stockQuantity != null && this.stockQuantity <= this.minStockLevel;
   }
 }
-
-// GraphQL Input Types
-import { InputType, PartialType, OmitType } from '@nestjs/graphql';
-
-@InputType()
-export class ProductUpdateInput extends PartialType(
-  OmitType(Product, [
-    'createdAt',
-    'updatedAt',
-    'deletedAt',
-    'cafe',
-    'attributes',
-    'orderItems',
-    'stockItems',
-    'finalPrice',
-    'isOnSale',
-    'isInStock',
-    'needsRestock',
-  ] as const),
-  InputType
-) {}
-
-@InputType()
-export class ProductCreateInput extends PartialType(
-  OmitType(ProductUpdateInput, ['id'] as const),
-  InputType
-) {}

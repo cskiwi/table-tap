@@ -1,5 +1,5 @@
 import { PermGuard, ReqUser } from '@app/backend-authorization';
-import { Cafe, User, CafeCreateInput, CafeUpdateInput } from '@app/models';
+import { Cafe, User } from '@app/models';
 import { Injectable, UseGuards } from '@nestjs/common';
 import { Args, Mutation, Parent, Query, ResolveField, Resolver, Subscription } from '@nestjs/graphql';
 import { GraphQLJSONObject } from 'graphql-type-json';
@@ -8,6 +8,7 @@ import { PubSub } from 'graphql-subscriptions';
 import { Repository } from 'typeorm';
 // not working
 import { CafeArgs } from '../../args';
+import { CafeCreateInput, CafeUpdateInput } from '../../inputs';
 
 @Injectable()
 @Resolver(() => Cafe)

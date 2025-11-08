@@ -183,28 +183,3 @@ export class Counter extends BaseEntity {
     return Math.round(((this.currentLoad ?? 0) / this.maxConcurrentOrders) * 100);
   }
 }
-
-// GraphQL Input Types
-import { InputType, PartialType, OmitType } from '@nestjs/graphql';
-
-@InputType()
-export class CounterUpdateInput extends PartialType(
-  OmitType(Counter, [
-    'createdAt',
-    'updatedAt',
-    'deletedAt',
-    'cafe',
-    'isAvailable',
-    'isOverloaded',
-    'canAcceptOrders',
-    'displayLabel',
-    'loadPercentage',
-  ] as const),
-  InputType
-) {}
-
-@InputType()
-export class CounterCreateInput extends PartialType(
-  OmitType(CounterUpdateInput, ['id'] as const),
-  InputType
-) {}
