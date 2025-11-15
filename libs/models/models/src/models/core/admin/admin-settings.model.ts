@@ -1,4 +1,4 @@
-import { SortableField } from '@app/utils';
+import { SortableField, WhereField } from '@app/utils';
 import { Field, ID, ObjectType } from '@nestjs/graphql';
 import { IsString, IsOptional, IsBoolean, IsNumber } from 'class-validator';
 import {
@@ -37,7 +37,7 @@ export class AdminSettings extends BaseEntity {
   declare updatedAt: Date;
 
   // Multi-tenant support (one settings record per cafe)
-  @Field()
+  @WhereField()
   @Column('uuid')
   declare cafeId: string;
 
@@ -46,149 +46,149 @@ export class AdminSettings extends BaseEntity {
   declare cafe: Relation<Cafe>;
 
   // General Settings
-  @Field({ nullable: true })
+  @WhereField({ nullable: true })
   @Column({ nullable: true })
   @IsString()
   @IsOptional()
   declare businessName: string;
 
-  @Field()
+  @WhereField()
   @Column({ default: 'UTC' })
   @IsString()
   declare timezone: string;
 
-  @Field()
+  @WhereField()
   @Column({ default: 'USD' })
   @IsString()
   declare currency: string;
 
-  @Field()
+  @WhereField()
   @Column('decimal', { precision: 5, scale: 2, default: 0 })
   @IsNumber()
   declare taxRate: number;
 
-  @Field()
+  @WhereField()
   @Column('decimal', { precision: 5, scale: 2, default: 0 })
   @IsNumber()
   declare serviceCharge: number;
 
-  @Field()
+  @WhereField()
   @Column({ default: 'en-US' })
   @IsString()
   declare locale: string;
 
   // Operations Settings
-  @Field()
+  @WhereField()
   @Column({ default: false })
   @IsBoolean()
   declare autoAssignOrders: boolean;
 
-  @Field()
+  @WhereField()
   @Column('int', { default: 30 })
   @IsNumber()
   declare orderTimeout: number;
 
-  @Field()
+  @WhereField()
   @Column('int', { default: 10 })
   @IsNumber()
   declare maxOrdersPerCustomer: number;
 
-  @Field()
+  @WhereField()
   @Column({ default: false })
   @IsBoolean()
   declare enableQualityControl: boolean;
 
-  @Field()
+  @WhereField()
   @Column({ default: true })
   @IsBoolean()
   declare enableInventoryTracking: boolean;
 
-  @Field()
+  @WhereField()
   @Column({ default: true })
   @IsBoolean()
   declare requirePaymentConfirmation: boolean;
 
-  @Field()
+  @WhereField()
   @Column({ default: true })
   @IsBoolean()
   declare allowCancellations: boolean;
 
-  @Field()
+  @WhereField()
   @Column({ default: false })
   @IsBoolean()
   declare enableLoyaltyProgram: boolean;
 
   // Notification Settings
-  @Field()
+  @WhereField()
   @Column({ default: true })
   @IsBoolean()
   declare emailEnabled: boolean;
 
-  @Field()
+  @WhereField()
   @Column({ default: false })
   @IsBoolean()
   declare smsEnabled: boolean;
 
-  @Field()
+  @WhereField()
   @Column({ default: true })
   @IsBoolean()
   declare pushEnabled: boolean;
 
-  @Field()
+  @WhereField()
   @Column({ default: false })
   @IsBoolean()
   declare criticalAlertsOnly: boolean;
 
-  @Field({ nullable: true })
+  @WhereField({ nullable: true })
   @Column({ nullable: true })
   @IsString()
   @IsOptional()
   declare notificationEmail: string;
 
-  @Field({ nullable: true })
+  @WhereField({ nullable: true })
   @Column({ nullable: true })
   @IsString()
   @IsOptional()
   declare notificationPhone: string;
 
-  @Field()
+  @WhereField()
   @Column('int', { default: 10 })
   @IsNumber()
   declare lowStockThreshold: number;
 
-  @Field()
+  @WhereField()
   @Column('int', { default: 30 })
   @IsNumber()
   declare orderDelayThreshold: number;
 
   // Integration Settings
-  @Field(() => [String], { nullable: true })
+  @WhereField(() => [String], { nullable: true })
   @Column('simple-array', { nullable: true })
   declare paymentProviders: string[];
 
-  @Field({ nullable: true })
+  @WhereField({ nullable: true })
   @Column({ nullable: true })
   @IsString()
   @IsOptional()
   declare inventorySystem: string;
 
-  @Field({ nullable: true })
+  @WhereField({ nullable: true })
   @Column({ nullable: true })
   @IsString()
   @IsOptional()
   declare accountingSystem: string;
 
-  @Field(() => [String], { nullable: true })
+  @WhereField(() => [String], { nullable: true })
   @Column('simple-array', { nullable: true })
   declare deliveryProviders: string[];
 
-  @Field({ nullable: true })
+  @WhereField({ nullable: true })
   @Column({ nullable: true })
   @IsString()
   @IsOptional()
   declare posSystem: string;
 
-  @Field({ nullable: true })
+  @WhereField({ nullable: true })
   @Column({ nullable: true })
   @IsString()
   @IsOptional()
@@ -205,7 +205,7 @@ export class AdminSettings extends BaseEntity {
   declare displaySettings: Relation<AdminDisplaySettings>;
 
   // Audit tracking
-  @Field({ nullable: true })
+  @WhereField({ nullable: true })
   @Column('uuid', { nullable: true })
   declare lastUpdatedByUserId: string;
 

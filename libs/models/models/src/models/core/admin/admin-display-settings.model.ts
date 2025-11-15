@@ -1,4 +1,4 @@
-import { SortableField } from '@app/utils';
+import { SortableField, WhereField } from '@app/utils';
 import { Field, ID, ObjectType } from '@nestjs/graphql';
 import { IsBoolean, IsOptional, IsString } from 'class-validator';
 import {
@@ -32,7 +32,7 @@ export class AdminDisplaySettings extends BaseEntity {
   declare updatedAt: Date;
 
   // Relations
-  @Field()
+  @WhereField()
   @Column('uuid')
   declare adminSettingsId: string;
 
@@ -41,43 +41,43 @@ export class AdminDisplaySettings extends BaseEntity {
   declare adminSettings: Relation<AdminSettings>;
 
   // Display settings
-  @Field({ nullable: true })
+  @WhereField({ nullable: true })
   @Column({ nullable: true, default: 'light' })
   @IsString()
   @IsOptional()
   declare theme: string; // 'light' | 'dark' | 'auto'
 
-  @Field({ nullable: true })
+  @WhereField({ nullable: true })
   @Column({ nullable: true, default: '#3B82F6' })
   @IsString()
   @IsOptional()
   declare primaryColor: string; // Hex color code
 
-  @Field({ nullable: true })
+  @WhereField({ nullable: true })
   @Column({ nullable: true, default: '#10B981' })
   @IsString()
   @IsOptional()
   declare secondaryColor: string; // Hex color code
 
-  @Field({ nullable: true })
+  @WhereField({ nullable: true })
   @Column({ nullable: true })
   @IsString()
   @IsOptional()
   declare logoUrl: string;
 
-  @Field({ nullable: true })
+  @WhereField({ nullable: true })
   @Column({ nullable: true, default: true })
   @IsBoolean()
   @IsOptional()
   declare showBranding: boolean;
 
-  @Field({ nullable: true })
+  @WhereField({ nullable: true })
   @Column({ nullable: true, default: 'Roboto' })
   @IsString()
   @IsOptional()
   declare fontFamily: string;
 
-  @Field({ nullable: true })
+  @WhereField({ nullable: true })
   @Column({ nullable: true, default: 'comfortable' })
   @IsString()
   @IsOptional()

@@ -1,4 +1,4 @@
-import { SortableField } from '@app/utils';
+import { SortableField, WhereField } from '@app/utils';
 import { EmployeeStatus, UserRole } from '@app/models/enums';
 import { Field, ID, ObjectType } from '@nestjs/graphql';
 import { IsString, IsOptional, IsEnum, IsNumber, IsBoolean, IsDateString } from 'class-validator';
@@ -43,7 +43,7 @@ export class Employee extends BaseEntity {
   declare deletedAt: Date;
 
   // Multi-tenant support
-  @Field()
+  @WhereField()
   @Column('uuid')
   @Index()
   declare cafeId: string;
@@ -53,7 +53,7 @@ export class Employee extends BaseEntity {
   declare cafe: Relation<Cafe>;
 
   // User relationship (optional - some employees may not have app access)
-  @Field({ nullable: true })
+  @WhereField({ nullable: true })
   @Column('uuid', { nullable: true })
   @Index()
   declare userId: string;
@@ -63,46 +63,49 @@ export class Employee extends BaseEntity {
   declare user: Relation<User>;
 
   // Employee identification
-  @Field()
+  @SortableField()
+  @WhereField()
   @Column({ unique: true })
   @IsString()
   @Index({ unique: true })
   declare employeeId: string; // e.g., "EMP001"
 
-  @Field({ nullable: true })
+  @WhereField({ nullable: true })
   @Column({ nullable: true })
   @IsString()
   @IsOptional()
   declare badgeNumber: string;
 
   // Personal Information
-  @Field()
+  @WhereField()
   @Column()
   @IsString()
   @Index({ fulltext: true })
   declare firstName: string;
 
-  @Field()
+  @WhereField()
   @Column()
   @IsString()
   @Index({ fulltext: true })
   declare lastName: string;
 
-  @Field({ nullable: true })
+  @SortableField({ nullable: true })
+  @WhereField({ nullable: true })
   @Column({ nullable: true, unique: true })
   @IsString()
   @IsOptional()
   @Index({ unique: true, where: '"email" IS NOT NULL' })
   declare email: string;
 
-  @Field({ nullable: true })
+  @WhereField({ nullable: true })
   @Column({ nullable: true })
   @IsString()
   @IsOptional()
   declare phone: string;
 
   // Employment details
-  @Field(() => UserRole)
+  @SortableField()
+  @WhereField(() => UserRole)
   @Column('enum', { enum: UserRole, default: UserRole.EMPLOYEE })
   @IsEnum(UserRole)
   declare position: UserRole;
@@ -115,120 +118,123 @@ export class Employee extends BaseEntity {
     this.position = value;
   }
 
-  @Field(() => EmployeeStatus)
+  @SortableField()
+  @WhereField(() => EmployeeStatus)
   @Column('enum', { enum: EmployeeStatus, default: EmployeeStatus.ACTIVE })
   @IsEnum(EmployeeStatus)
   declare status: EmployeeStatus;
+  declare status: EmployeeStatus;
 
-  @Field()
+  @SortableField()
+  @WhereField()
   @Column('date')
   @IsDateString()
   declare hireDate: Date;
 
-  @Field({ nullable: true })
+  @WhereField({ nullable: true })
   @Column('date', { nullable: true })
   @IsDateString()
   @IsOptional()
   declare terminationDate: Date;
 
   // Compensation
-  @Field({ nullable: true })
+  @WhereField({ nullable: true })
   @Column('decimal', { precision: 10, scale: 2, nullable: true })
   @IsNumber()
   @IsOptional()
   declare hourlyRate: number;
 
-  @Field({ nullable: true })
+  @WhereField({ nullable: true })
   @Column('decimal', { precision: 10, scale: 2, nullable: true })
   @IsNumber()
   @IsOptional()
   declare salary: number;
 
-  @Field({ nullable: true })
+  @WhereField({ nullable: true })
   @Column({ nullable: true })
   @IsString()
   @IsOptional()
   declare payType: string; // 'hourly', 'salary', 'commission'
 
   // Work settings
-  @Field(() => [String], { nullable: true })
+  @WhereField(() => [String], { nullable: true })
   @Column('simple-array', { nullable: true })
   declare countersAccess: string[]; // Counter IDs this employee can work on
 
   @OneToMany(() => EmployeeWorkingHours, hours => hours.employee, { cascade: true })
   declare workingHours: Relation<EmployeeWorkingHours[]>;
 
-  @Field({ nullable: true })
+  @WhereField({ nullable: true })
   @Column({ nullable: true })
   @IsNumber()
   @IsOptional()
   declare maxHoursPerWeek: number;
 
   // Permissions and access
-  @Field()
+  @WhereField()
   @Column({ default: false })
   @IsBoolean()
   declare canProcessPayments: boolean;
 
-  @Field()
+  @WhereField()
   @Column({ default: false })
   @IsBoolean()
   declare canRefundOrders: boolean;
 
-  @Field()
+  @WhereField()
   @Column({ default: false })
   @IsBoolean()
   declare canCancelOrders: boolean;
 
-  @Field()
+  @WhereField()
   @Column({ default: false })
   @IsBoolean()
   declare canViewReports: boolean;
 
-  @Field()
+  @WhereField()
   @Column({ default: false })
   @IsBoolean()
   declare canManageInventory: boolean;
 
-  @Field({ nullable: true })
+  @WhereField({ nullable: true })
   @Column('decimal', { precision: 10, scale: 2, nullable: true })
   @IsNumber()
   @IsOptional()
   declare discountLimit: number; // Maximum discount percentage they can apply
 
   // Current status tracking
-  @Field()
+  @WhereField()
   @Column({ default: false })
   @IsBoolean()
   declare isClockedIn: boolean;
 
-  @Field({ nullable: true })
+  @WhereField({ nullable: true })
   @Column('timestamp', { nullable: true })
   declare lastClockIn: Date;
 
-  @Field({ nullable: true })
+  @WhereField({ nullable: true })
   @Column('timestamp', { nullable: true })
   declare lastClockOut: Date;
 
-  @Field({ nullable: true })
+  @WhereField({ nullable: true })
   @Column('uuid', { nullable: true })
   declare currentCounterId: string; // Counter they're currently assigned to
 
   // Emergency contact
-  @Field({ nullable: true })
+  @WhereField({ nullable: true })
   @Column({ nullable: true })
   @IsString()
   @IsOptional()
   declare emergencyContactName: string;
 
-  @Field({ nullable: true })
+  @WhereField({ nullable: true })
   @Column({ nullable: true })
   @IsString()
   @IsOptional()
   declare emergencyContactPhone: string;
 
   // Additional information
-  @Field({ nullable: true })
+  @WhereField({ nullable: true })
   @Column('text', { nullable: true })
   @IsString()
   @IsOptional()

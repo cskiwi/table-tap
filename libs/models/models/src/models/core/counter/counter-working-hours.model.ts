@@ -1,4 +1,4 @@
-import { SortableField } from '@app/utils';
+import { SortableField, WhereField } from '@app/utils';
 import { Field, ID, ObjectType } from '@nestjs/graphql';
 import { IsBoolean, IsString, IsEnum } from 'class-validator';
 import {
@@ -33,7 +33,7 @@ export class CounterWorkingHours extends BaseEntity {
   declare updatedAt: Date;
 
   // Relations
-  @Field()
+  @WhereField()
   @Column('uuid')
   @Index()
   declare counterId: string;
@@ -43,22 +43,23 @@ export class CounterWorkingHours extends BaseEntity {
   declare counter: Relation<Counter>;
 
   // Day and hours
-  @Field(() => DayOfWeek)
+  @SortableField(() => DayOfWeek)
+  @WhereField(() => DayOfWeek)
   @Column('enum', { enum: DayOfWeek })
   @IsEnum(DayOfWeek)
   declare dayOfWeek: DayOfWeek;
 
-  @Field()
+  @WhereField()
   @Column({ default: false })
   @IsBoolean()
   declare isOpen: boolean;
 
-  @Field({ nullable: true })
+  @WhereField({ nullable: true })
   @Column({ nullable: true })
   @IsString()
   declare startTime: string; // Format: "HH:MM" e.g., "09:00"
 
-  @Field({ nullable: true })
+  @WhereField({ nullable: true })
   @Column({ nullable: true })
   @IsString()
   declare endTime: string; // Format: "HH:MM" e.g., "17:00"

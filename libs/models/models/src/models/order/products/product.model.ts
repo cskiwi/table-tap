@@ -1,4 +1,4 @@
-import { SortableField } from '@app/utils';
+import { SortableField, WhereField } from '@app/utils';
 import { ProductCategory, ProductStatus } from '@app/models/enums';
 import { Field, ID, ObjectType } from '@nestjs/graphql';
 import { IsString, IsOptional, IsBoolean, IsEnum, IsNumber, IsArray } from 'class-validator';
@@ -44,7 +44,7 @@ export class Product extends BaseEntity {
   declare deletedAt: Date;
 
   // Multi-tenant support
-  @Field()
+  @WhereField()
   @Column('uuid')
   @Index()
   declare cafeId: string;
@@ -54,88 +54,95 @@ export class Product extends BaseEntity {
   declare cafe: Relation<Cafe>;
 
   // Product Information
-  @Field()
+  @SortableField()
+  @WhereField()
   @Column()
   @IsString()
   @Index({ fulltext: true })
   declare name: string;
 
-  @Field({ nullable: true })
+  @WhereField({ nullable: true })
   @Column({ nullable: true })
   @IsString()
   @IsOptional()
   declare description: string;
 
-  @Field({ nullable: true })
+  @SortableField({ nullable: true })
+  @WhereField({ nullable: true })
   @Column({ unique: true, nullable: true })
   @IsString()
   @IsOptional()
   @Index({ unique: true, where: '"sku" IS NOT NULL' })
   declare sku: string;
 
-  @Field(() => ProductCategory)
+  @SortableField(() => ProductCategory)
+  @WhereField(() => ProductCategory)
   @Column('enum', { enum: ProductCategory })
   @IsEnum(ProductCategory)
   declare category: ProductCategory;
 
-  @Field(() => ProductStatus)
+  @SortableField(() => ProductStatus)
+  @WhereField(() => ProductStatus)
   @Column('enum', { enum: ProductStatus, default: ProductStatus.ACTIVE })
   @IsEnum(ProductStatus)
   declare status: ProductStatus;
 
   // Pricing
-  @Field()
+  @SortableField()
+  @WhereField()
   @Column('decimal', { precision: 10, scale: 2 })
   @IsNumber()
   declare basePrice: number;
 
-  @Field({ nullable: true })
+  @SortableField({ nullable: true })
+  @WhereField({ nullable: true })
   @Column('decimal', { precision: 10, scale: 2, nullable: true })
   @IsNumber()
   @IsOptional()
   declare discountPrice: number;
 
-  @Field({ nullable: true })
+  @WhereField({ nullable: true })
   @Column('decimal', { precision: 5, scale: 2, nullable: true })
   @IsNumber()
   @IsOptional()
   declare taxRate: number;
 
   // Display
-  @Field({ nullable: true })
+  @WhereField({ nullable: true })
   @Column({ nullable: true })
   @IsString()
   @IsOptional()
   declare image: string;
 
-  @Field()
+  @WhereField()
   @Column({ default: true })
   @IsBoolean()
   declare isAvailable: boolean;
 
-  @Field()
+  @WhereField()
   @Column({ default: false })
   @IsBoolean()
   declare isFeatured: boolean;
 
-  @Field()
+  @SortableField()
+  @WhereField()
   @Column({ default: 0 })
   @IsNumber()
   declare sortOrder: number;
 
   // Inventory tracking
-  @Field()
+  @WhereField()
   @Column({ default: false })
   @IsBoolean()
   declare trackInventory: boolean;
 
-  @Field({ nullable: true })
+  @WhereField({ nullable: true })
   @Column({ nullable: true })
   @IsNumber()
   @IsOptional()
   declare stockQuantity: number;
 
-  @Field({ nullable: true })
+  @WhereField({ nullable: true })
   @Column({ nullable: true })
   @IsNumber()
   @IsOptional()
@@ -145,20 +152,20 @@ export class Product extends BaseEntity {
   @OneToOne(() => ProductAttribute, (attributes) => attributes.product, { cascade: true })
   declare attributes: Relation<ProductAttribute>;
 
-  @Field(() => [String], { nullable: true })
+  @WhereField(() => [String], { nullable: true })
   @Column('simple-array', { nullable: true })
   @IsArray()
   @IsOptional()
   declare tags: string[];
 
   // Counter routing
-  @Field(() => [String], { nullable: true })
+  @WhereField(() => [String], { nullable: true })
   @Column('simple-array', { nullable: true })
   @IsArray()
   @IsOptional()
   declare countersRequired: string[]; // Counter IDs that need to process this product
 
-  @Field({ nullable: true })
+  @WhereField({ nullable: true })
   @Column({ nullable: true })
   @IsNumber()
   @IsOptional()

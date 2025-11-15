@@ -1,4 +1,4 @@
-import { SortableField } from '@app/utils';
+import { SortableField, WhereField } from '@app/utils';
 import { Field, ID, ObjectType } from '@nestjs/graphql';
 import { IsString, IsOptional, IsNumber } from 'class-validator';
 import {
@@ -32,7 +32,7 @@ export class ConfigurationUIOption extends BaseEntity {
   declare updatedAt: Date;
 
   // Relations
-  @Field()
+  @WhereField()
   @Column('uuid')
   @Index()
   declare uiOptionsId: string;
@@ -42,23 +42,25 @@ export class ConfigurationUIOption extends BaseEntity {
   declare uiOptions: Relation<ConfigurationUIOptions>;
 
   // Option details
-  @Field()
+  @SortableField()
+  @WhereField()
   @Column()
   @IsString()
   declare label: string;
 
-  @Field()
+  @WhereField()
   @Column('text')
   @IsString()
   declare value: string; // Stored as text, can be parsed based on configuration dataType
 
-  @Field({ nullable: true })
+  @WhereField({ nullable: true })
   @Column('text', { nullable: true })
   @IsString()
   @IsOptional()
   declare description: string;
 
-  @Field()
+  @SortableField()
+  @WhereField()
   @Column('int', { default: 0 })
   @IsNumber()
   declare sortOrder: number;

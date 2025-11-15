@@ -1,4 +1,4 @@
-import { SortableField } from '@app/utils';
+import { SortableField, WhereField } from '@app/utils';
 import { Field, ID, ObjectType } from '@nestjs/graphql';
 import { IsBoolean, IsNumber, IsString, IsOptional } from 'class-validator';
 import {
@@ -34,7 +34,7 @@ export class ConfigurationUIOptions extends BaseEntity {
   declare updatedAt: Date;
 
   // Relations
-  @Field()
+  @WhereField()
   @Column('uuid')
   declare configurationId: string;
 
@@ -43,37 +43,37 @@ export class ConfigurationUIOptions extends BaseEntity {
   declare configuration: Relation<Configuration>;
 
   // UI hints
-  @Field({ nullable: true })
+  @WhereField({ nullable: true })
   @Column({ nullable: true })
   @IsString()
   @IsOptional()
   declare placeholder: string;
 
-  @Field({ nullable: true })
+  @WhereField({ nullable: true })
   @Column('text', { nullable: true })
   @IsString()
   @IsOptional()
   declare helpText: string;
 
-  @Field({ nullable: true })
+  @WhereField({ nullable: true })
   @Column('int', { nullable: true })
   @IsNumber()
   @IsOptional()
   declare rows: number; // for textarea
 
-  @Field({ nullable: true })
+  @WhereField({ nullable: true })
   @Column('decimal', { precision: 10, scale: 2, nullable: true })
   @IsNumber()
   @IsOptional()
   declare step: number; // for number input
 
-  @Field({ nullable: true })
+  @WhereField({ nullable: true })
   @Column({ nullable: true, default: false })
   @IsBoolean()
   @IsOptional()
   declare multiselect: boolean; // for select
 
-  @Field({ nullable: true })
+  @WhereField({ nullable: true })
   @Column({ nullable: true, default: false })
   @IsBoolean()
   @IsOptional()

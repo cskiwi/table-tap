@@ -1,4 +1,4 @@
-import { SortableField } from '@app/utils';
+import { SortableField, WhereField } from '@app/utils';
 import { Field, ID, ObjectType } from '@nestjs/graphql';
 import { IsString, IsOptional, IsBoolean, IsObject } from 'class-validator';
 import GraphQLJSONObject from 'graphql-type-json';
@@ -37,7 +37,7 @@ export class Configuration extends BaseEntity {
   declare updatedAt: Date;
 
   // Multi-tenant support
-  @Field()
+  @WhereField()
   @Column('uuid')
   @Index()
   declare cafeId: string;
@@ -47,24 +47,26 @@ export class Configuration extends BaseEntity {
   declare cafe: Relation<Cafe>;
 
   // Configuration identification
-  @Field()
+  @SortableField()
+  @WhereField()
   @Column()
   @IsString()
   declare key: string; // e.g., 'order_workflow', 'payment_methods', 'tax_rate'
 
-  @Field({ nullable: true })
+  @SortableField({ nullable: true })
+  @WhereField({ nullable: true })
   @Column({ nullable: true })
   @IsString()
   @IsOptional()
   declare category: string; // e.g., 'order', 'payment', 'inventory', 'ui', 'notifications'
 
-  @Field({ nullable: true })
+  @WhereField({ nullable: true })
   @Column({ nullable: true })
   @IsString()
   @IsOptional()
   declare displayName: string; // Human-readable name
 
-  @Field({ nullable: true })
+  @WhereField({ nullable: true })
   @Column({ nullable: true })
   @IsString()
   @IsOptional()

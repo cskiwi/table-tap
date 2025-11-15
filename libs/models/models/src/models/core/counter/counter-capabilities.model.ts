@@ -1,4 +1,4 @@
-import { SortableField } from '@app/utils';
+import { SortableField, WhereField } from '@app/utils';
 import { Field, ID, ObjectType } from '@nestjs/graphql';
 import { IsString, IsBoolean, IsOptional, IsArray } from 'class-validator';
 import {
@@ -31,7 +31,7 @@ export class CounterCapabilities extends BaseEntity {
   declare updatedAt: Date;
 
   // Relations
-  @Field()
+  @WhereField()
   @Column('uuid')
   declare counterId: string;
 
@@ -39,44 +39,44 @@ export class CounterCapabilities extends BaseEntity {
   declare counter: Relation<Counter>;
 
   // Capability flags
-  @Field({ nullable: true })
+  @WhereField({ nullable: true })
   @Column({ nullable: true, default: false })
   @IsBoolean()
   @IsOptional()
   declare canAcceptOrders: boolean;
 
-  @Field({ nullable: true })
+  @WhereField({ nullable: true })
   @Column({ nullable: true, default: false })
   @IsBoolean()
   @IsOptional()
   declare canProcessPayments: boolean;
 
-  @Field({ nullable: true })
+  @WhereField({ nullable: true })
   @Column({ nullable: true, default: false })
   @IsBoolean()
   @IsOptional()
   declare canPrintReceipts: boolean;
 
-  @Field({ nullable: true })
+  @WhereField({ nullable: true })
   @Column({ nullable: true, default: false })
   @IsBoolean()
   @IsOptional()
   declare canManageInventory: boolean;
 
   // Supported features
-  @Field(() => [String], { nullable: true })
+  @WhereField(() => [String], { nullable: true })
   @Column('simple-array', { nullable: true })
   @IsArray()
   @IsOptional()
   declare supportedPaymentMethods: string[];
 
-  @Field(() => [String], { nullable: true })
+  @WhereField(() => [String], { nullable: true })
   @Column('simple-array', { nullable: true })
   @IsArray()
   @IsOptional()
   declare supportedOrderTypes: string[];
 
-  @Field({ nullable: true })
+  @WhereField({ nullable: true })
   @Column('text', { nullable: true })
   @IsString()
   @IsOptional()

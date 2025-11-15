@@ -1,4 +1,4 @@
-import { SortableField } from '@app/utils';
+import { SortableField, WhereField } from '@app/utils';
 import { Field, ID, ObjectType } from '@nestjs/graphql';
 import { IsString, IsOptional, IsEmail, IsPhoneNumber } from 'class-validator';
 import {
@@ -31,7 +31,7 @@ export class EmployeeEmergencyContact extends BaseEntity {
   declare updatedAt: Date;
 
   // Relations
-  @Field()
+  @WhereField()
   @Column('uuid')
   declare employeeId: string;
 
@@ -39,34 +39,35 @@ export class EmployeeEmergencyContact extends BaseEntity {
   declare employee: Relation<Employee>;
 
   // Contact information
-  @Field()
+  @SortableField()
+  @WhereField()
   @Column()
   @IsString()
   declare name: string;
 
-  @Field()
+  @WhereField()
   @Column()
   @IsString()
   declare relationship: string;
 
-  @Field()
+  @WhereField()
   @Column()
   @IsPhoneNumber()
   declare phone: string;
 
-  @Field({ nullable: true })
+  @WhereField({ nullable: true })
   @Column({ nullable: true })
   @IsPhoneNumber()
   @IsOptional()
   declare alternatePhone: string;
 
-  @Field({ nullable: true })
+  @WhereField({ nullable: true })
   @Column({ nullable: true })
   @IsEmail()
   @IsOptional()
   declare email: string;
 
-  @Field({ nullable: true })
+  @WhereField({ nullable: true })
   @Column('text', { nullable: true })
   @IsString()
   @IsOptional()

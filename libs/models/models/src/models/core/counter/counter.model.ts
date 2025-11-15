@@ -1,4 +1,4 @@
-import { SortableField } from '@app/utils';
+import { SortableField, WhereField } from '@app/utils';
 import { CounterType, CounterStatus } from '@app/models/enums';
 import { Field, ID, ObjectType } from '@nestjs/graphql';
 import { IsString, IsOptional, IsEnum, IsNumber, IsBoolean } from 'class-validator';
@@ -43,7 +43,7 @@ export class Counter extends BaseEntity {
   declare deletedAt: Date;
 
   // Multi-tenant support
-  @Field()
+  @WhereField()
   @Column('uuid')
   @Index()
   declare cafeId: string;

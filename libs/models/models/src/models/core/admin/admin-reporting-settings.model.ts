@@ -1,4 +1,4 @@
-import { SortableField } from '@app/utils';
+import { SortableField, WhereField } from '@app/utils';
 import { Field, ID, ObjectType } from '@nestjs/graphql';
 import { IsBoolean, IsArray, IsOptional, IsString, IsNumber } from 'class-validator';
 import {
@@ -32,7 +32,7 @@ export class AdminReportingSettings extends BaseEntity {
   declare updatedAt: Date;
 
   // Relations
-  @Field()
+  @WhereField()
   @Column('uuid')
   declare adminSettingsId: string;
 
@@ -41,49 +41,49 @@ export class AdminReportingSettings extends BaseEntity {
   declare adminSettings: Relation<AdminSettings>;
 
   // Reporting settings
-  @Field({ nullable: true })
+  @WhereField({ nullable: true })
   @Column({ nullable: true, default: '09:00' })
   @IsString()
   @IsOptional()
   declare dailyReportTime: string; // Format: "HH:MM"
 
-  @Field({ nullable: true })
+  @WhereField({ nullable: true })
   @Column({ nullable: true, default: 'monday' })
   @IsString()
   @IsOptional()
   declare weeklyReportDay: string; // 'monday' | 'sunday' etc.
 
-  @Field({ nullable: true })
+  @WhereField({ nullable: true })
   @Column('int', { nullable: true, default: 1 })
   @IsNumber()
   @IsOptional()
   declare monthlyReportDay: number; // 1-28
 
-  @Field({ nullable: true })
+  @WhereField({ nullable: true })
   @Column({ nullable: true, default: false })
   @IsBoolean()
   @IsOptional()
   declare autoGenerateReports: boolean;
 
-  @Field(() => [String], { nullable: true })
+  @WhereField(() => [String], { nullable: true })
   @Column('simple-array', { nullable: true })
   @IsArray()
   @IsOptional()
   declare reportRecipients: string[]; // Email addresses
 
-  @Field({ nullable: true })
+  @WhereField({ nullable: true })
   @Column({ nullable: true, default: true })
   @IsBoolean()
   @IsOptional()
   declare includeSalesReport: boolean;
 
-  @Field({ nullable: true })
+  @WhereField({ nullable: true })
   @Column({ nullable: true, default: true })
   @IsBoolean()
   @IsOptional()
   declare includeInventoryReport: boolean;
 
-  @Field({ nullable: true })
+  @WhereField({ nullable: true })
   @Column({ nullable: true, default: false })
   @IsBoolean()
   @IsOptional()

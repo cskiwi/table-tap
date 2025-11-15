@@ -1,5 +1,5 @@
 import { OrderPriority, OrderStatus } from '@app/models/enums';
-import { SortableField } from '@app/utils';
+import { SortableField, WhereField } from '@app/utils';
 import { Field, ID, InputType, ObjectType, OmitType, PartialType } from '@nestjs/graphql';
 import { IsBoolean, IsEnum, IsNumber, IsOptional, IsString } from 'class-validator';
 import {
@@ -43,7 +43,7 @@ export class Order extends BaseEntity {
   declare deletedAt: Date;
 
   // Multi-tenant support
-  @Field()
+  @WhereField()
   @Column('uuid')
   @Index()
   declare cafeId: string;
@@ -53,19 +53,20 @@ export class Order extends BaseEntity {
   declare cafe: Relation<Cafe>;
 
   // Order identification
-  @Field()
+  @SortableField()
+  @WhereField()
   @Column({ unique: true })
   @IsString()
   @Index({ unique: true })
   declare orderNumber: string;
 
-  @Field(() => OrderStatus)
+  @WhereField(() => OrderStatus)
   @Column('enum', { enum: OrderStatus, default: OrderStatus.PENDING })
   @IsEnum(OrderStatus)
   declare status: OrderStatus;
 
   // Customer information
-  @Field({ nullable: true })
+  @WhereField({ nullable: true })
   @Column('uuid', { nullable: true })
   @Index()
   declare customerId: string;
@@ -74,26 +75,26 @@ export class Order extends BaseEntity {
   @JoinColumn({ name: 'customerId' })
   declare customer: Relation<User>;
 
-  @Field({ nullable: true })
+  @WhereField({ nullable: true })
   @Column({ nullable: true })
   @IsString()
   @IsOptional()
   declare customerName: string;
 
-  @Field({ nullable: true })
+  @WhereField({ nullable: true })
   @Column({ nullable: true })
   @IsString()
   @IsOptional()
   declare customerPhone: string;
 
-  @Field({ nullable: true })
+  @WhereField({ nullable: true })
   @Column({ nullable: true })
   @IsString()
   @IsOptional()
   declare customerEmail: string;
 
   // Employee who created the order (for proxy orders)
-  @Field({ nullable: true })
+  @WhereField({ nullable: true })
   @Column('uuid', { nullable: true })
   declare createdByEmployeeId: string;
 
@@ -102,7 +103,7 @@ export class Order extends BaseEntity {
   declare createdByEmployee: Relation<User>;
 
   // Employee assigned to prepare this order
-  @Field({ nullable: true })
+  @WhereField({ nullable: true })
   @Column('uuid', { nullable: true })
   declare assignedStaffId: string;
 
@@ -111,27 +112,28 @@ export class Order extends BaseEntity {
   declare assignedStaff: Relation<User>;
 
   // Order details
-  @Field()
+  @WhereField()
   @Column('decimal', { precision: 10, scale: 2 })
   @IsNumber()
   declare subtotal: number;
 
-  @Field()
+  @WhereField()
   @Column('decimal', { precision: 10, scale: 2, default: 0 })
   @IsNumber()
   declare taxAmount: number;
 
-  @Field()
+  @WhereField()
   @Column('decimal', { precision: 10, scale: 2, default: 0 })
   @IsNumber()
   declare serviceCharge: number;
 
-  @Field()
+  @WhereField()
   @Column('decimal', { precision: 10, scale: 2, default: 0 })
   @IsNumber()
   declare discountAmount: number;
 
-  @Field()
+  @SortableField()
+  @WhereField()
   @Column('decimal', { precision: 10, scale: 2 })
   @IsNumber()
   declare totalAmount: number;
@@ -147,68 +149,76 @@ export class Order extends BaseEntity {
   }
 
   // Order type and preferences
-  @Field({ nullable: true })
+  @WhereField({ nullable: true })
   @Column({ nullable: true })
   @IsString()
   @IsOptional()
   declare orderType: string; // 'dine_in', 'takeaway', 'delivery'
 
-  @Field({ nullable: true })
+  @WhereField({ nullable: true })
   @Column({ nullable: true })
   @IsString()
   @IsOptional()
   declare tableNumber: string;
 
-  @Field({ nullable: true })
+  @WhereField({ nullable: true })
   @Column('text', { nullable: true })
   @IsString()
   @IsOptional()
   declare notes: string;
 
-  @Field({ nullable: true })
+  @WhereField({ nullable: true })
   @Column('text', { nullable: true })
   @IsString()
   @IsOptional()
   declare specialInstructions: string;
 
   // Order priority
-  @Field(() => OrderPriority, { nullable: true })
+  @SortableField({ nullable: true })
+  @WhereField(() => OrderPriority, { nullable: true })
   @Column('enum', { enum: OrderPriority, default: OrderPriority.NORMAL, nullable: true })
   @IsEnum(OrderPriority)
   @IsOptional()
   declare priority: OrderPriority;
 
   // Counter assignment
-  @Field({ nullable: true })
+  @SortableField({ nullable: true })
+  @WhereField({ nullable: true })
   @Column('uuid', { nullable: true })
   @IsString()
   @IsOptional()
   declare counterId: string;
 
   // Timing
-  @Field({ nullable: true })
+  @SortableField({ nullable: true })
+  @WhereField({ nullable: true })
   @Column({ nullable: true })
   @IsNumber()
   @IsOptional()
   declare estimatedPrepTime: number; // in minutes
 
-  @Field({ nullable: true })
+  @SortableField({ nullable: true })
+  @WhereField({ nullable: true })
   @Column('timestamp', { nullable: true })
   declare confirmedAt: Date;
 
-  @Field({ nullable: true })
+  @SortableField({ nullable: true })
+  @WhereField({ nullable: true })
   @Column('timestamp', { nullable: true })
   declare preparingAt: Date;
 
-  @Field({ nullable: true })
+  @SortableField({ nullable: true })
+  @WhereField({ nullable: true })
   @Column('timestamp', { nullable: true })
   declare readyAt: Date;
 
-  @Field({ nullable: true })
+  @SortableField({ nullable: true })
+  @WhereField({ nullable: true })
   @Column('timestamp', { nullable: true })
   declare deliveredAt: Date;
 
-  @Field({ nullable: true })
+  @SortableField({ nullable: true })
+  @WhereField({ nullable: true })
   @Column('timestamp', { nullable: true })
   declare cancelledAt: Date;
 
@@ -217,13 +227,13 @@ export class Order extends BaseEntity {
   declare workflowSteps: Relation<OrderWorkflowStep[]>;
 
   // Source tracking
-  @Field({ nullable: true })
+  @WhereField({ nullable: true })
   @Column({ nullable: true })
   @IsString()
   @IsOptional()
   declare source: string; // 'app', 'pos', 'web', 'kiosk'
 
-  @Field()
+  @WhereField()
   @Column({ default: false })
   @IsBoolean()
   declare isPaid: boolean;

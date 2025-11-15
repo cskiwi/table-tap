@@ -1,4 +1,4 @@
-import { SortableField } from '@app/utils';
+import { SortableField, WhereField } from '@app/utils';
 import { Field, ID, ObjectType } from '@nestjs/graphql';
 import { IsString, IsOptional, IsArray } from 'class-validator';
 import {
@@ -32,7 +32,7 @@ export class ProductAttribute extends BaseEntity {
   declare updatedAt: Date;
 
   // Relations
-  @Field()
+  @WhereField()
   @Column('uuid')
   declare productId: string;
 
@@ -41,44 +41,44 @@ export class ProductAttribute extends BaseEntity {
   declare product: Relation<Product>;
 
   // Customization options
-  @Field(() => [String], { nullable: true })
+  @WhereField(() => [String], { nullable: true })
   @Column('simple-array', { nullable: true })
   @IsArray()
   @IsOptional()
   declare size: string[];
 
-  @Field(() => [String], { nullable: true })
+  @WhereField(() => [String], { nullable: true })
   @Column('simple-array', { nullable: true })
   @IsArray()
   @IsOptional()
   declare temperature: string[];
 
-  @Field(() => [String], { nullable: true })
+  @WhereField(() => [String], { nullable: true })
   @Column('simple-array', { nullable: true })
   @IsArray()
   @IsOptional()
   declare milkType: string[];
 
-  @Field(() => [String], { nullable: true })
+  @WhereField(() => [String], { nullable: true })
   @Column('simple-array', { nullable: true })
   @IsArray()
   @IsOptional()
   declare sweetness: string[];
 
-  @Field(() => [String], { nullable: true })
+  @WhereField(() => [String], { nullable: true })
   @Column('simple-array', { nullable: true })
   @IsArray()
   @IsOptional()
   declare extras: string[];
 
-  @Field(() => [String], { nullable: true })
+  @WhereField(() => [String], { nullable: true })
   @Column('simple-array', { nullable: true })
   @IsArray()
   @IsOptional()
   declare allergens: string[];
 
   // Nutrition info - kept as text/JSON for flexibility
-  @Field({ nullable: true })
+  @WhereField({ nullable: true })
   @Column('text', { nullable: true })
   @IsString()
   @IsOptional()

@@ -1,4 +1,4 @@
-import { SortableField } from '@app/utils';
+import { SortableField, WhereField } from '@app/utils';
 import { Field, ID, ObjectType } from '@nestjs/graphql';
 import { IsString, IsNumber, IsBoolean, IsOptional } from 'class-validator';
 import {
@@ -32,7 +32,7 @@ export class AdminNotificationData extends BaseEntity {
   declare updatedAt: Date;
 
   // Relations
-  @Field()
+  @WhereField()
   @Column('uuid')
   declare notificationId: string;
 
@@ -41,48 +41,49 @@ export class AdminNotificationData extends BaseEntity {
   declare notification: Relation<AdminNotification>;
 
   // Common notification data fields
-  @Field({ nullable: true })
+  @WhereField({ nullable: true })
   @Column('uuid', { nullable: true })
   @IsString()
   @IsOptional()
   declare orderId: string;
 
-  @Field({ nullable: true })
+  @WhereField({ nullable: true })
   @Column('uuid', { nullable: true })
   @IsString()
   @IsOptional()
   declare employeeId: string;
 
-  @Field({ nullable: true })
+  @WhereField({ nullable: true })
   @Column('uuid', { nullable: true })
   @IsString()
   @IsOptional()
   declare stockId: string;
 
-  @Field({ nullable: true })
+  @WhereField({ nullable: true })
   @Column('decimal', { precision: 10, scale: 2, nullable: true })
   @IsNumber()
   @IsOptional()
   declare amount: number;
 
-  @Field({ nullable: true })
+  @WhereField({ nullable: true })
   @Column({ nullable: true })
   @IsString()
   @IsOptional()
   declare priority: string;
 
-  @Field({ nullable: true })
+  @WhereField({ nullable: true })
   @Column({ nullable: true, default: false })
   @IsBoolean()
   @IsOptional()
   declare requiresAction: boolean;
 
-  @Field({ nullable: true })
+  @SortableField({ nullable: true })
+  @WhereField({ nullable: true })
   @Column('timestamp', { nullable: true })
   declare expiresAt: Date;
 
   // Flexible additional data as text
-  @Field({ nullable: true })
+  @WhereField({ nullable: true })
   @Column('text', { nullable: true })
   @IsString()
   @IsOptional()

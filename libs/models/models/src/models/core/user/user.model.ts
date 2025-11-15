@@ -1,4 +1,4 @@
-import { SortableField } from '@app/utils';
+import { SortableField, WhereField } from '@app/utils';
 import { UserRole, UserStatus } from '@app/models/enums';
 import { Field, ID, ObjectType } from '@nestjs/graphql';
 import { IsString, IsOptional, IsBoolean, IsEnum, IsEmail, IsPhoneNumber, IsNumber } from 'class-validator';
@@ -59,14 +59,15 @@ export class User extends BaseEntity {
   @Column({ unique: true, nullable: true })
   declare sub?: string;
 
-  @Field({ nullable: true })
+  @SortableField({ nullable: true })
+  @WhereField({ nullable: true })
   @Column({ nullable: true, unique: true })
   @IsEmail()
   @IsOptional()
   @Index({ unique: true, where: '"email" IS NOT NULL' })
   declare email: string;
 
-  @Field({ nullable: true })
+  @WhereField({ nullable: true })
   @Column({ nullable: true })
   @IsPhoneNumber()
   @IsOptional()
@@ -94,35 +95,38 @@ export class User extends BaseEntity {
   @IsString()
   declare slug: string;
 
-  @Field({ nullable: true })
+  @WhereField({ nullable: true })
   @Column({ nullable: true })
   @IsString()
   @IsOptional()
   declare avatar: string;
 
   // Role and Status
-  @Field(() => UserRole)
+  @SortableField()
+  @WhereField(() => UserRole)
   @Column('enum', { enum: UserRole, default: UserRole.CUSTOMER })
   @IsEnum(UserRole)
   declare role: UserRole;
+  declare role: UserRole;
 
-  @Field(() => UserStatus)
+  @SortableField()
+  @WhereField(() => UserStatus)
   @Column('enum', { enum: UserStatus, default: UserStatus.ACTIVE })
   @IsEnum(UserStatus)
   declare status: UserStatus;
 
   // Customer-specific fields
-  @Field({ nullable: true })
+  @WhereField({ nullable: true })
   @Column('decimal', { precision: 10, scale: 2, default: 0 })
   @IsNumber()
   declare creditBalance: number;
 
-  @Field()
+  @WhereField()
   @Column({ default: false })
   @IsBoolean()
   declare isVip: boolean;
 
-  @Field({ nullable: true })
+  @WhereField({ nullable: true })
   @Column({ nullable: true })
   @IsString()
   @IsOptional()

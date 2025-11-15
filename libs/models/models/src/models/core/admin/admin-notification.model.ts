@@ -1,4 +1,4 @@
-import { SortableField } from '@app/utils';
+import { SortableField, WhereField } from '@app/utils';
 import { Field, ID, ObjectType } from '@nestjs/graphql';
 import { IsString, IsOptional, IsEnum, IsBoolean } from 'class-validator';
 import {
@@ -44,7 +44,7 @@ export class AdminNotification extends BaseEntity {
   declare deletedAt: Date;
 
   // Multi-tenant support
-  @Field()
+  @WhereField()
   @Column('uuid')
   @Index()
   declare cafeId: string;
@@ -54,7 +54,7 @@ export class AdminNotification extends BaseEntity {
   declare cafe: Relation<Cafe>;
 
   // User relationship (optional - can be broadcast to all admins)
-  @Field({ nullable: true })
+  @WhereField({ nullable: true })
   @Column('uuid', { nullable: true })
   @Index()
   declare userId: string;
@@ -64,63 +64,66 @@ export class AdminNotification extends BaseEntity {
   declare user: Relation<User>;
 
   // Notification details
-  @Field(() => NotificationType)
+  @SortableField(() => NotificationType)
+  @WhereField(() => NotificationType)
   @Column('enum', { enum: NotificationType })
   @IsEnum(NotificationType)
   declare type: NotificationType;
 
-  @Field(() => NotificationSeverity)
+  @SortableField(() => NotificationSeverity)
+  @WhereField(() => NotificationSeverity)
   @Column('enum', { enum: NotificationSeverity, default: NotificationSeverity.INFO })
   @IsEnum(NotificationSeverity)
   declare severity: NotificationSeverity;
 
-  @Field()
+  @WhereField()
   @Column()
   @IsString()
   declare title: string;
 
-  @Field()
+  @WhereField()
   @Column('text')
   @IsString()
   declare message: string;
 
   // Read status
-  @Field()
+  @WhereField()
   @Column({ default: false })
   @IsBoolean()
   declare read: boolean;
 
-  @Field({ nullable: true })
+  @SortableField({ nullable: true })
+  @WhereField({ nullable: true })
   @Column('timestamp', { nullable: true })
   declare readAt: Date;
 
   // Action details
-  @Field({ nullable: true })
+  @WhereField({ nullable: true })
   @Column({ nullable: true })
   @IsString()
   @IsOptional()
   declare actionUrl: string;
 
-  @Field({ nullable: true })
+  @WhereField({ nullable: true })
   @Column({ nullable: true })
   @IsString()
   @IsOptional()
   declare actionLabel: string;
 
-  @Field({ nullable: true })
+  @WhereField({ nullable: true })
   @Column({ nullable: true })
   @IsString()
   @IsOptional()
   declare actionType: string; // 'VIEW', 'APPROVE', 'DISMISS', 'NAVIGATE'
 
   // Source tracking
-  @Field({ nullable: true })
+  @WhereField({ nullable: true })
   @Column({ nullable: true })
   @IsString()
   @IsOptional()
   declare sourceId: string;
 
-  @Field({ nullable: true })
+  @WhereField({ nullable: true })
   @Column({ nullable: true })
   @IsString()
   @IsOptional()
@@ -131,35 +134,39 @@ export class AdminNotification extends BaseEntity {
   declare data: Relation<AdminNotificationData>;
 
   // Delivery status
-  @Field()
+  @WhereField()
   @Column({ default: false })
   @IsBoolean()
   declare emailSent: boolean;
 
-  @Field({ nullable: true })
+  @SortableField({ nullable: true })
+  @WhereField({ nullable: true })
   @Column('timestamp', { nullable: true })
   declare emailSentAt: Date;
 
-  @Field()
+  @WhereField()
   @Column({ default: false })
   @IsBoolean()
   declare smsSent: boolean;
 
-  @Field({ nullable: true })
+  @SortableField({ nullable: true })
+  @WhereField({ nullable: true })
   @Column('timestamp', { nullable: true })
   declare smsSentAt: Date;
 
-  @Field()
+  @WhereField()
   @Column({ default: false })
   @IsBoolean()
   declare pushSent: boolean;
 
-  @Field({ nullable: true })
+  @SortableField({ nullable: true })
+  @WhereField({ nullable: true })
   @Column('timestamp', { nullable: true })
   declare pushSentAt: Date;
 
   // Expiration
-  @Field({ nullable: true })
+  @SortableField({ nullable: true })
+  @WhereField({ nullable: true })
   @Column('timestamp', { nullable: true })
   declare expiresAt: Date;
 

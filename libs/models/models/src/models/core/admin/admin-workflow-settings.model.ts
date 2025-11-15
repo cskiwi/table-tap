@@ -1,4 +1,4 @@
-import { SortableField } from '@app/utils';
+import { SortableField, WhereField } from '@app/utils';
 import { Field, ID, ObjectType } from '@nestjs/graphql';
 import { IsBoolean, IsArray, IsOptional, IsString } from 'class-validator';
 import {
@@ -32,7 +32,7 @@ export class AdminWorkflowSettings extends BaseEntity {
   declare updatedAt: Date;
 
   // Relations
-  @Field()
+  @WhereField()
   @Column('uuid')
   declare adminSettingsId: string;
 
@@ -41,25 +41,25 @@ export class AdminWorkflowSettings extends BaseEntity {
   declare adminSettings: Relation<AdminSettings>;
 
   // Workflow settings
-  @Field(() => [String], { nullable: true })
+  @WhereField(() => [String], { nullable: true })
   @Column('simple-array', { nullable: true })
   @IsArray()
   @IsOptional()
   declare defaultSteps: string[];
 
-  @Field({ nullable: true })
+  @WhereField({ nullable: true })
   @Column({ nullable: true, default: false })
   @IsBoolean()
   @IsOptional()
   declare autoProgressEnabled: boolean;
 
-  @Field({ nullable: true })
+  @WhereField({ nullable: true })
   @Column({ nullable: true, default: true })
   @IsBoolean()
   @IsOptional()
   declare requireStaffAssignment: boolean;
 
-  @Field({ nullable: true })
+  @WhereField({ nullable: true })
   @Column({ nullable: true })
   @IsString()
   @IsOptional()

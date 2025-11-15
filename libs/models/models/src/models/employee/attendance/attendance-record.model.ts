@@ -1,4 +1,4 @@
-import { SortableField } from '@app/utils';
+import { SortableField, WhereField } from '@app/utils';
 import { AttendanceStatus } from '@app/models/enums';
 import { Field, ID, ObjectType } from '@nestjs/graphql';
 import { IsString, IsOptional, IsEnum, IsNumber, IsDate, IsObject } from 'class-validator';
@@ -25,7 +25,7 @@ export class AttendanceRecord extends BaseEntity {
   declare updatedAt: Date;
 
   // Employee relationship
-  @Field()
+  @WhereField()
   @Column('uuid')
   declare employeeId: string;
 
@@ -34,7 +34,7 @@ export class AttendanceRecord extends BaseEntity {
   declare employee: Employee;
 
   // Shift relationship (optional)
-  @Field({ nullable: true })
+  @WhereField({ nullable: true })
   @Column('uuid', { nullable: true })
   declare shiftId?: string;
 
@@ -43,26 +43,30 @@ export class AttendanceRecord extends BaseEntity {
   declare shift?: ScheduledShift;
 
   // Attendance date
-  @Field()
+  @SortableField()
+  @WhereField()
   @Column('timestamp')
   @IsDate()
   declare date: Date;
 
   // Clock in/out times
-  @Field({ nullable: true })
+  @SortableField({ nullable: true })
+  @WhereField({ nullable: true })
   @Column('timestamp', { nullable: true })
   @IsDate()
   @IsOptional()
   declare clockIn?: Date;
 
-  @Field({ nullable: true })
+  @SortableField({ nullable: true })
+  @WhereField({ nullable: true })
   @Column('timestamp', { nullable: true })
   @IsDate()
   @IsOptional()
   declare clockOut?: Date;
 
   // Attendance status
-  @Field(() => AttendanceStatus)
+  @SortableField(() => AttendanceStatus)
+  @WhereField(() => AttendanceStatus)
   @Column({
     type: 'enum',
     enum: AttendanceStatus,
@@ -72,14 +76,14 @@ export class AttendanceRecord extends BaseEntity {
   declare status: AttendanceStatus;
 
   // Hours tracking
-  @Field({ nullable: true })
+  @WhereField({ nullable: true })
   @Column('decimal', { precision: 5, scale: 2, nullable: true })
   @IsNumber()
   @IsOptional()
   declare hoursWorked?: number;
 
   // Notes
-  @Field({ nullable: true })
+  @WhereField({ nullable: true })
   @Column('text', { nullable: true })
   @IsString()
   @IsOptional()

@@ -1,4 +1,4 @@
-import { SortableField } from '@app/utils';
+import { SortableField, WhereField } from '@app/utils';
 import { Field, ID, ObjectType } from '@nestjs/graphql';
 import { IsBoolean, IsNumber, IsString, IsArray, IsOptional } from 'class-validator';
 import {
@@ -32,7 +32,7 @@ export class ConfigurationValidation extends BaseEntity {
   declare updatedAt: Date;
 
   // Relations
-  @Field()
+  @WhereField()
   @Column('uuid')
   declare configurationId: string;
 
@@ -41,49 +41,49 @@ export class ConfigurationValidation extends BaseEntity {
   declare configuration: Relation<Configuration>;
 
   // Validation rules
-  @Field({ nullable: true })
+  @WhereField({ nullable: true })
   @Column({ nullable: true, default: false })
   @IsBoolean()
   @IsOptional()
   declare required: boolean;
 
-  @Field({ nullable: true })
+  @WhereField({ nullable: true })
   @Column('int', { nullable: true })
   @IsNumber()
   @IsOptional()
   declare minLength: number;
 
-  @Field({ nullable: true })
+  @WhereField({ nullable: true })
   @Column('int', { nullable: true })
   @IsNumber()
   @IsOptional()
   declare maxLength: number;
 
-  @Field({ nullable: true })
+  @WhereField({ nullable: true })
   @Column('decimal', { precision: 20, scale: 10, nullable: true })
   @IsNumber()
   @IsOptional()
   declare min: number;
 
-  @Field({ nullable: true })
+  @WhereField({ nullable: true })
   @Column('decimal', { precision: 20, scale: 10, nullable: true })
   @IsNumber()
   @IsOptional()
   declare max: number;
 
-  @Field({ nullable: true })
+  @WhereField({ nullable: true })
   @Column({ nullable: true })
   @IsString()
   @IsOptional()
   declare pattern: string; // Regex pattern
 
-  @Field(() => [String], { nullable: true })
+  @WhereField(() => [String], { nullable: true })
   @Column('simple-array', { nullable: true })
   @IsArray()
   @IsOptional()
   declare enumValues: string[]; // Allowed enum values
 
-  @Field({ nullable: true })
+  @WhereField({ nullable: true })
   @Column('text', { nullable: true })
   @IsString()
   @IsOptional()
