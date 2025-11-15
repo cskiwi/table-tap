@@ -13,6 +13,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { Cafe } from './cafe.model';
+import { SortableField, WhereField } from '@app/utils';
 
 /**
  * CafeHostname entity for storing multiple hostnames/domains per cafe.
@@ -34,26 +35,31 @@ export class CafeHostname extends BaseEntity {
   @PrimaryGeneratedColumn('uuid')
   declare id: string;
 
+  @SortableField()
   @Field()
   @CreateDateColumn()
   declare createdAt: Date;
 
+  @SortableField()
   @Field({ nullable: true })
   @UpdateDateColumn({ nullable: true })
   declare updatedAt: Date;
 
-  @Field()
+  @SortableField()
+  @WhereField()
   @Column({ unique: true })
   @IsString()
   @Index({ unique: true })
   declare hostname: string;
 
-  @Field()
+  @SortableField()
+  @WhereField()
   @Column({ default: false })
   @IsBoolean()
   declare isPrimary: boolean;
 
-  @Field()
+  @SortableField()
+  @WhereField()
   @Column({ default: true })
   @IsBoolean()
   declare isActive: boolean;

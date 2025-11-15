@@ -1,5 +1,5 @@
 import * as Models from '@app/models';
-import { args } from '../utils';
+import { appendWhereObjects, args, WhereInputType } from '../utils';
 import { appendSortableObjects, SortOrderType } from '../utils/sort-order';
 
 // Extract all entity classes from the models package
@@ -20,6 +20,9 @@ const entities = Object.entries(Models).filter(([name, value]) => {
 entities.forEach(([name, EntityClass]) => {
   SortOrderType(EntityClass, name);
   appendSortableObjects(EntityClass, name);
+
+  WhereInputType(EntityClass, name);
+  appendWhereObjects(EntityClass, name);
 });
 
 // Create typed args map
@@ -102,6 +105,7 @@ export const {
   SalesPaymentMethodBreakdownArgs,
   AdminNotificationArgs,
   CafeArgs,
+  CafeHostnameArgs,
   EmployeeArgs,
   LoyaltyAccountArgs,
   OrderArgs,

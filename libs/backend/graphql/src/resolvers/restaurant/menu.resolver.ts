@@ -1,9 +1,9 @@
-import { Resolver, Query, Mutation, Args, ResolveField, Parent } from '@nestjs/graphql';
-import { UseGuards, Injectable } from '@nestjs/common';
+import { PermGuard, ReqUser } from '@app/backend-authorization';
+import { Product, User } from '@app/models';
+import { Injectable, UseGuards } from '@nestjs/common';
+import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { PermGuard, ReqUser } from '@app/backend-authorization';
-import { User, Product, Cafe } from '@app/models';
 import { ProductCreateInput, ProductUpdateInput } from '../../inputs';
 
 @Injectable()
@@ -49,12 +49,14 @@ export class MenuResolver {
   @UseGuards(PermGuard)
   async menuItem(
     @Args('id') id: string,
-    @ReqUser() user?: User,
+    @Args('cafeId', { nullable: true }) cafeId?: string,
   ): Promise<Product | null> {
     // Use repository directly
-    return this.productRepository.findOne({
-      where: { id, cafeId: user?.cafeId }
-    });
+    const where: any = { id };
+    if (cafeId) {
+      where.cafeId = cafeId;
+    }
+    return this.productRepository.findOne({ where });
   }
 
   @Query(() => [Product])
@@ -79,12 +81,19 @@ export class MenuResolver {
   @UseGuards(PermGuard)
   async createMenuItem(
     @Args('input') input: ProductCreateInput,
+    @Args('cafeId') cafeId: string,
     @ReqUser() user: User,
   ): Promise<Product> {
+    // Verify user has permission for this cafe
+    const hasPermission = user.cafes?.some(cafe => cafe.id === cafeId);
+    if (!hasPermission) {
+      throw new Error('User does not have permission for this cafe');
+    }
+
     // Use repository directly for simple CRUD
     const product = this.productRepository.create({
       ...input,
-      cafeId: user.cafeId,
+      cafeId,
     });
     return this.productRepository.save(product);
   }
@@ -94,15 +103,22 @@ export class MenuResolver {
   async updateMenuItem(
     @Args('id') id: string,
     @Args('input') input: ProductUpdateInput,
+    @Args('cafeId') cafeId: string,
     @ReqUser() user: User,
   ): Promise<Product> {
+    // Verify user has permission for this cafe
+    const hasPermission = user.cafes?.some(cafe => cafe.id === cafeId);
+    if (!hasPermission) {
+      throw new Error('User does not have permission for this cafe');
+    }
+
     // Use repository directly for simple CRUD
     await this.productRepository.update(
-      { id, cafeId: user.cafeId },
+      { id, cafeId },
       input
     );
     const product = await this.productRepository.findOne({
-      where: { id, cafeId: user.cafeId }
+      where: { id, cafeId }
     });
     if (!product) {
       throw new Error(`Product with id ${id} not found`);
@@ -114,10 +130,17 @@ export class MenuResolver {
   @UseGuards(PermGuard)
   async deleteMenuItem(
     @Args('id') id: string,
+    @Args('cafeId') cafeId: string,
     @ReqUser() user: User,
   ): Promise<boolean> {
+    // Verify user has permission for this cafe
+    const hasPermission = user.cafes?.some(cafe => cafe.id === cafeId);
+    if (!hasPermission) {
+      throw new Error('User does not have permission for this cafe');
+    }
+
     // Use repository directly (soft delete)
-    await this.productRepository.softDelete({ id, cafeId: user.cafeId });
+    await this.productRepository.softDelete({ id, cafeId });
     return true;
   }
 }

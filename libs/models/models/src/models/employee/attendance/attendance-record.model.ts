@@ -27,7 +27,6 @@ export class AttendanceRecord extends BaseEntity {
   // Employee relationship
   @Field()
   @Column('uuid')
-  @Index()
   declare employeeId: string;
 
   @ManyToOne(() => Employee, { nullable: false, onDelete: 'CASCADE' })
@@ -37,7 +36,6 @@ export class AttendanceRecord extends BaseEntity {
   // Shift relationship (optional)
   @Field({ nullable: true })
   @Column('uuid', { nullable: true })
-  @Index()
   declare shiftId?: string;
 
   @ManyToOne(() => ScheduledShift, { nullable: true, onDelete: 'SET NULL' })

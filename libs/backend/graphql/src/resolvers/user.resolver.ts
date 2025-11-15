@@ -1,7 +1,7 @@
 import { PermGuard, ReqUser } from '@app/backend-authorization';
-import { User } from '@app/models';
+import { Cafe, User } from '@app/models';
 import { UseGuards } from '@nestjs/common';
-import { Query, Resolver } from '@nestjs/graphql';
+import { Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
 
 @Resolver(() => User)
 export class UserResolver {
@@ -13,5 +13,10 @@ export class UserResolver {
     } else {
       return null;
     }
+  }
+
+  @ResolveField(() => [Cafe])
+  async cafes(@Parent() user: User): Promise<Cafe[]> {
+    return user.cafes || [];
   }
 }

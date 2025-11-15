@@ -8,6 +8,7 @@ import {
   DeleteDateColumn,
   Entity,
   Index,
+  ManyToMany,
   OneToMany,
   OneToOne,
   PrimaryGeneratedColumn,
@@ -139,8 +140,8 @@ export class Cafe extends BaseEntity {
   @OneToMany(() => CafeHostname, (hostname) => hostname.cafe, { cascade: true })
   declare hostnames: Relation<CafeHostname[]>;
 
-  // Relations
-  @OneToMany(() => User, (user) => user.cafe, { cascade: true })
+  // Relations - Many-to-many relationship with users through UserCafes join table
+  @ManyToMany(() => User, (user) => user.cafes)
   declare users: Relation<User[]>;
 
   @OneToMany(() => Product, (product) => product.cafe, { cascade: true })

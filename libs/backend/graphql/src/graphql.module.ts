@@ -8,56 +8,55 @@ import { ApolloServerPluginLandingPageLocalDefault, ApolloServerPluginLandingPag
 import { ApolloServerPluginSchemaReporting } from '@apollo/server/plugin/schemaReporting';
 import { ApolloServerPluginUsageReporting } from '@apollo/server/plugin/usageReporting';
 import { AuthorizationModule } from '@app/backend-authorization';
-import { UserResolver } from './resolvers';
-import { OrderResolver } from './resolvers/restaurant/order.resolver';
-import { InventoryResolver } from './resolvers/restaurant/inventory.resolver';
-import { EmployeeResolver } from './resolvers/restaurant/employee.resolver';
-import { KitchenDashboardResolver } from './resolvers/restaurant/kitchen-dashboard.resolver';
-import { AdminDashboardResolver } from './resolvers/restaurant/admin-dashboard.resolver';
-import { SalesAnalyticsResolver } from './resolvers/restaurant/sales-analytics.resolver';
-import { InventoryAlertsResolver } from './resolvers/restaurant/inventory-alerts.resolver';
-import { AdminNotificationsResolver } from './resolvers/restaurant/admin-notifications.resolver';
-import { AdminSettingsResolver } from './resolvers/restaurant/admin-settings.resolver';
-import { ExportResolver } from './resolvers/restaurant/export.resolver';
-import { MenuResolver } from './resolvers/restaurant/menu.resolver';
-import { PaymentResolver } from './resolvers/restaurant/payment.resolver';
-import { CafeResolver } from './resolvers/restaurant/cafe.resolver';
-import { LoyaltyAccountResolver } from './resolvers/restaurant/loyalty-account.resolver';
-import { LoyaltyRewardResolver } from './resolvers/restaurant/loyalty-reward.resolver';
-import { LoyaltyTransactionResolver } from './resolvers/restaurant/loyalty-transaction.resolver';
-import { LoyaltyTierResolver } from './resolvers/restaurant/loyalty-tier.resolver';
-import { LoyaltyPromotionResolver } from './resolvers/restaurant/loyalty-promotion.resolver';
-import { LoyaltyChallengeResolver } from './resolvers/restaurant/loyalty-challenge.resolver';
-import { QueryComplexityPlugin } from './middleware/query-complexity.middleware';
-import { RequestLoggingPlugin } from './middleware/request-logging.middleware';
-import { RoleBasedAccessGuard, EmployeeContextEnhancer } from './middleware/role-access-control.middleware';
-import { TypeOrmModule } from '@nestjs/typeorm';
 import {
-  Order,
-  OrderItem,
-  Payment,
+  AdminNotification,
+  AdminSettings,
   Cafe,
   CafeHostname,
   Counter,
-  Stock as Stock,
   Employee,
-  TimeSheet,
-  Product as Menu,
-  User,
-  LoyaltyAccount,
-  LoyaltyReward,
-  LoyaltyTransaction,
-  LoyaltyTier,
-  LoyaltyPromotion,
-  LoyaltyChallenge,
-  LoyaltyRewardRedemption,
   InventoryAlert,
-  AdminNotification,
-  AdminSettings,
+  LoyaltyAccount,
+  LoyaltyChallenge,
+  LoyaltyPromotion,
+  LoyaltyReward,
+  LoyaltyRewardRedemption,
+  LoyaltyTier,
+  LoyaltyTransaction,
+  Product as Menu,
+  Order,
+  OrderItem,
+  Payment,
   SalesAnalytics,
+  Stock,
+  TimeSheet,
+  User,
 } from '@app/models';
-import { ConfigModule } from '@nestjs/config';
 import { CacheModule } from '@nestjs/cache-manager';
+import { ConfigModule } from '@nestjs/config';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { EmployeeContextEnhancer, RoleBasedAccessGuard } from './middleware/role-access-control.middleware';
+import { UserResolver } from './resolvers';
+import { AdminDashboardResolver } from './resolvers/restaurant/admin-dashboard.resolver';
+import { AdminNotificationsResolver } from './resolvers/restaurant/admin-notifications.resolver';
+import { AdminSettingsResolver } from './resolvers/restaurant/admin-settings.resolver';
+import { CafeResolver } from './resolvers/restaurant/cafe.resolver';
+import { EmployeeResolver } from './resolvers/restaurant/employee.resolver';
+import { ExportResolver } from './resolvers/restaurant/export.resolver';
+import { InventoryAlertsResolver } from './resolvers/restaurant/inventory-alerts.resolver';
+import { InventoryResolver } from './resolvers/restaurant/inventory.resolver';
+import { KitchenDashboardResolver } from './resolvers/restaurant/kitchen-dashboard.resolver';
+import { LoyaltyAccountResolver } from './resolvers/restaurant/loyalty-account.resolver';
+import { LoyaltyChallengeResolver } from './resolvers/restaurant/loyalty-challenge.resolver';
+import { LoyaltyPromotionResolver } from './resolvers/restaurant/loyalty-promotion.resolver';
+import { LoyaltyRewardResolver } from './resolvers/restaurant/loyalty-reward.resolver';
+import { LoyaltyTierResolver } from './resolvers/restaurant/loyalty-tier.resolver';
+import { LoyaltyTransactionResolver } from './resolvers/restaurant/loyalty-transaction.resolver';
+import { MenuResolver } from './resolvers/restaurant/menu.resolver';
+import { OrderResolver } from './resolvers/restaurant/order.resolver';
+import { PaymentResolver } from './resolvers/restaurant/payment.resolver';
+import { SalesAnalyticsResolver } from './resolvers/restaurant/sales-analytics.resolver';
+import { CafeHostnameResolver } from './resolvers/restaurant';
 
 @Module({
   imports: [
@@ -74,8 +73,8 @@ import { CacheModule } from '@nestjs/cache-manager';
       Order,
       OrderItem,
       Payment,
-      Cafe,
       CafeHostname,
+      Cafe,
       Counter,
       Stock,
       Employee,
@@ -183,6 +182,7 @@ import { CacheModule } from '@nestjs/cache-manager';
     MenuResolver,
     PaymentResolver,
     CafeResolver,
+    CafeHostnameResolver,
     KitchenDashboardResolver,
     AdminDashboardResolver,
     SalesAnalyticsResolver,
@@ -203,3 +203,6 @@ import { CacheModule } from '@nestjs/cache-manager';
   exports: [RoleBasedAccessGuard, EmployeeContextEnhancer],
 })
 export class GraphQLModule {}
+
+// 1763225103
+// 1763217912812

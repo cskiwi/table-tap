@@ -1,18 +1,11 @@
-import { Resolver, Query, Mutation, Args, Subscription, ResolveField, Parent, Context } from '@nestjs/graphql';
-import { UseGuards, Injectable, Logger } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { PubSub } from 'graphql-subscriptions';
 import { PermGuard, ReqUser } from '@app/backend-authorization';
+import { Order, User } from '@app/models';
+import { Injectable, Logger, UseGuards } from '@nestjs/common';
+import { Args, Mutation, Query, Resolver, Subscription } from '@nestjs/graphql';
+import { InjectRepository } from '@nestjs/typeorm';
+import { PubSub } from 'graphql-subscriptions';
 import { GraphQLJSONObject } from 'graphql-type-json';
-import { User } from '@app/models';
-import {
-  Order,
-  OrderItem,
-  Payment,
-  Cafe,
-  Counter,
-} from '@app/models';
+import { Repository } from 'typeorm';
 import { OrderCreateInput, OrderUpdateInput } from '../../inputs/order.input';
 
 @Injectable()
@@ -29,58 +22,53 @@ export class OrderResolver {
   // Queries - Read directly from repository
   @Query(() => [Order])
   @UseGuards(PermGuard)
-  async orders(
-    @ReqUser() user?: User,
-  ): Promise<Order[]> {
+  async orders(@ReqUser() user?: User): Promise<Order[]> {
     try {
       // Simple read - no service needed
       return await this.orderRepository.find({
         order: { createdAt: 'DESC' },
-        take: 100
+        take: 100,
       });
     } catch (error: unknown) {
-      this.logger.error(`Failed to fetch orders: ${error instanceof Error ? error.message : 'Unknown error'}`, error instanceof Error ? error.stack : undefined);
+      this.logger.error(
+        `Failed to fetch orders: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        error instanceof Error ? error.stack : undefined,
+      );
       throw error;
     }
   }
 
   @Query(() => Order, { nullable: true })
   @UseGuards(PermGuard)
-  async order(
-    @Args('id') id: string,
-    @ReqUser() user: User,
-  ): Promise<Order | null> {
+  async order(@Args('id') id: string, @ReqUser() user: User): Promise<Order | null> {
     try {
       // Simple read - directly from repository
       return await this.orderRepository.findOne({ where: { id } });
     } catch (error: unknown) {
-      this.logger.error(`Failed to fetch order ${id}: ${error instanceof Error ? error.message : 'Unknown error'}`, error instanceof Error ? error.stack : undefined);
+      this.logger.error(
+        `Failed to fetch order ${id}: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        error instanceof Error ? error.stack : undefined,
+      );
       throw error;
     }
   }
 
   @Query(() => Order, { nullable: true })
-  async orderByNumber(
-    @Args('orderNumber') orderNumber: string,
-    @Args('cafeId') cafeId: string,
-  ): Promise<Order | null> {
+  async orderByNumber(@Args('orderNumber') orderNumber: string, @Args('cafeId') cafeId: string): Promise<Order | null> {
     // Simple read - directly from repository
     return await this.orderRepository.findOne({
-      where: { orderNumber, cafeId }
+      where: { orderNumber, cafeId },
     });
   }
 
   @Query(() => [Order])
   @UseGuards(PermGuard)
-  async cafeOrders(
-    @Args('cafeId') cafeId: string,
-    @ReqUser() user?: User,
-  ): Promise<Order[]> {
+  async cafeOrders(@Args('cafeId') cafeId: string, @ReqUser() user?: User): Promise<Order[]> {
     // Simple read with filter - directly from repository
     return await this.orderRepository.find({
       where: { cafeId },
       order: { createdAt: 'DESC' },
-      take: 100
+      take: 100,
     });
   }
 
@@ -90,7 +78,7 @@ export class OrderResolver {
     // Simple read - directly from repository
     return await this.orderRepository.find({
       where: { customerId: user.id },
-      order: { createdAt: 'DESC' }
+      order: { createdAt: 'DESC' },
     });
   }
 
@@ -120,10 +108,7 @@ export class OrderResolver {
   // Mutations - Use service for business logic (validation, payments, inventory)
   @Mutation(() => Order)
   @UseGuards(PermGuard)
-  async createOrder(
-    @Args('input') input: OrderCreateInput,
-    @ReqUser() user: User,
-  ): Promise<Order> {
+  async createOrder(@Args('input') input: OrderCreateInput, @ReqUser() user: User): Promise<Order> {
     try {
       // Order creation has complex business logic - use service
       // (validation, inventory deduction, counter assignment, payment checks)
@@ -150,18 +135,17 @@ export class OrderResolver {
 
       return order;
     } catch (error: unknown) {
-      this.logger.error(`Failed to create order: ${error instanceof Error ? error.message : 'Unknown error'}`, error instanceof Error ? error.stack : undefined);
+      this.logger.error(
+        `Failed to create order: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        error instanceof Error ? error.stack : undefined,
+      );
       throw error;
     }
   }
 
   @Mutation(() => Order)
   @UseGuards(PermGuard)
-  async updateOrderStatus(
-    @Args('id') id: string,
-    @Args('input') input: OrderUpdateInput,
-    @ReqUser() user: User,
-  ): Promise<Order> {
+  async updateOrderStatus(@Args('id') id: string, @Args('input') input: OrderUpdateInput, @ReqUser() user: User): Promise<Order> {
     try {
       // Status updates have business logic (workflow validation, inventory restoration)
       // TODO: Implement OrderService
@@ -177,18 +161,17 @@ export class OrderResolver {
 
       return order;
     } catch (error: unknown) {
-      this.logger.error(`Failed to update order status: ${error instanceof Error ? error.message : 'Unknown error'}`, error instanceof Error ? error.stack : undefined);
+      this.logger.error(
+        `Failed to update order status: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        error instanceof Error ? error.stack : undefined,
+      );
       throw error;
     }
   }
 
   @Mutation(() => Order)
   @UseGuards(PermGuard)
-  async updateOrder(
-    @Args('id') id: string,
-    @Args('input') input: OrderUpdateInput,
-    @ReqUser() user: User,
-  ): Promise<Order> {
+  async updateOrder(@Args('id') id: string, @Args('input') input: OrderUpdateInput, @ReqUser() user: User): Promise<Order> {
     // Simple update - can go directly to repository
     await this.orderRepository.update(id, input);
     const order = await this.orderRepository.findOne({ where: { id } });
@@ -207,11 +190,7 @@ export class OrderResolver {
 
   @Mutation(() => Order)
   @UseGuards(PermGuard)
-  async assignOrderToCounter(
-    @Args('orderId') orderId: string,
-    @Args('counterId') counterId: string,
-    @ReqUser() user: User,
-  ): Promise<Order> {
+  async assignOrderToCounter(@Args('orderId') orderId: string, @Args('counterId') counterId: string, @ReqUser() user: User): Promise<Order> {
     // Simple assignment - can go directly to repository
     await this.orderRepository.update(orderId, { counterId });
     const order = await this.orderRepository.findOne({ where: { id: orderId } });
@@ -230,11 +209,7 @@ export class OrderResolver {
 
   @Mutation(() => Boolean)
   @UseGuards(PermGuard)
-  async cancelOrder(
-    @Args('id') id: string,
-    @Args('reason', { nullable: true }) reason?: string,
-    @ReqUser() user?: User,
-  ): Promise<boolean> {
+  async cancelOrder(@Args('id') id: string, @Args('reason', { nullable: true }) reason?: string, @ReqUser() user?: User): Promise<boolean> {
     // Cancellation has business logic (inventory restoration, payment handling)
     // TODO: Implement OrderService
     // throw new Error('OrderService not implemented');

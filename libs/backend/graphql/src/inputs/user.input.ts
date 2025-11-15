@@ -4,11 +4,11 @@ import { User } from '@app/models';
 @InputType()
 export class UserUpdateInput extends PartialType(
   OmitType(User, [
-    
+
     'createdAt',
     'updatedAt',
     'deletedAt',
-    'cafe',
+    'cafes',
     'employeeProfiles',
     'orders',
     'ordersCreatedByEmployee',

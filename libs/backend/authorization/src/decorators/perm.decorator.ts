@@ -70,6 +70,7 @@ export class PermGuard implements CanActivate {
       try {
         const user = await User.findOne({
           where: { sub: payload.sub },
+          relations: ['cafes'], // Load user's cafe permissions (many-to-many)
         });
         if (user) {
           return user;

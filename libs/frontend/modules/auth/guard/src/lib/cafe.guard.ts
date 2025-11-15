@@ -1,46 +1,39 @@
-import { isPlatformServer } from '@angular/common';
-import { Injectable, PLATFORM_ID, inject } from '@angular/core';
-import { ActivatedRouteSnapshot, Router, RouterStateSnapshot } from '@angular/router';
-import { AUTH_KEY, AuthService } from '@app/frontend-modules-auth/service';
+import { Injectable, inject } from '@angular/core';
+import { ActivatedRouteSnapshot, Router } from '@angular/router';
 import { CafeDetectionService } from '@app/frontend-utils';
-import { SsrCookieService } from 'ngx-cookie-service-ssr';
-import { map, of, switchMap, tap } from 'rxjs';
+import { map, tap } from 'rxjs';
 
 /**
  * CafeGuard detects the current cafe from hostname and makes it available to routes.
  *
- * New behavior (hostname-based):
+ * Responsibilities:
  * 1. Detects cafe from hostname via GraphQL API
  * 2. Stores cafe info in route data for child components
- * 3. User permissions are checked separately via RoleGuard
+ * 3. Validates cafe is active
  *
- * The detected cafe is independent of user authentication and is based purely
- * on which hostname/domain is being visited.
+ * Note: User permissions are checked separately via RoleGuard
  *
  * @example
  * ```typescript
  * {
  *   path: 'menu',
  *   loadChildren: () => import('./menu'),
- *   canActivate: [CafeGuard]
+ *   canActivate: [CafeGuard, RoleGuard]  // CafeGuard first, then RoleGuard
  * }
  *
  * // In component:
- * const cafeId = this.route.snapshot.data['cafeId'];
- * const cafe = this.route.snapshot.data['cafe'];
+ * const cafeId = injectRouteData<string>('cafeId');
+ * const cafe = injectRouteData<Cafe>('cafe');
  * ```
  */
 @Injectable({
   providedIn: 'root',
 })
 export class CafeGuard {
-  private readonly auth = inject(AuthService);
-  private readonly cookie = inject(SsrCookieService);
   private readonly router = inject(Router);
-  private readonly platform = inject(PLATFORM_ID);
   private readonly cafeDetection = inject(CafeDetectionService);
 
-  canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot) {
+  canActivate(route: ActivatedRouteSnapshot) {
     const redirectTo = (route.data?.['redirectTo'] as string) || '/';
 
     console.log('[CafeGuard] Detecting cafe from hostname...');

@@ -11,10 +11,10 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
   DeleteDateColumn,
-  ManyToOne,
+  ManyToMany,
   OneToOne,
   OneToMany,
-  JoinColumn,
+  JoinTable,
   Relation,
 } from 'typeorm';
 import { UserPreferences } from './user-preferences.model';
@@ -26,7 +26,6 @@ import { Cafe } from '../cafe';
 @ObjectType('User')
 @Entity('Users')
 @Index(['firstName', 'lastName'])
-@Index(['cafeId', 'role'])
 export class User extends BaseEntity {
   @Field(() => ID)
   @PrimaryGeneratedColumn('uuid')
@@ -45,20 +44,19 @@ export class User extends BaseEntity {
   declare deletedAt: Date;
 
   // Multi-tenant support - User can have permissions for multiple cafes
-  // This represents which cafe(s) the user has access/permissions for
-  @Field()
-  @Column('uuid')
-  @Index()
-  declare cafeId: string;
-
-  @ManyToOne(() => Cafe, (cafe) => cafe.users, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'cafeId' })
-  declare cafe: Relation<Cafe>;
+  // Relationship is managed through UserCafes join table
+  @ManyToMany(() => Cafe, (cafe) => cafe.users)
+  @JoinTable({
+    name: 'UserCafes',
+    joinColumn: { name: 'userId', referencedColumnName: 'id' },
+    inverseJoinColumn: { name: 'cafeId', referencedColumnName: 'id' },
+  })
+  declare cafes: Relation<Cafe[]>;
 
   // Authentication
-  @Index({ unique: true })
-  @Column({ unique: true, nullable: false })
   @IsString()
+  @Index({ unique: true })
+  @Column({ unique: true, nullable: true })
   declare sub?: string;
 
   @Field({ nullable: true })

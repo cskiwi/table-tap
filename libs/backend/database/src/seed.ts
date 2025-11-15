@@ -2,6 +2,7 @@ import {
   AdminNotification,
   AdminSettings,
   Cafe,
+  CafeHostname,
   Employee,
   InventoryAlert,
   Order,
@@ -44,7 +45,7 @@ import dataSource from './datasource';
  * - Sales analytics data
  */
 
-export const seed = async () => {
+export const seed = async (createConnect = true) => {
   try {
     const envPath = process.env['ENV_PATH'] ? resolve(process.cwd(), process.env['ENV_PATH'] as string) : resolve(process.cwd(), '.env');
     if (existsSync(envPath)) {
@@ -55,8 +56,10 @@ export const seed = async () => {
 
     console.log('🌱 Starting database seeding...');
 
-    await dataSource.initialize();
-    console.log('✅ Database connection established');
+    if (createConnect && !dataSource.isInitialized) {
+      await dataSource.initialize();
+      console.log('✅ Database connection established');
+    }
 
     // Clear existing data (in correct order to respect foreign keys)
     console.log('\n🗑️  Clearing existing data...');
@@ -74,6 +77,7 @@ export const seed = async () => {
     await deleteAll(Stock);
     await deleteAll(Product);
     await deleteAll(User);
+    await deleteAll(CafeHostname);
     await deleteAll(Cafe);
     console.log('✅ Existing data cleared');
 
@@ -94,6 +98,16 @@ export const seed = async () => {
       isActive: true,
     } as any);
     console.log(`✅ Created cafe: ${cafe.name} (ID: ${cafe.id})`);
+
+    // 1b. CREATE CAFE HOSTNAME
+    console.log('\n🌐 Creating cafe hostname...');
+    const cafeHostname = await dataSource.getRepository(CafeHostname).save({
+      cafeId: cafe.id,
+      hostname: 'localhost',
+      isPrimary: true,
+      isActive: true,
+    });
+    console.log(`✅ Created cafe hostname: ${cafeHostname.hostname}`);
 
     // 2. CREATE USERS
     console.log('\n👤 Creating users...');
@@ -686,6 +700,7 @@ export const seed = async () => {
     console.log('='.repeat(60));
     console.log('\n📊 Summary:');
     console.log(`   ☕ Cafes: 1`);
+    console.log(`   🌐 Cafe Hostnames: 1 (localhost:3000)`);
     console.log(`   👤 Users: 5 (1 Admin, 1 Manager, 2 Employees, 1 Customer)`);
     console.log(`   🍽️  Products: ${products.length}`);
     console.log(`   📦 Stock Items: ${stocks.length}`);
@@ -701,24 +716,17 @@ export const seed = async () => {
     console.log(`   Manager: sarah.johnson@tabletap.com`);
     console.log(`   Employee: mike.chen@tabletap.com`);
     console.log(`   Cafe ID: ${cafe.id}`);
+    console.log(`   Hostname: localhost:3000`);
     console.log('\n🚀 Your database is now ready for development and testing!');
     console.log('='.repeat(60) + '\n');
   } catch (error) {
     console.error('\n❌ Seeding failed:', error);
     throw error;
   } finally {
-    await dataSource.destroy();
-    console.log('✅ Database connection closed');
+    if (createConnect && dataSource.isInitialized) {
+      await dataSource.destroy();
+      console.log('✅ Database connection closed');
+    }
   }
 };
 
-// Run the seed function
-seed()
-  .then(() => {
-    console.log('\n✅ Seed script completed successfully');
-    process.exit(0);
-  })
-  .catch((error) => {
-    console.error('\n❌ Seed script failed:', error);
-    process.exit(1);
-  });

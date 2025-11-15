@@ -1,12 +1,13 @@
-import { Resolver, Query, Mutation, Args, Subscription, ResolveField, Parent, Context } from '@nestjs/graphql';
-import { UseGuards, Injectable, Logger, UseInterceptors } from '@nestjs/common';
-import { CacheInterceptor } from '@nestjs/cache-manager';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { PubSub } from 'graphql-subscriptions';
 import { PermGuard, ReqUser } from '@app/backend-authorization';
-import { User, Employee, TimeSheet, Cafe, Counter } from '@app/models';
-import { EmployeeStatus } from '@app/models/enums';
+import { Employee, TimeSheet, User } from '@app/models';
+import { CacheInterceptor } from '@nestjs/cache-manager';
+import { Injectable, Logger, UseGuards, UseInterceptors } from '@nestjs/common';
+import { Args, Mutation, Query, Resolver, Subscription } from '@nestjs/graphql';
+import { InjectRepository } from '@nestjs/typeorm';
+import { PubSub } from 'graphql-subscriptions';
+import { Repository } from 'typeorm';
+import { EmployeeArgs } from '../../args';
+import { EmployeeCreateInput, EmployeeUpdateInput } from '../../inputs';
 
 @Injectable()
 @Resolver(() => Employee)
@@ -19,124 +20,134 @@ export class EmployeeResolver {
     private readonly employeeRepository: Repository<Employee>,
   ) {}
 
-  // Queries
-  // TODO: Uncomment when PaginatedEmployeeResponse DTO is created
-  // @Query(() => PaginatedEmployeeResponse)
-  // @UseGuards(PermGuard)
-  // @UseInterceptors(CacheInterceptor)
-  // async employees(
-  //   @Args('cafeId') cafeId: string,
-  //   @Args('filters', { nullable: true }) filters?: {
-  //     status?: EmployeeStatus;
-  //     department?: string;
-  //   },
-  //   @ReqUser() user?: User,
-  // ): Promise<PaginatedEmployeeResponse> {
-  //   try {
-  //     const employees = await this.employeeService.findByCafe(cafeId, {
-  //       ...filters,
-  //       take: pagination?.take,
-  //       skip: pagination?.skip,
-  //     });
-  //     return {
-  //       data: employees,
-  //       total: employees.length,
-  //       skip: pagination?.skip || 0,
-  //       take: pagination?.take || 20,
-  //       totalPages: Math.ceil(employees.length / (pagination?.take || 20)),
-  //     }
-  //   } catch (error: unknown) {
-  //     this.logger.error(`Failed to fetch employees for cafe ${cafeId}: ${error instanceof Error ? error.message : 'Unknown error'}`, error instanceof Error ? error.stack : undefined);
-  //     throw error;
-  //   }
-  // }
-
-  @Query(() => Employee, { nullable: true })
+  @Query(() => [Employee])
   @UseGuards(PermGuard)
-  async employee(
-    @Args('id') id: string,
-    @ReqUser() user: User,
-  ): Promise<Employee | null> {
+  @UseInterceptors(CacheInterceptor)
+  async employees(
+    @Args('cafeId') cafeId: string,
+    @Args('args', { type: () => EmployeeArgs, nullable: true })
+    inputArgs?: InstanceType<typeof EmployeeArgs>,
+    @ReqUser() user?: User,
+  ): Promise<Employee[]> {
     try {
-      return await this.employeeRepository.findOne({
-        where: { id, cafeId: user.cafeId }
+      // Build where clause with filters
+      const args = EmployeeArgs.toFindOneOptions(inputArgs);
+
+      return this.employeeRepository.find({
+        ...args,
       });
     } catch (error: unknown) {
-      this.logger.error(`Failed to fetch employee ${id}: ${error instanceof Error ? error.message : 'Unknown error'}`, error instanceof Error ? error.stack : undefined);
+      this.logger.error(
+        `Failed to fetch employees for cafe ${cafeId}: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        error instanceof Error ? error.stack : undefined,
+      );
       throw error;
     }
   }
 
-  // TODO: Uncomment when PerformanceMetrics DTO is created
-  // @Query(() => PerformanceMetrics)
-  // @UseGuards(PermGuard)
-  // async employeePerformance(
-  //   @Args('employeeId') employeeId: string,
-  //   @Args('startDate') startDate: Date,
-  //   @Args('endDate') endDate: Date,
-  //   @ReqUser() user: User,
-  // ): Promise<PerformanceMetrics> {
-  //   try {
-  //     return await this.employeeService.getPerformanceMetrics(employeeId, startDate, endDate, user);
-  //   } catch (error: unknown) {
-  //     this.logger.error(`Failed to get performance metrics for employee ${employeeId}: ${error instanceof Error ? error.message : 'Unknown error'}`, error instanceof Error ? error.stack : undefined);
-  //     throw error;
-  //   }
-  // }
+  @Query(() => Employee, { nullable: true })
+  @UseGuards(PermGuard)
+  async employee(@Args('id') id: string, @Args('cafeId') cafeId: string, @ReqUser() user: User): Promise<Employee | null> {
+    try {
+      // Verify user has permission for this cafe
+      const hasPermission = user.cafes?.some((cafe) => cafe.id === cafeId);
+      if (!hasPermission) {
+        throw new Error('User does not have permission for this cafe');
+      }
 
-  // Mutations
-  // TODO: Uncomment when CreateEmployeeInput DTO is created
-  // @Mutation(() => Employee)
-  // @UseGuards(PermGuard)
-  // async createEmployee(
-  //   @Args('input') input: CreateEmployeeInput,
-  //   @ReqUser() user: User,
-  // ): Promise<Employee> {
-  //   try {
-  //     const employee = await this.employeeService.createEmployee(input, user);
-  //     this.dataLoader.clearCacheByPattern(`cafeEmployees:${employee.cafeId}`);
-  //     await this.pubSub.publish('employeeCreated', {
-  //       employeeCreated: employee,
-  //       cafeId: employee.cafeId,
-  //     });
-  //     return employee;
-  //   } catch (error: unknown) {
-  //     this.logger.error(`Failed to create employee: ${error instanceof Error ? error.message : 'Unknown error'}`, error instanceof Error ? error.stack : undefined);
-  //     throw error;
-  //   }
-  // }
+      return await this.employeeRepository.findOne({
+        where: { id, cafeId },
+      });
+    } catch (error: unknown) {
+      this.logger.error(
+        `Failed to fetch employee ${id}: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        error instanceof Error ? error.stack : undefined,
+      );
+      throw error;
+    }
+  }
 
-  // TODO: Uncomment when UpdateEmployeeInput DTO is created
-  // @Mutation(() => Employee)
-  // @UseGuards(PermGuard)
-  // async updateEmployee(
-  //   @Args('id') id: string,
-  //   @Args('input') input: UpdateEmployeeInput,
-  //   @ReqUser() user: User,
-  // ): Promise<Employee> {
-  //   try {
-  //     const employee = await this.employeeService.updateEmployee(id, input, user);
-  //     this.dataLoader.employeeById.clear(id);
-  //     this.dataLoader.clearCacheByPattern(`cafeEmployees:${employee.cafeId}`);
-  //     await this.pubSub.publish('employeeUpdated', {
-  //       employeeUpdated: employee,
-  //       cafeId: employee.cafeId,
-  //     });
-  //     return employee;
-  //   } catch (error: unknown) {
-  //     this.logger.error(`Failed to update employee ${id}: ${error instanceof Error ? error.message : 'Unknown error'}`, error instanceof Error ? error.stack : undefined);
-  //     throw error;
-  //   }
-  // }
+  @Mutation(() => Employee)
+  @UseGuards(PermGuard)
+  async createEmployee(@Args('input') input: EmployeeCreateInput, @Args('cafeId') cafeId: string, @ReqUser() user: User): Promise<Employee> {
+    try {
+      // Verify user has permission for this cafe
+      const hasPermission = user.cafes?.some((cafe) => cafe.id === cafeId);
+      if (!hasPermission) {
+        throw new Error('User does not have permission for this cafe');
+      }
+
+      const employee = this.employeeRepository.create({
+        ...input,
+        cafeId,
+      });
+      const savedEmployee = await this.employeeRepository.save(employee);
+
+      await this.pubSub.publish('employeeCreated', {
+        employeeCreated: savedEmployee,
+        cafeId: savedEmployee.cafeId,
+      });
+
+      return savedEmployee;
+    } catch (error: unknown) {
+      this.logger.error(
+        `Failed to create employee: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        error instanceof Error ? error.stack : undefined,
+      );
+      throw error;
+    }
+  }
+
+  @Mutation(() => Employee)
+  @UseGuards(PermGuard)
+  async updateEmployee(
+    @Args('id') id: string,
+    @Args('input') input: EmployeeUpdateInput,
+    @Args('cafeId') cafeId: string,
+    @ReqUser() user: User,
+  ): Promise<Employee> {
+    try {
+      // Verify user has permission for this cafe
+      const hasPermission = user.cafes?.some((cafe) => cafe.id === cafeId);
+      if (!hasPermission) {
+        throw new Error('User does not have permission for this cafe');
+      }
+
+      await this.employeeRepository.update({ id, cafeId }, input);
+      const employee = await this.employeeRepository.findOne({
+        where: { id, cafeId },
+      });
+
+      if (!employee) {
+        throw new Error('Employee not found');
+      }
+
+      await this.pubSub.publish('employeeUpdated', {
+        employeeUpdated: employee,
+        cafeId: employee.cafeId,
+      });
+
+      return employee;
+    } catch (error: unknown) {
+      this.logger.error(
+        `Failed to update employee ${id}: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        error instanceof Error ? error.stack : undefined,
+      );
+      throw error;
+    }
+  }
 
   @Mutation(() => Boolean)
   @UseGuards(PermGuard)
-  async deactivateEmployee(
-    @Args('id') id: string,
-    @ReqUser() user: User,
-  ): Promise<boolean> {
+  async deactivateEmployee(@Args('id') id: string, @Args('cafeId') cafeId: string, @ReqUser() user: User): Promise<boolean> {
     try {
-      await this.employeeRepository.softDelete({ id, cafeId: user.cafeId });
+      // Verify user has permission for this cafe
+      const hasPermission = user.cafes?.some((cafe) => cafe.id === cafeId);
+      if (!hasPermission) {
+        throw new Error('User does not have permission for this cafe');
+      }
+
+      await this.employeeRepository.softDelete({ id, cafeId });
 
       await this.pubSub.publish('employeeDeactivated', {
         employeeDeactivated: { id },
@@ -144,7 +155,10 @@ export class EmployeeResolver {
 
       return true;
     } catch (error: unknown) {
-      this.logger.error(`Failed to deactivate employee ${id}: ${error instanceof Error ? error.message : 'Unknown error'}`, error instanceof Error ? error.stack : undefined);
+      this.logger.error(
+        `Failed to deactivate employee ${id}: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        error instanceof Error ? error.stack : undefined,
+      );
       throw error;
     }
   }

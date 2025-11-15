@@ -4,6 +4,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { ConfigService } from '@nestjs/config';
 import { initializeDataSource } from './orm.config';
+import { seed } from './seed';
 
 @Module({
   imports: [
@@ -19,4 +20,9 @@ import { initializeDataSource } from './orm.config';
     }),
   ],
 })
-export class DatabaseModule {}
+export class DatabaseModule {
+  // after module init
+  async onModuleInit() {
+    // await seed(false);
+  }
+}

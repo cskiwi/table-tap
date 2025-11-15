@@ -1,9 +1,18 @@
 import { MigrationInterface, QueryRunner } from "typeorm";
 
-export class Migrations1763214957364 implements MigrationInterface {
-    name = 'Migrations1763214957364'
+export class MultipleCafesPerUserAndHostnames1763216263568 implements MigrationInterface {
+    name = 'MultipleCafesPerUserAndHostnames1763216263568'
 
     public async up(queryRunner: QueryRunner): Promise<void> {
+        await queryRunner.query(`
+            ALTER TABLE "Users" DROP CONSTRAINT "FK_22149f679893ad21ae9782c6f01"
+        `);
+        await queryRunner.query(`
+            DROP INDEX "public"."IDX_22149f679893ad21ae9782c6f0"
+        `);
+        await queryRunner.query(`
+            DROP INDEX "public"."IDX_cd09a2e0b5c8f0d9ab7ab8d340"
+        `);
         await queryRunner.query(`
             CREATE TYPE "public"."scheduled_shifts_status_enum" AS ENUM(
                 'scheduled',
@@ -113,12 +122,6 @@ export class Migrations1763214957364 implements MigrationInterface {
             )
         `);
         await queryRunner.query(`
-            CREATE INDEX "IDX_2f86d1ade33d4dbc029e216904" ON "attendance_records" ("employeeId")
-        `);
-        await queryRunner.query(`
-            CREATE INDEX "IDX_6fe9e80bee61d5ac47a27d40f2" ON "attendance_records" ("shiftId")
-        `);
-        await queryRunner.query(`
             CREATE INDEX "IDX_6fe9e80bee61d5ac47a27d40f2" ON "attendance_records" ("shiftId")
         `);
         await queryRunner.query(`
@@ -199,9 +202,20 @@ export class Migrations1763214957364 implements MigrationInterface {
             CREATE UNIQUE INDEX "IDX_0d5a461d8a3ea7272811947c76" ON "CafeHostnames" ("hostname")
         `);
         await queryRunner.query(`
-            ALTER TABLE "Users"
-            ALTER COLUMN "sub"
-            SET NOT NULL
+            CREATE TABLE "UserCafes" (
+                "userId" uuid NOT NULL,
+                "cafeId" uuid NOT NULL,
+                CONSTRAINT "PK_b6f556915bc3d64a9c601dee066" PRIMARY KEY ("userId", "cafeId")
+            )
+        `);
+        await queryRunner.query(`
+            CREATE INDEX "IDX_16d40fdf0db4d6b4de1213ebbb" ON "UserCafes" ("userId")
+        `);
+        await queryRunner.query(`
+            CREATE INDEX "IDX_3d694b4682193bfc075e4898bb" ON "UserCafes" ("cafeId")
+        `);
+        await queryRunner.query(`
+            ALTER TABLE "Users" DROP COLUMN "cafeId"
         `);
         await queryRunner.query(`
             ALTER TABLE "scheduled_shifts"
@@ -263,9 +277,23 @@ export class Migrations1763214957364 implements MigrationInterface {
             ALTER TABLE "CafeHostnames"
             ADD CONSTRAINT "FK_03a0791236e4e5bbc88253c0ed9" FOREIGN KEY ("cafeId") REFERENCES "Cafes"("id") ON DELETE CASCADE ON UPDATE NO ACTION
         `);
+        await queryRunner.query(`
+            ALTER TABLE "UserCafes"
+            ADD CONSTRAINT "FK_16d40fdf0db4d6b4de1213ebbbe" FOREIGN KEY ("userId") REFERENCES "Users"("id") ON DELETE CASCADE ON UPDATE CASCADE
+        `);
+        await queryRunner.query(`
+            ALTER TABLE "UserCafes"
+            ADD CONSTRAINT "FK_3d694b4682193bfc075e4898bb0" FOREIGN KEY ("cafeId") REFERENCES "Cafes"("id") ON DELETE NO ACTION ON UPDATE NO ACTION
+        `);
     }
 
     public async down(queryRunner: QueryRunner): Promise<void> {
+        await queryRunner.query(`
+            ALTER TABLE "UserCafes" DROP CONSTRAINT "FK_3d694b4682193bfc075e4898bb0"
+        `);
+        await queryRunner.query(`
+            ALTER TABLE "UserCafes" DROP CONSTRAINT "FK_16d40fdf0db4d6b4de1213ebbbe"
+        `);
         await queryRunner.query(`
             ALTER TABLE "CafeHostnames" DROP CONSTRAINT "FK_03a0791236e4e5bbc88253c0ed9"
         `);
@@ -310,7 +338,16 @@ export class Migrations1763214957364 implements MigrationInterface {
         `);
         await queryRunner.query(`
             ALTER TABLE "Users"
-            ALTER COLUMN "sub" DROP NOT NULL
+            ADD "cafeId" uuid NOT NULL
+        `);
+        await queryRunner.query(`
+            DROP INDEX "public"."IDX_3d694b4682193bfc075e4898bb"
+        `);
+        await queryRunner.query(`
+            DROP INDEX "public"."IDX_16d40fdf0db4d6b4de1213ebbb"
+        `);
+        await queryRunner.query(`
+            DROP TABLE "UserCafes"
         `);
         await queryRunner.query(`
             DROP INDEX "public"."IDX_0d5a461d8a3ea7272811947c76"
@@ -350,12 +387,6 @@ export class Migrations1763214957364 implements MigrationInterface {
         `);
         await queryRunner.query(`
             DROP INDEX "public"."IDX_6fe9e80bee61d5ac47a27d40f2"
-        `);
-        await queryRunner.query(`
-            DROP INDEX "public"."IDX_6fe9e80bee61d5ac47a27d40f2"
-        `);
-        await queryRunner.query(`
-            DROP INDEX "public"."IDX_2f86d1ade33d4dbc029e216904"
         `);
         await queryRunner.query(`
             DROP TABLE "attendance_records"
@@ -404,6 +435,16 @@ export class Migrations1763214957364 implements MigrationInterface {
         `);
         await queryRunner.query(`
             DROP TYPE "public"."scheduled_shifts_status_enum"
+        `);
+        await queryRunner.query(`
+            CREATE INDEX "IDX_cd09a2e0b5c8f0d9ab7ab8d340" ON "Users" ("cafeId", "role")
+        `);
+        await queryRunner.query(`
+            CREATE INDEX "IDX_22149f679893ad21ae9782c6f0" ON "Users" ("cafeId")
+        `);
+        await queryRunner.query(`
+            ALTER TABLE "Users"
+            ADD CONSTRAINT "FK_22149f679893ad21ae9782c6f01" FOREIGN KEY ("cafeId") REFERENCES "Cafes"("id") ON DELETE CASCADE ON UPDATE NO ACTION
         `);
     }
 

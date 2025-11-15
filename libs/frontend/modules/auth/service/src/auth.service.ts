@@ -168,7 +168,12 @@ export class AuthService {
               fullName
               slug
               role
-              cafeId
+              cafes {
+                id
+                name
+                slug
+                isActive
+              }
             }
           }
         `

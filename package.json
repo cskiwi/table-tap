@@ -13,7 +13,7 @@
     "migrate:create": "npx cross-env RUN_MIGRATIONS=true nx run backend-database:migration-generate",
     "migrate": "npx cross-env RUN_MIGRATIONS=true nx run backend-database:migration-run",
     "migrate:undo": "npx cross-env RUN_MIGRATIONS=true nx run backend-database:migration-revert",
-    "db:seed": "npx ts-node -P libs/backend/database/tsconfig.lib.json libs/backend/database/src/seed.ts"
+    "db:seed": "npx ts-node -P libs/backend/database/tsconfig.lib.json libs/backend/database/src/run-seed.ts"
   },
   "private": true,
   "dependencies": {

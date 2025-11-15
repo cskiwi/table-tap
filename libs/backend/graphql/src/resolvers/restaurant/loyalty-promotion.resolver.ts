@@ -27,11 +27,18 @@ export class LoyaltyPromotionResolver {
   @UseGuards(PermGuard)
   async loyaltyPromotion(
     @Args('id') id: string,
+    @Args('cafeId') cafeId: string,
     @ReqUser() user: User,
   ): Promise<LoyaltyPromotion | null> {
     try {
+      // Verify user has permission for this cafe
+      const hasPermission = user.cafes?.some(cafe => cafe.id === cafeId);
+      if (!hasPermission) {
+        throw new Error('User does not have permission for this cafe');
+      }
+
       return await this.loyaltyPromotionRepository.findOne({
-        where: { id, cafeId: user.cafeId }
+        where: { id, cafeId }
       });
     } catch (error: unknown) {
       this.logger.error(`Failed to fetch loyalty promotion ${id}: ${error instanceof Error ? error.message : 'Unknown error'}`, error instanceof Error ? error.stack : undefined);
