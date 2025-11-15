@@ -1,5 +1,5 @@
 import { PermGuard, ReqUser } from '@app/backend-authorization';
-import { Cafe, User } from '@app/models';
+import { Cafe, CafeHostname, User } from '@app/models';
 import { Injectable, UseGuards } from '@nestjs/common';
 import { Args, Mutation, Parent, Query, ResolveField, Resolver, Subscription } from '@nestjs/graphql';
 import { GraphQLJSONObject } from 'graphql-type-json';
@@ -18,6 +18,8 @@ export class CafeResolver {
   constructor(
     @InjectRepository(Cafe)
     private readonly cafeRepository: Repository<Cafe>,
+    @InjectRepository(CafeHostname)
+    private readonly cafeHostnameRepository: Repository<CafeHostname>,
   ) {}
 
   // Queries
@@ -51,6 +53,33 @@ export class CafeResolver {
     // Use repository directly - get user's cafe
     return this.cafeRepository.find({
       where: { id: user.cafeId },
+    });
+  }
+
+  /**
+   * Query to find a cafe by its hostname.
+   * This is used for hostname-based cafe detection and does NOT require authentication.
+   * This allows the frontend to detect which cafe is being visited before login.
+   *
+   * @param hostname - The hostname to lookup (e.g., "my-cafe.tabletap.com", "localhost:4200")
+   * @returns The cafe associated with the hostname, or null if not found
+   */
+  @Query(() => Cafe, { nullable: true })
+  async cafeByHostname(@Args('hostname') hostname: string): Promise<Cafe | null> {
+    // Find the hostname entry
+    const cafeHostname = await this.cafeHostnameRepository.findOne({
+      where: { hostname, isActive: true },
+      relations: ['cafe'],
+    });
+
+    if (!cafeHostname) {
+      return null;
+    }
+
+    // Return the associated cafe with its hostnames
+    return this.cafeRepository.findOne({
+      where: { id: cafeHostname.cafeId },
+      relations: ['hostnames'],
     });
   }
 

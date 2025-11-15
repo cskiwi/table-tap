@@ -57,6 +57,23 @@ export class MenuResolver {
     });
   }
 
+  @Query(() => [Product])
+  async menuCategories(
+    @Args('cafeId') cafeId: string,
+    @Args('activeOnly', { nullable: true, defaultValue: true }) activeOnly?: boolean,
+  ): Promise<Product[]> {
+    // Get all products for the cafe, optionally filtering by availability
+    const where: any = { cafeId };
+    if (activeOnly) {
+      where.isAvailable = true;
+    }
+
+    return this.productRepository.find({
+      where,
+      order: { category: 'ASC', sortOrder: 'ASC', name: 'ASC' }
+    });
+  }
+
   // Mutations
   @Mutation(() => Product)
   @UseGuards(PermGuard)

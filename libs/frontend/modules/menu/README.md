@@ -42,7 +42,6 @@ import { MenuDisplayComponent } from '@app/frontend-modules-menu';
   imports: [MenuDisplayComponent],
   template: `
     <app-menu-display
-      [cafeId]="cafeId"
       [cafeName]="cafeName"
       (itemSelected)="onItemSelected($event)"
       (addToCart)="onAddToCart($event)"
@@ -50,7 +49,8 @@ import { MenuDisplayComponent } from '@app/frontend-modules-menu';
   `
 })
 export class AppComponent {
-  cafeId = 'your-cafe-id';
+  // Note: cafeId is automatically retrieved from the authenticated user
+  // The route must be protected with CafeGuard
   cafeName = 'Your Restaurant';
 
   onItemSelected(item: MenuItem) {
@@ -73,7 +73,6 @@ import { MenuDisplayComponent, MenuItemDetailComponent } from '@app/frontend-mod
   imports: [MenuDisplayComponent, MenuItemDetailComponent],
   template: `
     <app-menu-display
-      [cafeId]="cafeId"
       [cafeName]="cafeName"
       (itemSelected)="showItemDetail($event)"
       (addToCart)="onAddToCart($event)"
@@ -89,6 +88,9 @@ import { MenuDisplayComponent, MenuItemDetailComponent } from '@app/frontend-mod
   `
 })
 export class MenuPageComponent {
+  // Note: cafeId is automatically retrieved from the authenticated user
+  // via CafeGuard - no need to pass it as input
+  cafeName = 'Your Restaurant';
   showDetail = false;
   selectedItem: MenuItem | null = null;
   customizationOptions = [];
@@ -148,9 +150,19 @@ export class CustomMenuComponent {
 
 ### MenuDisplayComponent
 
+**⚠️ Route Protection Required:** This component automatically retrieves `cafeId` from the authenticated user. The route **must** be protected with `CafeGuard`:
+
+```typescript
+// app.routes.ts
+{
+  path: 'menu',
+  loadChildren: () => import('@app/frontend-modules-menu'),
+  canActivate: [CafeGuard],  // ← Required!
+}
+```
+
 #### Inputs
-- `cafeId: string` - Required cafe identifier
-- `cafeName: string` - Display name for the restaurant
+- `cafeName?: string` - Display name for the restaurant (default: 'Restaurant')
 - `initialCategoryId?: string` - Pre-select a category
 
 #### Outputs

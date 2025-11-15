@@ -13,10 +13,12 @@ import { ProgressBarModule } from 'primeng/progressbar';
 import { Apollo } from 'apollo-angular';
 import { Observable, of } from 'rxjs';
 import { map, startWith } from 'rxjs/operators';
+import { injectRouteData } from 'ngxtension/inject-route-data';
 
 import { Order, Employee } from '@app/models';
 import { StaffStatus } from '@app/models/enums';
 import { GET_KITCHEN_STAFF } from '../../graphql/kitchen.operations';
+import { AuthService } from '@app/frontend-modules-auth/service';
 
 export interface StaffAssignmentDialogData {
   order: Order;
@@ -55,8 +57,12 @@ interface StaffMember extends Employee {
 export class StaffAssignmentDialogComponent {
   private readonly fb = inject(FormBuilder);
   private readonly apollo = inject(Apollo);
+  private readonly authService = inject(AuthService);
 
-  readonly cafeId = input.required<string>();
+  // Get cafeId from route data (provided by CafeGuard)
+  // CafeGuard detects the cafe from hostname and stores it in route.data
+  readonly cafeId = injectRouteData<string>('cafeId');
+
   readonly order = input.required<Order>();
   readonly assigned = output<StaffAssignmentDialogResult>();
   readonly cancelled = output<void>();

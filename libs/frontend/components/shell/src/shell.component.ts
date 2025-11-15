@@ -1,5 +1,5 @@
 import { CommonModule, isPlatformBrowser } from '@angular/common';
-import { Component, inject, PLATFORM_ID, signal, HostListener } from '@angular/core';
+import { Component, inject, PLATFORM_ID, signal } from '@angular/core';
 import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 import { SwUpdate, VersionReadyEvent } from '@angular/service-worker';
 import { AuthService } from '@app/frontend-modules-auth/service';
@@ -13,6 +13,7 @@ import { MessageService } from 'primeng/api';
   selector: 'app-shell',
   templateUrl: './shell.component.html',
   providers: [MessageService],
+  host: { '(document:click)': 'onDocumentClick($event)', '(window:resize)': 'onWindowResize()' },
 })
 export class ShellComponent {
   private readonly platformId = inject<string>(PLATFORM_ID);
@@ -38,13 +39,13 @@ export class ShellComponent {
   }
 
   logout() {
-    this.auth.state.logout()
-    this.closeSidebar()
-    this.closeUserMenu()
+    this.auth.state.logout();
+    this.closeSidebar();
+    this.closeUserMenu();
   }
 
   toggleSidebar() {
-    this.sidebarVisible.update(visible => !visible);
+    this.sidebarVisible.update((visible) => !visible);
   }
 
   closeSidebar() {
@@ -52,28 +53,26 @@ export class ShellComponent {
   }
 
   toggleUserMenu() {
-    this.userMenuVisible.update(visible => !visible);
+    this.userMenuVisible.update((visible) => !visible);
   }
 
   closeUserMenu() {
     this.userMenuVisible.set(false);
   }
 
-  @HostListener('document:click', ['$event'])
   onDocumentClick(event: Event) {
     const target = event.target as HTMLElement;
 
     // Close user menu if clicking outside
     if (!target.closest('.user-menu')) {
-      this.closeUserMenu()
+      this.closeUserMenu();
     }
   }
 
-  @HostListener('window:resize', ['$event'])
   onWindowResize() {
     // Close sidebar on desktop resize
     if (window.innerWidth >= 768) {
-      this.closeSidebar()
+      this.closeSidebar();
     }
   }
 

@@ -30,6 +30,7 @@ import { Configuration } from '../configuration';
 import { Counter } from '../counter';
 import { User } from '../user';
 import { CafeBusinessHours } from './cafe-business-hours.model';
+import { CafeHostname } from './cafe-hostname.model';
 import { CafeSettings } from './cafe-settings.model';
 
 @ObjectType('Cafe')
@@ -134,6 +135,9 @@ export class Cafe extends BaseEntity {
 
   @OneToMany(() => CafeBusinessHours, (hours) => hours.cafe, { cascade: true })
   declare businessHours: Relation<CafeBusinessHours[]>;
+
+  @OneToMany(() => CafeHostname, (hostname) => hostname.cafe, { cascade: true })
+  declare hostnames: Relation<CafeHostname[]>;
 
   // Relations
   @OneToMany(() => User, (user) => user.cafe, { cascade: true })

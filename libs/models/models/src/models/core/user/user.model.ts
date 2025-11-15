@@ -44,7 +44,8 @@ export class User extends BaseEntity {
   @DeleteDateColumn({ nullable: true })
   declare deletedAt: Date;
 
-  // Multi-tenant support
+  // Multi-tenant support - User can have permissions for multiple cafes
+  // This represents which cafe(s) the user has access/permissions for
   @Field()
   @Column('uuid')
   @Index()

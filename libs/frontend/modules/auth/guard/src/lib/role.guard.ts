@@ -39,13 +39,6 @@ export class RoleGuard {
               return false;
             }
 
-            // CRITICAL: Validate cafeId is present
-            if (!user.cafeId) {
-              console.warn('RoleGuard: user has no cafeId, redirecting to home');
-              this.router.navigate(['/']);
-              return false;
-            }
-
             // If no specific roles required, just check if authenticated
             if (requiredRoles.length === 0) {
               return true;
@@ -80,13 +73,6 @@ export class RoleGuard {
 
     if (!user?.id) {
       this.router.navigate(['/auth/login']);
-      return false;
-    }
-
-    // CRITICAL: Validate cafeId is present
-    if (!user.cafeId) {
-      console.warn('RoleGuard: user has no cafeId, redirecting to home');
-      this.router.navigate(['/']);
       return false;
     }
 

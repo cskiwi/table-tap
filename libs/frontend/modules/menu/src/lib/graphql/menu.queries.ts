@@ -49,9 +49,13 @@ export const GET_MENU_CATEGORIES = gql`
       id
       name
       description
-      imageUrl
+      category
+      basePrice
+      finalPrice
+      image
+      isAvailable
+      isFeatured
       sortOrder
-      isActive
       cafeId
     }
   }
@@ -153,24 +157,18 @@ export const GET_MENU_WITH_CATEGORIES = gql`
       id
       name
       description
-      imageUrl
+      category
+      basePrice
+      finalPrice
+      discountPrice
+      image
+      isAvailable
+      isFeatured
       sortOrder
-      isActive
+      preparationTime
+      tags
       cafeId
-      menuItems {
-        id
-        name
-        description
-        price
-        status
-        preparationTime
-        imageUrl
-        nutritionalInfo
-        allergens
-        sortOrder
-        cafeId
-        categoryId
-      }
+      status
     }
   }
 `;

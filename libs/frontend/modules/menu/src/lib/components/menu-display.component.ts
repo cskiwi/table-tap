@@ -1,7 +1,8 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, computed, inject, input, output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
+import { AuthService } from '@app/frontend-modules-auth/service';
 import { Subject } from 'rxjs';
 
 // PrimeNG Components
@@ -20,6 +21,7 @@ import { TagModule } from 'primeng/tag';
 import { ToggleButtonModule } from 'primeng/togglebutton';
 import { TooltipModule } from 'primeng/tooltip';
 
+import { injectRouteData } from 'ngxtension/inject-route-data';
 import { MenuService } from '../services/menu.service';
 import { MenuItem, MenuItemStatus } from '../types/menu.types';
 
@@ -48,7 +50,6 @@ import { MenuItem, MenuItemStatus } from '../types/menu.types';
   templateUrl: './menu-display.component.html',
 })
 export class MenuDisplayComponent implements OnInit, OnDestroy {
-  readonly cafeId = input.required<string>();
   readonly cafeName = input('Restaurant');
   readonly initialCategoryId = input<string>();
 
@@ -57,8 +58,8 @@ export class MenuDisplayComponent implements OnInit, OnDestroy {
   readonly retryLoad = output<void>();
 
   private readonly destroy$ = new Subject<void>();
-  private readonly router = inject(Router);
   readonly menuService = inject(MenuService);
+  readonly cafeId = injectRouteData<string>('cafeId');
 
   // Local component state
   searchQuery = '';
@@ -136,7 +137,10 @@ export class MenuDisplayComponent implements OnInit, OnDestroy {
   }
 
   private loadMenu(): void {
-    this.menuService.loadCompleteMenu(this.cafeId()).subscribe();
+    const cafeId = this.cafeId();
+    if (cafeId) {
+      this.menuService.loadCompleteMenu(cafeId).subscribe();
+    }
   }
 
   private setupSearchDebouncing(): void {

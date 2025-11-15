@@ -82,43 +82,55 @@ query {
 - No cafeId → `/` (home page)
 
 **Example Usage:**
+
 ```typescript
+// Cafe required only (menu, cart)
 {
   path: 'menu',
   loadChildren: () => import('./menu'),
-  canActivate: [CafeGuard],  // ← Enforces cafe loading
+  canActivate: [CafeGuard],
+}
+
+// Cafe + Role required (order, kitchen, admin)
+{
+  path: 'order',
+  loadChildren: () => import('./order'),
+  canActivate: [CafeGuard, RoleGuard],
+  data: { roles: ['customer'] }
 }
 ```
 
-### RoleGuard (Enhanced)
+### RoleGuard
 
 **Location:** [libs/frontend/modules/auth/guard/src/lib/role.guard.ts](libs/frontend/modules/auth/guard/src/lib/role.guard.ts)
 
-**Purpose:** Validates both role AND cafeId for role-protected routes.
+**Purpose:** Validates user role for role-protected routes.
 
 **Validation Logic:**
 
 1. ✅ User is authenticated
 2. ✅ User has a valid ID
-3. ✅ **User has a non-null cafeId** (NEW!)
-4. ✅ User has required role
+3. ✅ User has required role
 
 **Redirects:**
 - No authentication → `/auth/login`
-- No cafeId → `/` (home page)
 - Wrong role → Specified redirect or `/`
+
+**Note:** When cafe validation is also required, use `canActivate: [CafeGuard, RoleGuard]` to compose both guards.
 
 ## Route Protection Matrix
 
-| Route | Guard | Cafe Required | Role Required |
-|-------|-------|---------------|---------------|
+| Route | Guards | Cafe Required | Role Required |
+|-------|--------|---------------|---------------|
 | `/` (home) | None | ❌ No | ❌ No |
 | `/auth/*` | None | ❌ No | ❌ No |
-| `/menu` | CafeGuard | ✅ Yes | ❌ No |
-| `/cart` | CafeGuard | ✅ Yes | ❌ No |
-| `/order/*` | RoleGuard | ✅ Yes | ✅ customer |
-| `/kitchen/*` | RoleGuard | ✅ Yes | ✅ kitchen_staff, admin |
-| `/admin/*` | RoleGuard | ✅ Yes | ✅ admin |
+| `/menu` | `[CafeGuard]` | ✅ Yes | ❌ No |
+| `/cart` | `[CafeGuard]` | ✅ Yes | ❌ No |
+| `/order/*` | `[CafeGuard, RoleGuard]` | ✅ Yes | ✅ customer |
+| `/kitchen/*` | `[CafeGuard, RoleGuard]` | ✅ Yes | ✅ kitchen_staff, admin |
+| `/admin/*` | `[CafeGuard, RoleGuard]` | ✅ Yes | ✅ admin |
+
+**Note:** Routes requiring both cafe and role validation use both guards explicitly for clarity and easier maintenance.
 
 ## Backend GraphQL Context
 
