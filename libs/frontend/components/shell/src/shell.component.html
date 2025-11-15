@@ -11,7 +11,10 @@
         <i class="pi pi-bars"></i>
       </button>
 
-      <a routerLink="/" class="flex items-center gap-2 text-primary-contrast no-underline text-2xl font-bold transition-opacity duration-200 hover:opacity-80">
+      <a
+        routerLink="/"
+        class="flex items-center gap-2 text-primary-contrast no-underline text-2xl font-bold transition-opacity duration-200 hover:opacity-80"
+      >
         <i class="pi pi-coffee text-[1.75rem]"></i>
         <span>TableTap</span>
       </a>
@@ -28,7 +31,10 @@
               <i [class]="item.icon"></i>
               <span>{{ item.label }}</span>
               @if (item.badge) {
-                <span class="badge bg-highlight-emphasis text-primary-contrast px-1.5 py-0.5 rounded-border text-xs font-semibold min-w-5 text-center">{{ item.badge }}</span>
+                <span
+                  class="badge bg-highlight-emphasis text-primary-contrast px-1.5 py-0.5 rounded-border text-xs font-semibold min-w-5 text-center"
+                  >{{ item.badge }}</span
+                >
               }
             </a>
           }
@@ -128,7 +134,7 @@
     [class.-left-[300px]]="!sidebarVisible()"
     [class.left-0]="sidebarVisible()"
   >
-  <div class="flex items-center justify-between p-4 border-b border-surface">
+    <div class="flex items-center justify-between p-4 border-b border-surface">
       <h3 class="m-0 text-color-emphasis text-xl">Navigation</h3>
       <button
         class="bg-transparent border-0 text-muted-color text-xl p-2 rounded-border cursor-pointer transition-all duration-200 hover:bg-highlight hover:text-color-emphasis"
@@ -153,7 +159,10 @@
               <i [class]="item.icon"></i>
               <span>{{ item.label }}</span>
               @if (item.badge) {
-                <span class="badge bg-highlight-emphasis text-primary-contrast px-1.5 py-0.5 rounded-border text-xs font-semibold min-w-5 text-center">{{ item.badge }}</span>
+                <span
+                  class="badge bg-highlight-emphasis text-primary-contrast px-1.5 py-0.5 rounded-border text-xs font-semibold min-w-5 text-center"
+                  >{{ item.badge }}</span
+                >
               }
             </a>
             @if (item.children && item.children.length > 0) {

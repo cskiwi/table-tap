@@ -15,6 +15,8 @@ export class AuthGuard {
   private readonly platform = inject(PLATFORM_ID);
 
   canActivate(next: ActivatedRouteSnapshot, state: RouterStateSnapshot) {
+    console.log('Getting key: %s', this.cookie.get(AUTH_KEY));
+
     // on the server we need to check if we have a token and fetch the user
     if (isPlatformServer(this.platform)) {
       if (this.cookie.check(AUTH_KEY)) {
@@ -25,7 +27,7 @@ export class AuthGuard {
               return false;
             }
             return true;
-          })
+          }),
         );
       }
       return of(false);
@@ -34,7 +36,7 @@ export class AuthGuard {
     // on the client we can just check the state
     if (!this.auth?.state.loggedIn()) {
       this.auth.state.login({
-        appState: { target: state.url }
+        appState: { target: state.url },
       });
 
       return false;

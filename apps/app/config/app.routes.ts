@@ -1,6 +1,6 @@
 import { Route } from '@angular/router';
 import { pageHomeRoutes } from '@app/frontend-pages-home';
-import { RoleGuard } from '@app/frontend-modules-auth/guard';
+import { RoleGuard, CafeGuard } from '@app/frontend-modules-auth/guard';
 
 export const appRoutes: Route[] = [
   {
@@ -10,11 +10,13 @@ export const appRoutes: Route[] = [
   {
     path: 'menu',
     loadChildren: () => import('@app/frontend-modules-menu').then((m) => m.menuRoutes),
+    canActivate: [CafeGuard],
     title: 'Menu - TableTap',
   },
   {
     path: 'cart',
     loadChildren: () => import('@app/frontend-modules-cart').then((m) => m.cartRoutes),
+    canActivate: [CafeGuard],
     title: 'Cart - TableTap',
   },
   {

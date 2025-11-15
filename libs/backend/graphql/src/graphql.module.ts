@@ -123,25 +123,38 @@ import { CacheModule } from '@nestjs/cache-manager';
         }
 
         // Add custom plugins
-        plugins.push(
-          new QueryComplexityPlugin({
-            maximumComplexity: config.get<number>('GRAPHQL_MAX_COMPLEXITY') || 1000,
-            enableLogging: config.get<boolean>('GRAPHQL_LOG_COMPLEXITY') || true,
-          }),
-          new RequestLoggingPlugin({
-            enableMetrics: true,
-            enableQueryLogging: env !== 'production',
-            slowQueryThreshold: config.get<number>('GRAPHQL_SLOW_QUERY_THRESHOLD') || 1000,
-            logVariables: env === 'development',
-          }),
-        );
+        plugins
+          .push
+          // new QueryComplexityPlugin({
+          //   maximumComplexity: config.get<number>('GRAPHQL_MAX_COMPLEXITY') || 1000,
+          //   enableLogging: config.get<boolean>('GRAPHQL_LOG_COMPLEXITY') || true,
+          // }),
+          // new RequestLoggingPlugin({
+          //   enableMetrics: true,
+          //   enableQueryLogging: env !== 'production',
+          //   slowQueryThreshold: config.get<number>('GRAPHQL_SLOW_QUERY_THRESHOLD') || 1000,
+          //   logVariables: env === 'development',
+          // }),
+          ();
 
         return {
           playground: false,
           debug: env !== 'production',
           autoSchemaFile: true,
           sortSchema: true,
-          context: ({ req }: { req: unknown }) => ({ req }),
+          context: ({ req }: { req: any }) => {
+            // Extract user from request (set by JWT middleware)
+            const user = req?.user;
+
+            // Extract cafeId from authenticated user
+            const cafeId = user?.cafeId;
+
+            return {
+              req,
+              user,
+              cafeId,
+            };
+          },
           plugins,
           introspection: true,
           formatError: (error: GraphQLError): GraphQLFormattedError => {
