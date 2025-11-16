@@ -119,7 +119,7 @@ export const seed = async (createConnect = true) => {
       phoneNumber: '+1-555-100-0001',
       role: UserRole.ADMIN,
       status: UserStatus.ACTIVE,
-      sub: 'auth0|admin-seed',
+      sub: 'google-oauth2|100086312067632213642',
       slug: 'glenn-admin',
     });
 
