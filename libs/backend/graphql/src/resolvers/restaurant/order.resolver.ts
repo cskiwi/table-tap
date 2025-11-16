@@ -8,6 +8,7 @@ import { GraphQLJSONObject } from 'graphql-type-json';
 import { Repository } from 'typeorm';
 import { OrderCreateInput, OrderUpdateInput } from '../../inputs/order.input';
 import { OrderArgs } from '../../args';
+import { PublicAccess } from '../../middleware/role-access-control.middleware';
 
 @Injectable()
 @Resolver(() => Order)
@@ -87,8 +88,11 @@ export class OrderResolver {
 
   // Mutations - Use service for business logic (validation, payments, inventory)
   @Mutation(() => Order)
-  @UseGuards(PermGuard)
-  async createOrder(@Args('input') input: OrderCreateInput, @ReqUser() user: User): Promise<Order> {
+  @PublicAccess() // Public: Allow guest checkout without authentication
+  async createOrder(
+    @Args('input') input: OrderCreateInput,
+    @ReqUser() user?: User // Optional for guest orders
+  ): Promise<Order> {
     try {
       // Order creation has complex business logic - use service
       // (validation, inventory deduction, counter assignment, payment checks)

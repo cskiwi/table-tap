@@ -9,6 +9,7 @@ import { Repository } from 'typeorm';
 // not working
 import { CafeArgs } from '../../args';
 import { CafeCreateInput, CafeUpdateInput } from '../../inputs';
+import { PublicAccess } from '../../middleware/role-access-control.middleware';
 
 @Injectable()
 @Resolver(() => Cafe)
@@ -63,32 +64,33 @@ export class CafeResolver {
     return user.cafes || [];
   }
 
-  // /**
-  //  * Query to find a cafe by its hostname.
-  //  * This is used for hostname-based cafe detection and does NOT require authentication.
-  //  * This allows the frontend to detect which cafe is being visited before login.
-  //  *
-  //  * @param hostname - The hostname to lookup (e.g., "my-cafe.tabletap.com", "localhost:4200")
-  //  * @returns The cafe associated with the hostname, or null if not found
-  //  */
-  // @Query(() => Cafe, { nullable: true })
-  // async cafeByHostname(@Args('hostname') hostname: string): Promise<Cafe | null> {
-  //   // Find the hostname entry
-  //   const cafeHostname = await this.cafeHostnameRepository.findOne({
-  //     where: { hostname, isActive: true },
-  //     relations: ['cafe'],
-  //   });
+  /**
+   * Query to find a cafe by its hostname.
+   * This is used for hostname-based cafe detection and does NOT require authentication.
+   * This allows the frontend to detect which cafe is being visited before login.
+   *
+   * @param hostname - The hostname to lookup (e.g., "my-cafe.tabletap.com", "localhost:4200")
+   * @returns The cafe associated with the hostname, or null if not found
+   */
+  @Query(() => Cafe, { nullable: true })
+  @PublicAccess() // Public: Required for hostname-based cafe detection before login
+  async cafeByHostname(@Args('hostname') hostname: string): Promise<Cafe | null> {
+    // Find the hostname entry
+    const cafeHostname = await this.cafeHostnameRepository.findOne({
+      where: { hostname, isActive: true },
+      relations: ['cafe'],
+    });
 
-  //   if (!cafeHostname) {
-  //     return null;
-  //   }
+    if (!cafeHostname) {
+      return null;
+    }
 
-  //   // Return the associated cafe with its hostnames
-  //   return this.cafeRepository.findOne({
-  //     where: { id: cafeHostname.cafeId },
-  //     relations: ['hostnames'],
-  //   });
-  // }
+    // Return the associated cafe with its hostnames
+    return this.cafeRepository.findOne({
+      where: { id: cafeHostname.cafeId },
+      relations: ['hostnames'],
+    });
+  }
 
   // Mutations
   @Mutation(() => Cafe)

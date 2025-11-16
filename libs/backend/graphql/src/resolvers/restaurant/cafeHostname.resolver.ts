@@ -6,6 +6,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { FindOptionsWhere, Repository } from 'typeorm';
 // not working
 import { CafeArgs, CafeHostnameArgs } from '../../args';
+import { PublicAccess } from '../../middleware/role-access-control.middleware';
 
 @Injectable()
 @Resolver(() => CafeHostname)
@@ -17,12 +18,10 @@ export class CafeHostnameResolver {
 
   // Queries
   @Query(() => [CafeHostname])
-  @UseGuards(PermGuard)
+  @PublicAccess() // Public: Required for hostname-based cafe detection
   async cafeHostnames(
     @Args('args', { type: () => CafeHostnameArgs, nullable: true })
     inputArgs?: InstanceType<typeof CafeHostnameArgs>,
-    @ReqUser()
-    user?: User,
   ): Promise<CafeHostname[]> {
     const args = CafeHostnameArgs.toFindOneOptions(inputArgs);
 
@@ -32,8 +31,8 @@ export class CafeHostnameResolver {
   }
 
   @Query(() => CafeHostname, { nullable: true })
-  @UseGuards(PermGuard)
-  async cafeHostname(@Args('id') id: string, @ReqUser() user: User): Promise<CafeHostname | null> {
+  @PublicAccess() // Public: Required for hostname-based cafe detection
+  async cafeHostname(@Args('id') id: string): Promise<CafeHostname | null> {
     // Use repository directly for simple CRUD
     return this.cafeHostnameRepository.findOne({
       where: { id },

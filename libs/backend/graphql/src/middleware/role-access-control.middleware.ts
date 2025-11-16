@@ -18,6 +18,9 @@ export const RequireResourceAccess = (resource: string, action: string) =>
 // Decorator for setting cafe-level access
 export const RequireCafeAccess = () => SetMetadata('cafeAccess', true);
 
+// Decorator for marking routes as publicly accessible (no authentication required)
+export const PublicAccess = () => SetMetadata('publicAccess', true);
+
 export interface UserWithEmployeeInfo extends User {
   employees?: Array<{
     id: string;
@@ -42,6 +45,13 @@ export class RoleBasedAccessGuard implements CanActivate {
   constructor(private reflector: Reflector) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
+    // Check if route is marked as public
+    const isPublic = this.reflector.get<boolean>('publicAccess', context.getHandler());
+    if (isPublic) {
+      this.logger.debug('Public route accessed - no authentication required');
+      return true;
+    }
+
     // Get GraphQL context
     const gqlContext = GqlExecutionContext.create(context);
     const { req } = gqlContext.getContext()

@@ -6,6 +6,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ProductCreateInput, ProductUpdateInput } from '../../inputs';
 import { ProductArgs } from '../../args';
+import { PublicAccess } from '../../middleware/role-access-control.middleware';
 
 @Injectable()
 @Resolver(() => Product)
@@ -21,6 +22,7 @@ export class MenuResolver {
 
   // Queries - Use dynamic Args for flexible querying
   @Query(() => [Product])
+  @PublicAccess() // Public: Customers need to view menu without authentication
   async products(
     @Args('args', { type: () => ProductArgs, nullable: true })
     inputArgs?: InstanceType<typeof ProductArgs>,
@@ -30,7 +32,7 @@ export class MenuResolver {
   }
 
   @Query(() => Product, { nullable: true })
-  @UseGuards(PermGuard)
+  @PublicAccess() // Public: Customers need to view individual products without authentication
   async product(
     @Args('id') id: string,
   ): Promise<Product | null> {
