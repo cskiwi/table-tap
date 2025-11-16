@@ -7,7 +7,7 @@
   "tags": ["scope:frontend", "type:feature"],
   "targets": {
     "build": {
-      "executor": "@nx/angular:ng-packagr-lite",
+      "executor": "@nx/angular:package",
       "outputs": ["{workspaceRoot}/dist/{projectRoot}"],
       "options": {
         "project": "libs/frontend/modules/kitchen/ng-package.json"

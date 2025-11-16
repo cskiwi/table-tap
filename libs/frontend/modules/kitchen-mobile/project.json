@@ -5,7 +5,7 @@
   "sourceRoot": "libs/frontend/modules/kitchen-mobile/src",
   "targets": {
     "build": {
-      "executor": "@nx/angular:ng-packagr-lite",
+      "executor": "@nx/angular:package",
       "outputs": ["{workspaceRoot}/dist/{projectRoot}"],
       "options": {
         "project": "libs/frontend/modules/kitchen-mobile/ng-package.json"

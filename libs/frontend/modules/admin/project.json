@@ -6,7 +6,7 @@
   "prefix": "tt",
   "targets": {
     "build": {
-      "executor": "@nx/angular:ng-packagr-lite",
+      "executor": "@nx/angular:package",
       "outputs": ["{workspaceRoot}/dist/libs/frontend/modules/admin"],
       "options": {
         "project": "libs/frontend/modules/admin/ng-package.json"
