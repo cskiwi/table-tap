@@ -5,11 +5,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { PubSub } from 'graphql-subscriptions';
 import { PermGuard, ReqUser } from '@app/backend-authorization';
-import { User } from '@app/models';
-import {
-  LoyaltyTier,
-  LoyaltyAccount,
-} from '@app/models';
+import { Cafe, LoyaltyAccount, LoyaltyTier, User } from '@app/models';
 import { LoyaltyTierArgs } from '../../args';
 
 @Injectable()
@@ -21,6 +17,8 @@ export class LoyaltyTierResolver {
   constructor(
     @InjectRepository(LoyaltyTier)
     private readonly loyaltyTierRepository: Repository<LoyaltyTier>,
+    @InjectRepository(Cafe)
+    private readonly cafeRepository: Repository<Cafe>,
   ) {}
 
   // Queries - only simple repository-based queries
@@ -64,9 +62,17 @@ export class LoyaltyTierResolver {
     }
   }
 
-  // All other queries, mutations, and field resolvers removed - require LoyaltyService which will not be implemented
+  // All other queries, mutations removed - require LoyaltyService which will not be implemented
 
-  // Field Resolvers - only simple logic without service dependencies
+  // Field Resolvers - Use parent object when available, lazy load via ID when not
+  @ResolveField(() => Cafe)
+  async cafe(@Parent() tier: LoyaltyTier): Promise<Cafe> {
+    if (tier.cafe) return tier.cafe;
+    const cafe = await this.cafeRepository.findOne({ where: { id: tier.cafeId } });
+    if (!cafe) throw new Error(`Cafe with ID ${tier.cafeId} not found`);
+    return cafe;
+  }
+
   @ResolveField(() => Number)
   async pointsRequired(@Parent() tier: LoyaltyTier): Promise<number> {
     return tier.minPoints || 0;

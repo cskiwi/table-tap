@@ -1,5 +1,5 @@
 import { PermGuard, ReqUser } from '@app/backend-authorization';
-import { Cafe, CafeHostname, User } from '@app/models';
+import { Cafe, CafeHostname, CafeSettings, Employee, Order, Product, User } from '@app/models';
 import { Injectable, UseGuards } from '@nestjs/common';
 import { Args, Mutation, Parent, Query, ResolveField, Resolver, Subscription } from '@nestjs/graphql';
 import { GraphQLJSONObject } from 'graphql-type-json';
@@ -20,6 +20,14 @@ export class CafeResolver {
     private readonly cafeRepository: Repository<Cafe>,
     @InjectRepository(CafeHostname)
     private readonly cafeHostnameRepository: Repository<CafeHostname>,
+    @InjectRepository(CafeSettings)
+    private readonly cafeSettingsRepository: Repository<CafeSettings>,
+    @InjectRepository(Product)
+    private readonly productRepository: Repository<Product>,
+    @InjectRepository(Order)
+    private readonly orderRepository: Repository<Order>,
+    @InjectRepository(Employee)
+    private readonly employeeRepository: Repository<Employee>,
   ) {}
 
   // Queries
@@ -123,7 +131,69 @@ export class CafeResolver {
     return true;
   }
 
-  // Field Resolvers removed - DataLoader not available
+  // Field Resolvers - Use parent object when available, lazy load via ID when not
+  @ResolveField(() => [CafeHostname])
+  async hostnames(@Parent() cafe: Cafe): Promise<CafeHostname[]> {
+    // If hostnames are already loaded, return them
+    if (cafe.hostnames) {
+      return cafe.hostnames;
+    }
+    // Otherwise, lazy load using parent's ID
+    return this.cafeHostnameRepository.find({
+      where: { cafeId: cafe.id },
+    });
+  }
+
+  @ResolveField(() => CafeSettings, { nullable: true })
+  async settings(@Parent() cafe: Cafe): Promise<CafeSettings | null> {
+    // If settings are already loaded, return them
+    if (cafe.settings !== undefined) {
+      return cafe.settings;
+    }
+    // Otherwise, lazy load using parent's ID
+    return this.cafeSettingsRepository.findOne({
+      where: { cafeId: cafe.id },
+    });
+  }
+
+  @ResolveField(() => [Product])
+  async products(@Parent() cafe: Cafe): Promise<Product[]> {
+    // If products are already loaded, return them
+    if (cafe.products) {
+      return cafe.products;
+    }
+    // Otherwise, lazy load using parent's ID
+    return this.productRepository.find({
+      where: { cafeId: cafe.id },
+      order: { sortOrder: 'ASC', name: 'ASC' },
+    });
+  }
+
+  @ResolveField(() => [Order])
+  async orders(@Parent() cafe: Cafe): Promise<Order[]> {
+    // If orders are already loaded, return them
+    if (cafe.orders) {
+      return cafe.orders;
+    }
+    // Otherwise, lazy load using parent's ID (with reasonable limit)
+    return this.orderRepository.find({
+      where: { cafeId: cafe.id },
+      order: { createdAt: 'DESC' },
+      take: 100,
+    });
+  }
+
+  @ResolveField(() => [Employee])
+  async employees(@Parent() cafe: Cafe): Promise<Employee[]> {
+    // If employees are already loaded, return them
+    if (cafe.employees) {
+      return cafe.employees;
+    }
+    // Otherwise, lazy load using parent's ID
+    return this.employeeRepository.find({
+      where: { cafeId: cafe.id },
+    });
+  }
 
   // Subscriptions
   @Subscription(() => Cafe)

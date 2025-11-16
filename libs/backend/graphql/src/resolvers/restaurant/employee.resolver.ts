@@ -1,8 +1,8 @@
 import { PermGuard, ReqUser } from '@app/backend-authorization';
-import { Employee, TimeSheet, User } from '@app/models';
+import { Cafe, Employee, TimeSheet, User } from '@app/models';
 import { CacheInterceptor } from '@nestjs/cache-manager';
 import { Injectable, Logger, UseGuards, UseInterceptors } from '@nestjs/common';
-import { Args, Mutation, Query, Resolver, Subscription } from '@nestjs/graphql';
+import { Args, Mutation, Parent, Query, ResolveField, Resolver, Subscription } from '@nestjs/graphql';
 import { InjectRepository } from '@nestjs/typeorm';
 import { PubSub } from 'graphql-subscriptions';
 import { Repository } from 'typeorm';
@@ -18,6 +18,10 @@ export class EmployeeResolver {
   constructor(
     @InjectRepository(Employee)
     private readonly employeeRepository: Repository<Employee>,
+    @InjectRepository(Cafe)
+    private readonly cafeRepository: Repository<Cafe>,
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
   ) {}
 
   @Query(() => [Employee])
@@ -161,6 +165,39 @@ export class EmployeeResolver {
       );
       throw error;
     }
+  }
+
+  // Field Resolvers - Use parent object when available, lazy load via ID when not
+  @ResolveField(() => Cafe)
+  async cafe(@Parent() employee: Employee): Promise<Cafe> {
+    // If cafe is already loaded, return it
+    if (employee.cafe) {
+      return employee.cafe;
+    }
+    // Otherwise, lazy load using parent's cafeId
+    const cafe = await this.cafeRepository.findOne({
+      where: { id: employee.cafeId },
+    });
+    if (!cafe) {
+      throw new Error(`Cafe with ID ${employee.cafeId} not found`);
+    }
+    return cafe;
+  }
+
+  @ResolveField(() => User, { nullable: true })
+  async user(@Parent() employee: Employee): Promise<User | null> {
+    // If user is already loaded, return it
+    if (employee.user !== undefined) {
+      return employee.user;
+    }
+    // If no userId, return null
+    if (!employee.userId) {
+      return null;
+    }
+    // Otherwise, lazy load using parent's userId
+    return this.userRepository.findOne({
+      where: { id: employee.userId },
+    });
   }
 
   // Subscriptions

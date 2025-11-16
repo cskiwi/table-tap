@@ -1,7 +1,7 @@
 import { PermGuard, ReqUser } from '@app/backend-authorization';
-import { LoyaltyAccount, User } from '@app/models';
+import { Cafe, LoyaltyAccount, LoyaltyTier, User } from '@app/models';
 import { Injectable, Logger, UseGuards } from '@nestjs/common';
-import { Args, Query, Resolver, Subscription } from '@nestjs/graphql';
+import { Args, Parent, Query, ResolveField, Resolver, Subscription } from '@nestjs/graphql';
 import { GraphQLJSONObject } from 'graphql-type-json';
 import { InjectRepository } from '@nestjs/typeorm';
 import { PubSub } from 'graphql-subscriptions';
@@ -17,6 +17,12 @@ export class LoyaltyAccountResolver {
   constructor(
     @InjectRepository(LoyaltyAccount)
     private readonly loyaltyAccountRepository: Repository<LoyaltyAccount>,
+    @InjectRepository(Cafe)
+    private readonly cafeRepository: Repository<Cafe>,
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
+    @InjectRepository(LoyaltyTier)
+    private readonly loyaltyTierRepository: Repository<LoyaltyTier>,
   ) {}
 
   // Queries
@@ -94,7 +100,30 @@ export class LoyaltyAccountResolver {
   }
 
   // Mutations removed - require LoyaltyService which will not be implemented
-  // Field Resolvers removed - require LoyaltyService and DataLoaderService which will not be implemented
+
+  // Field Resolvers - Use parent object when available, lazy load via ID when not
+  @ResolveField(() => Cafe)
+  async cafe(@Parent() account: LoyaltyAccount): Promise<Cafe> {
+    if (account.cafe) return account.cafe;
+    const cafe = await this.cafeRepository.findOne({ where: { id: account.cafeId } });
+    if (!cafe) throw new Error(`Cafe with ID ${account.cafeId} not found`);
+    return cafe;
+  }
+
+  @ResolveField(() => User)
+  async user(@Parent() account: LoyaltyAccount): Promise<User> {
+    if (account.user) return account.user;
+    const user = await this.userRepository.findOne({ where: { id: account.userId } });
+    if (!user) throw new Error(`User with ID ${account.userId} not found`);
+    return user;
+  }
+
+  @ResolveField(() => LoyaltyTier, { nullable: true })
+  async currentTier(@Parent() account: LoyaltyAccount): Promise<LoyaltyTier | null> {
+    if (account.currentTier !== undefined) return account.currentTier;
+    if (!account.currentTierId) return null;
+    return this.loyaltyTierRepository.findOne({ where: { id: account.currentTierId } });
+  }
 
   // Subscriptions
   @Subscription(() => LoyaltyAccount)

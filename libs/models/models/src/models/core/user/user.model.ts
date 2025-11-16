@@ -102,14 +102,13 @@ export class User extends BaseEntity {
   declare avatar: string;
 
   // Role and Status
-  @SortableField()
+  @SortableField(() => UserRole)
   @WhereField(() => UserRole)
   @Column('enum', { enum: UserRole, default: UserRole.CUSTOMER })
   @IsEnum(UserRole)
   declare role: UserRole;
-  declare role: UserRole;
 
-  @SortableField()
+  @SortableField(() => UserStatus)
   @WhereField(() => UserStatus)
   @Column('enum', { enum: UserStatus, default: UserStatus.ACTIVE })
   @IsEnum(UserStatus)

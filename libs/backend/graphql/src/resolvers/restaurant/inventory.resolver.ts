@@ -6,8 +6,9 @@ import { Repository } from 'typeorm';
 import { PubSub } from 'graphql-subscriptions';
 import { GraphQLJSONObject } from 'graphql-type-json';
 import { PermGuard, ReqUser } from '@app/backend-authorization';
-import { User, Stock, Cafe } from '@app/models';
+import { User, Stock, Cafe, Product } from '@app/models';
 import { InventoryCreateInput, InventoryUpdateInput, InventoryStockUpdateInput } from '../../inputs/inventory.input';
+import { StockArgs } from '../../args';
 
 @Injectable()
 @Resolver(() => Stock)
@@ -18,115 +19,37 @@ export class InventoryResolver {
   constructor(
     @InjectRepository(Stock)
     private readonly inventoryRepository: Repository<Stock>,
+    @InjectRepository(Cafe)
+    private readonly cafeRepository: Repository<Cafe>,
+    @InjectRepository(Product)
+    private readonly productRepository: Repository<Product>,
   ) {}
 
-  // Queries - Read directly from repository
+  // Queries - Use dynamic Args for flexible querying
   @Query(() => [Stock])
   @UseGuards(PermGuard)
   @UseInterceptors(CacheInterceptor)
   async inventory(
-    @Args('cafeId') cafeId: string,
+    @Args('args', { type: () => StockArgs, nullable: true })
+    inputArgs?: InstanceType<typeof StockArgs>,
     @ReqUser() user?: User,
   ): Promise<Stock[]> {
     try {
-      // Read directly from repository - no service needed for simple CRUD
-      return await this.inventoryRepository.find({
-        where: { cafeId },
-        order: { product: { name: 'ASC' } }
-      });
+      const args = StockArgs.toFindManyOptions(inputArgs);
+      return await this.inventoryRepository.find(args);
     } catch (error: unknown) {
-      this.logger.error(`Failed to fetch inventory for cafe ${cafeId}: ${error instanceof Error ? error.message : 'Unknown error'}`, error instanceof Error ? error.stack : undefined);
+      this.logger.error(`Failed to fetch inventory: ${error instanceof Error ? error.message : 'Unknown error'}`, error instanceof Error ? error.stack : undefined);
       throw error;
     }
-  }
-
-  @Query(() => [Stock])
-  @UseGuards(PermGuard)
-  @UseInterceptors(CacheInterceptor)
-  async lowStockItems(
-    @Args('cafeId') cafeId: string,
-    @ReqUser() user: User,
-  ): Promise<Stock[]> {
-    try {
-      // Read directly from repository with business rule query
-      return await this.inventoryRepository
-        .createQueryBuilder('inventory')
-        .where('inventory.cafeId = :cafeId', { cafeId })
-        .andWhere('inventory.currentQuantity <= inventory.minimumStock')
-        .andWhere('inventory.currentQuantity > 0')
-        .andWhere('inventory.status = :status', { status: 'ACTIVE' })
-        .orderBy('inventory.currentQuantity', 'ASC')
-        .getMany();
-    } catch (error: unknown) {
-      this.logger.error(`Failed to fetch low stock items for cafe ${cafeId}: ${error instanceof Error ? error.message : 'Unknown error'}`, error instanceof Error ? error.stack : undefined);
-      throw error;
-    }
-  }
-
-  @Query(() => [Stock])
-  @UseGuards(PermGuard)
-  async outOfStockItems(
-    @Args('cafeId') cafeId: string,
-    @ReqUser() user: User,
-  ): Promise<Stock[]> {
-    // Read directly from repository
-    return await this.inventoryRepository
-      .createQueryBuilder('inventory')
-      .where('inventory.cafeId = :cafeId', { cafeId })
-      .andWhere('inventory.currentQuantity = 0')
-      .andWhere('inventory.status = :status', { status: 'ACTIVE' })
-      .orderBy('inventory.product.name', 'ASC')
-      .getMany();
-  }
-
-  @Query(() => [Stock])
-  @UseGuards(PermGuard)
-  async expiringItems(
-    @Args('cafeId') cafeId: string,
-    @Args('days', { defaultValue: 7 }) days: number,
-    @ReqUser() user: User,
-  ): Promise<Stock[]> {
-    // Read directly from repository with date calculation
-    const futureDate = new Date();
-    futureDate.setDate(futureDate.getDate() + days);
-
-    return await this.inventoryRepository
-      .createQueryBuilder('inventory')
-      .where('inventory.cafeId = :cafeId', { cafeId })
-      .andWhere('inventory.expiryDate IS NOT NULL')
-      .andWhere('inventory.expiryDate <= :futureDate', { futureDate })
-      .andWhere('inventory.status = :status', { status: 'ACTIVE' })
-      .orderBy('inventory.expiryDate', 'ASC')
-      .getMany();
   }
 
   @Query(() => Stock, { nullable: true })
   @UseGuards(PermGuard)
   async inventoryItem(
     @Args('id') id: string,
-    @ReqUser() user: User,
-  ): Promise<Stock | null> {
-    // Read directly from repository
-    return await this.inventoryRepository.findOne({ where: { id } });
-  }
-
-  @Query(() => [Stock])
-  @UseGuards(PermGuard)
-  async searchInventory(
-    @Args('cafeId') cafeId: string,
-    @Args('query') query: string,
     @ReqUser() user?: User,
-  ): Promise<Stock[]> {
-    // Read directly from repository with search
-    return await this.inventoryRepository
-      .createQueryBuilder('inventory')
-      .where('inventory.cafeId = :cafeId', { cafeId })
-      .andWhere(
-        '(inventory.product.name ILIKE :query OR inventory.sku ILIKE :query OR inventory.description ILIKE :query)',
-        { query: `%${query}%` }
-      )
-      .take(50)
-      .getMany();
+  ): Promise<Stock | null> {
+    return await this.inventoryRepository.findOne({ where: { id } });
   }
 
   // Mutations - Use service ONLY for business logic (validation, alerts)
@@ -242,7 +165,22 @@ export class InventoryResolver {
     return true;
   }
 
-  // Field Resolvers removed - DataLoader not available
+  // Field Resolvers - Use parent object when available, lazy load via ID when not
+  @ResolveField(() => Cafe)
+  async cafe(@Parent() stock: Stock): Promise<Cafe> {
+    if (stock.cafe) return stock.cafe;
+    const cafe = await this.cafeRepository.findOne({ where: { id: stock.cafeId } });
+    if (!cafe) throw new Error(`Cafe with ID ${stock.cafeId} not found`);
+    return cafe;
+  }
+
+  @ResolveField(() => Product)
+  async product(@Parent() stock: Stock): Promise<Product> {
+    if (stock.product) return stock.product;
+    const product = await this.productRepository.findOne({ where: { id: stock.productId } });
+    if (!product) throw new Error(`Product with ID ${stock.productId} not found`);
+    return product;
+  }
 
   // Subscriptions
   @Subscription(() => GraphQLJSONObject, {

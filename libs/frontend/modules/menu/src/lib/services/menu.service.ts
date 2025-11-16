@@ -12,16 +12,9 @@ import {
   MenuState,
   MenuSearchResult,
   MenuItemStatus,
-  MenuCustomization
+  MenuCustomization,
 } from '../types/menu.types';
-import {
-  GET_CAFE_MENU,
-  GET_MENU_CATEGORIES,
-  GET_AVAILABLE_MENU_ITEMS,
-  GET_MENU_ITEM,
-  SEARCH_MENU_ITEMS,
-  GET_MENU_WITH_CATEGORIES
-} from '../graphql/menu.queries';
+import { GET_PRODUCTS, GET_PRODUCT } from '../graphql/menu.queries';
 
 @Injectable({
   providedIn: 'root',
@@ -51,72 +44,61 @@ export class MenuService {
   private readonly _error = signal<string | undefined>(undefined);
 
   // Public computed signals
-  readonly categories = this._categories.asReadonly()
-  readonly menuItems = this._menuItems.asReadonly()
-  readonly selectedCategory = this._selectedCategory.asReadonly()
-  readonly selectedMenuItem = this._selectedMenuItem.asReadonly()
-  readonly filters = this._filters.asReadonly()
-  readonly sortOptions = this._sortOptions.asReadonly()
-  readonly pagination = this._pagination.asReadonly()
-  readonly displayOptions = this._displayOptions.asReadonly()
-  readonly loading = this._loading.asReadonly()
-  readonly error = this._error.asReadonly()
+  readonly categories = this._categories.asReadonly();
+  readonly menuItems = this._menuItems.asReadonly();
+  readonly selectedCategory = this._selectedCategory.asReadonly();
+  readonly selectedMenuItem = this._selectedMenuItem.asReadonly();
+  readonly filters = this._filters.asReadonly();
+  readonly sortOptions = this._sortOptions.asReadonly();
+  readonly pagination = this._pagination.asReadonly();
+  readonly displayOptions = this._displayOptions.asReadonly();
+  readonly loading = this._loading.asReadonly();
+  readonly error = this._error.asReadonly();
 
   // Computed filtered and sorted items
   readonly filteredItems = computed(() => {
-    let items = this.menuItems()
-    const filters = this.filters()
-    const sort = this.sortOptions()
+    let items = this.menuItems();
+    const filters = this.filters();
+    const sort = this.sortOptions();
 
     // Apply filters
     if (filters.search) {
-      const searchTerm = filters.search.toLowerCase()
-      items = items.filter(
-        item =>
-          item.name.toLowerCase().includes(searchTerm) ||
-          item.description?.toLowerCase().includes(searchTerm)
-      );
+      const searchTerm = filters.search.toLowerCase();
+      items = items.filter((item) => item.name.toLowerCase().includes(searchTerm) || item.description?.toLowerCase().includes(searchTerm));
     }
 
     if (filters.categoryId) {
-      items = items.filter(item => item.categoryId === filters.categoryId);
+      items = items.filter((item) => item.categoryId === filters.categoryId);
     }
 
     if (filters.status) {
-      items = items.filter(item => item.status === filters.status);
+      items = items.filter((item) => item.status === filters.status);
     }
 
     if (filters.minPrice !== undefined) {
-      items = items.filter(item => item.price >= filters.minPrice!);
+      items = items.filter((item) => item.price >= filters.minPrice!);
     }
 
     if (filters.maxPrice !== undefined) {
-      items = items.filter(item => item.price <= filters.maxPrice!);
+      items = items.filter((item) => item.price <= filters.maxPrice!);
     }
 
     if (filters.allergens && filters.allergens.length > 0) {
-      items = items.filter(
-        item =>
-          !item.allergens ||
-          !filters.allergens!.some(allergen => item.allergens!.includes(allergen))
-      );
+      items = items.filter((item) => !item.allergens || !filters.allergens!.some((allergen) => item.allergens!.includes(allergen)));
     }
 
     if (filters.preparationTime !== undefined) {
-      items = items.filter(
-        item =>
-          !item.preparationTime || item.preparationTime <= filters.preparationTime!
-      );
+      items = items.filter((item) => !item.preparationTime || item.preparationTime <= filters.preparationTime!);
     }
 
     // Apply sorting
     items.sort((a, b) => {
-      let aValue: any = a[sort.field]
-      let bValue: any = b[sort.field]
+      let aValue: any = a[sort.field];
+      let bValue: any = b[sort.field];
 
       if (typeof aValue === 'string') {
-        aValue = aValue.toLowerCase()
-        bValue = bValue.toLowerCase()
+        aValue = aValue.toLowerCase();
+        bValue = bValue.toLowerCase();
       }
 
       if (aValue < bValue) {
@@ -133,11 +115,11 @@ export class MenuService {
 
   // Computed grouped items by category
   readonly itemsByCategory = computed(() => {
-    const items = this.filteredItems()
-    const categories = this.categories()
-    return categories.map(category => ({
+    const items = this.filteredItems();
+    const categories = this.categories();
+    return categories.map((category) => ({
       ...category,
-      menuItems: items.filter(item => item.categoryId === category.id)
+      menuItems: items.filter((item) => item.categoryId === category.id),
     }));
   });
 
@@ -155,24 +137,38 @@ export class MenuService {
     this._loading.set(true);
     this._error.set(undefined);
 
+    // Use dynamic products query to get distinct categories
     return this.apollo
-      .query<{ menuCategories: MenuCategory[] }>({
-        query: GET_MENU_CATEGORIES,
-        variables: { cafeId },
+      .query<{ products: MenuItem[] }>({
+        query: GET_PRODUCTS,
+        variables: {
+          args: {
+            where: [{ cafeId: { eq: cafeId } }],
+            order: { category: 'ASC' },
+          },
+        },
         errorPolicy: 'all',
       })
       .pipe(
-        map(result => {
-          const categories = result.data?.menuCategories || []
+        map((result) => {
+          const products = result.data?.products || [];
+          // Extract unique categories from products
+          const categoryMap = new Map<string, MenuCategory>();
+          products.forEach((product) => {
+            if (product.category && !categoryMap.has(product.category.id)) {
+              categoryMap.set(product.category.id, product.category);
+            }
+          });
+          const categories = Array.from(categoryMap.values());
           this._categories.set(categories);
           this._loading.set(false);
           return categories;
         }),
-        catchError(error => {
+        catchError((error) => {
           this._error.set(error.message);
           this._loading.set(false);
           throw error;
-        })
+        }),
       );
   }
 
@@ -181,24 +177,35 @@ export class MenuService {
     this._loading.set(true);
     this._error.set(undefined);
 
+    const whereConditions: any[] = [{ cafeId: { eq: cafeId } }, { isAvailable: { eq: true } }];
+
+    if (categoryId) {
+      whereConditions.push({ category: { eq: categoryId } });
+    }
+
     return this.apollo
-      .query<{ availableMenuItems: MenuItem[] }>({
-        query: GET_AVAILABLE_MENU_ITEMS,
-        variables: { cafeId, categoryId },
+      .query<{ products: MenuItem[] }>({
+        query: GET_PRODUCTS,
+        variables: {
+          args: {
+            where: whereConditions,
+            order: { sortOrder: 'ASC', name: 'ASC' },
+          },
+        },
         errorPolicy: 'all',
       })
       .pipe(
-        map(result => {
-          const items = result.data?.availableMenuItems || []
+        map((result) => {
+          const items = result.data?.products || [];
           this._menuItems.set(items);
           this._loading.set(false);
           return items;
         }),
-        catchError(error => {
+        catchError((error) => {
           this._error.set(error.message);
           this._loading.set(false);
           throw error;
-        })
+        }),
       );
   }
 
@@ -208,27 +215,46 @@ export class MenuService {
     this._error.set(undefined);
 
     return this.apollo
-      .query<{ menuCategories: MenuCategory[] }>({
-        query: GET_MENU_WITH_CATEGORIES,
-        variables: { cafeId },
+      .query<{ products: MenuItem[] }>({
+        query: GET_PRODUCTS,
+        variables: {
+          args: {
+            where: [{ cafeId: { eq: cafeId } }],
+            order: { category: 'ASC', sortOrder: 'ASC', name: 'ASC' },
+          },
+        },
         errorPolicy: 'all',
       })
       .pipe(
-        map(result => {
-          const categories = result.data?.menuCategories || []
-          const allItems = categories.flatMap(cat => cat.menuItems || []);
-          
+        map((result) => {
+          const products = result.data?.products || [];
+
+          // Group products by category
+          const categoryMap = new Map<string, MenuCategory>();
+          products.forEach((product) => {
+            if (product.category) {
+              if (!categoryMap.has(product.category.id)) {
+                categoryMap.set(product.category.id, {
+                  ...product.category,
+                  menuItems: [],
+                });
+              }
+              categoryMap.get(product.category.id)!.menuItems!.push(product);
+            }
+          });
+
+          const categories = Array.from(categoryMap.values());
           this._categories.set(categories);
-          this._menuItems.set(allItems);
+          this._menuItems.set(products);
           this._loading.set(false);
 
           return categories;
         }),
-        catchError(error => {
+        catchError((error) => {
           this._error.set(error.message);
           this._loading.set(false);
           throw error;
-        })
+        }),
       );
   }
 
@@ -241,28 +267,39 @@ export class MenuService {
     this._loading.set(true);
     this._error.set(undefined);
 
+    const searchTerm = query.trim();
+    const pagination = this.pagination();
+
     return this.apollo
-      .query<{ searchMenuItems: MenuItem[] }>({
-        query: SEARCH_MENU_ITEMS,
+      .query<{ products: MenuItem[] }>({
+        query: GET_PRODUCTS,
         variables: {
-          cafeId,
-          query: query.trim(),
-          pagination: this.pagination()
+          args: {
+            where: [
+              { cafeId: { eq: cafeId } },
+              {
+                or: [{ name: { contains: searchTerm } }, { description: { contains: searchTerm } }, { tags: { contains: searchTerm } }],
+              },
+            ],
+            order: { sortOrder: 'ASC', name: 'ASC' },
+            skip: (pagination.page - 1) * pagination.limit,
+            take: pagination.limit,
+          },
         },
         errorPolicy: 'all',
       })
       .pipe(
-        map(result => {
-          const items = result.data?.searchMenuItems || []
+        map((result) => {
+          const items = result.data?.products || [];
           this._menuItems.set(items);
           this._loading.set(false);
           return items;
         }),
-        catchError(error => {
+        catchError((error) => {
           this._error.set(error.message);
           this._loading.set(false);
           throw error;
-        })
+        }),
       );
   }
 
@@ -272,31 +309,31 @@ export class MenuService {
     this._error.set(undefined);
 
     return this.apollo
-      .query<{ menuItem: MenuItem }>({
-        query: GET_MENU_ITEM,
+      .query<{ product: MenuItem }>({
+        query: GET_PRODUCT,
         variables: { id },
         errorPolicy: 'all',
       })
       .pipe(
-        map(result => {
-          const item = result.data?.menuItem;
+        map((result) => {
+          const item = result.data?.product;
           if (item) {
             this._selectedMenuItem.set(item);
           }
           this._loading.set(false);
           return item;
         }),
-        catchError(error => {
+        catchError((error) => {
           this._error.set(error.message);
           this._loading.set(false);
           throw error;
-        })
+        }),
       );
   }
 
   // Update filters
   updateFilters(filters: Partial<MenuFilters>): void {
-    this._filters.update(current => ({ ...current, ...filters }));
+    this._filters.update((current) => ({ ...current, ...filters }));
   }
 
   // Clear filters
@@ -306,18 +343,18 @@ export class MenuService {
 
   // Update sort options
   updateSortOptions(sortOptions: Partial<MenuSortOptions>): void {
-    this._sortOptions.update(current => ({ ...current, ...sortOptions }));
+    this._sortOptions.update((current) => ({ ...current, ...sortOptions }));
   }
 
   // Update pagination
   updatePagination(pagination: Partial<PaginationOptions>): void {
-    this._pagination.update(current => ({ ...current, ...pagination }));
+    this._pagination.update((current) => ({ ...current, ...pagination }));
   }
 
   // Update display options
   updateDisplayOptions(displayOptions: Partial<MenuDisplayOptions>): void {
-    this._displayOptions.update(current => ({ ...current, ...displayOptions }));
-    this.saveDisplayPreferences()
+    this._displayOptions.update((current) => ({ ...current, ...displayOptions }));
+    this.saveDisplayPreferences();
   }
 
   // Select category
@@ -333,23 +370,22 @@ export class MenuService {
 
   // Cart management
   addToCart(customization: MenuCustomization): void {
-    this._cart.update(cart => {
-      const existingIndex = cart.findIndex(item => 
-        item.itemId === customization.itemId &&
-        JSON.stringify(item.customizations) === JSON.stringify(customization.customizations)
+    this._cart.update((cart) => {
+      const existingIndex = cart.findIndex(
+        (item) => item.itemId === customization.itemId && JSON.stringify(item.customizations) === JSON.stringify(customization.customizations),
       );
 
       if (existingIndex >= 0) {
         cart[existingIndex].quantity += customization.quantity;
-        return [...cart]
+        return [...cart];
       } else {
-        return [...cart, customization]
+        return [...cart, customization];
       }
     });
   }
 
   removeFromCart(index: number): void {
-    this._cart.update(cart => cart.filter((_, i) => i !== index));
+    this._cart.update((cart) => cart.filter((_, i) => i !== index));
   }
 
   updateCartQuantity(index: number, quantity: number): void {
@@ -358,9 +394,9 @@ export class MenuService {
       return;
     }
 
-    this._cart.update(cart => {
+    this._cart.update((cart) => {
       cart[index].quantity = quantity;
-      return [...cart]
+      return [...cart];
     });
   }
 

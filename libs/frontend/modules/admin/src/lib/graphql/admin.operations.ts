@@ -266,14 +266,18 @@ export const GET_SALES_ANALYTICS = gql`
   }
 `;
 
-export const GET_ADMIN_NOTIFICATIONS = gql`
+// Dynamic query using AdminNotificationArgs
+export const GET_ADMIN_NOTIFICATIONS_DYNAMIC = gql`
   ${ADMIN_NOTIFICATION_FRAGMENT}
-  query GetAdminNotifications($cafeId: ID!, $unreadOnly: Boolean, $limit: Int) {
-    adminNotifications(cafeId: $cafeId, unreadOnly: $unreadOnly, limit: $limit) {
+  query GetAdminNotifications($args: AdminNotificationArgs) {
+    adminNotifications(args: $args) {
       ...AdminNotificationFields
     }
   }
 `;
+
+// Legacy query for backwards compatibility
+export const GET_ADMIN_NOTIFICATIONS = GET_ADMIN_NOTIFICATIONS_DYNAMIC;
 
 export const GET_ADMIN_SETTINGS = gql`
   ${ADMIN_SETTINGS_FRAGMENT}
@@ -293,29 +297,48 @@ export const GET_INVENTORY_ALERTS = gql`
   }
 `;
 
-export const GET_LOW_STOCK_ITEMS = gql`
-  ${INVENTORY_ALERT_FRAGMENT}
-  query GetLowStockItems($cafeId: ID!) {
-    lowStockItems(cafeId: $cafeId) {
-      ...InventoryAlertFields
+// Stock fragment for inventory items
+const STOCK_FIELDS = gql`
+  fragment StockFields on Stock {
+    id
+    sku
+    name
+    description
+    category
+    quantity
+    minimumStock
+    maximumStock
+    reorderLevel
+    unitCost
+    unit
+    supplier
+    status
+    expiryDate
+    lastUpdated
+  }
+`;
+
+// Dynamic query using StockArgs
+export const GET_STOCK_ITEMS = gql`
+  ${STOCK_FIELDS}
+  query GetStockItems($args: StockArgs) {
+    inventory(args: $args) {
+      ...StockFields
     }
   }
 `;
 
-export const GET_OUT_OF_STOCK_ITEMS = gql`
-  ${INVENTORY_ALERT_FRAGMENT}
-  query GetOutOfStockItems($cafeId: ID!) {
-    outOfStockItems(cafeId: $cafeId) {
-      ...InventoryAlertFields
-    }
-  }
-`;
+// Legacy queries using dynamic StockArgs
+export const GET_LOW_STOCK_ITEMS = GET_STOCK_ITEMS;
+export const GET_OUT_OF_STOCK_ITEMS = GET_STOCK_ITEMS;
+export const GET_EXPIRING_ITEMS = GET_STOCK_ITEMS;
 
-export const GET_EXPIRING_ITEMS = gql`
-  ${INVENTORY_ALERT_FRAGMENT}
-  query GetExpiringItems($cafeId: ID!, $daysAhead: Int) {
-    expiringItems(cafeId: $cafeId, daysAhead: $daysAhead) {
-      ...InventoryAlertFields
+// Stock alerts query using StockArgs
+export const GET_STOCK_ALERTS = gql`
+  ${STOCK_FIELDS}
+  query GetStockAlerts($args: StockArgs) {
+    stockAlerts(args: $args) {
+      ...StockFields
     }
   }
 `;
@@ -332,56 +355,47 @@ export const EXPORT_INVENTORY_REPORT = gql`
   }
 `;
 
-export const GET_CAFE_ORDERS = gql`
-  query GetCafeOrders($cafeId: ID!) {
-    cafeOrders(cafeId: $cafeId) {
+// Order fields fragment
+const ORDER_LIST_FIELDS = gql`
+  fragment OrderListFields on Order {
+    id
+    orderNumber
+    customerName
+    customerEmail
+    status
+    items {
       id
-      orderNumber
-      customerName
-      customerEmail
+      menuItemName
+      quantity
+      unitPrice
+      totalPrice
       status
-      items {
-        id
-        menuItemName
-        quantity
-        unitPrice
-        totalPrice
-        status
-      }
-      totalAmount
-      paymentStatus
-      paymentMethod
-      createdAt
-      estimatedPrepTime
-      orderType
-      tableNumber
+    }
+    totalAmount
+    paymentStatus
+    paymentMethod
+    createdAt
+    estimatedPrepTime
+    orderType
+    tableNumber
+  }
+`;
+
+// Dynamic query using OrderArgs
+export const GET_ORDERS_DYNAMIC = gql`
+  ${ORDER_LIST_FIELDS}
+  query GetOrders($args: OrderArgs) {
+    orders(args: $args) {
+      ...OrderListFields
     }
   }
 `;
 
-export const GET_INVENTORY_ITEMS = gql`
-  query GetInventoryItems($cafeId: ID!) {
-    inventoryItems(cafeId: $cafeId) {
-      id
-      sku
-      itemName
-      description
-      category
-      currentStock
-      minimumStock
-      maximumStock
-      unitCost
-      unit
-      supplier
-      status
-      expiryDate
-      lastUpdated
-      isLowStock
-      isOutOfStock
-      stockValue
-    }
-  }
-`;
+// Legacy query for backwards compatibility
+export const GET_CAFE_ORDERS = GET_ORDERS_DYNAMIC;
+
+// Legacy query using dynamic StockArgs
+export const GET_INVENTORY_ITEMS = GET_STOCK_ITEMS;
 
 // Mutations
 export const MARK_NOTIFICATION_READ = gql`

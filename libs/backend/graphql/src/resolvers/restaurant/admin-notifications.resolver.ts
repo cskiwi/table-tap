@@ -1,11 +1,12 @@
 import { PermGuard, ReqUser } from '@app/backend-authorization';
-import { AdminNotification, User } from '@app/models';
+import { AdminNotification, User, Cafe } from '@app/models';
 import { NotificationType, NotificationSeverity } from '@app/models/enums';
 import { Injectable, Logger, UseGuards } from '@nestjs/common';
-import { Args, Mutation, Query, Resolver, Subscription } from '@nestjs/graphql';
+import { Args, Mutation, Query, Resolver, Subscription, ResolveField, Parent } from '@nestjs/graphql';
 import { InjectRepository } from '@nestjs/typeorm';
 import { PubSub } from 'graphql-subscriptions';
 import { Repository } from 'typeorm';
+import { AdminNotificationArgs } from '../../args';
 
 @Injectable()
 @Resolver(() => AdminNotification)
@@ -16,27 +17,22 @@ export class AdminNotificationsResolver {
   constructor(
     @InjectRepository(AdminNotification)
     private readonly notificationRepository: Repository<AdminNotification>,
+    @InjectRepository(Cafe)
+    private readonly cafeRepository: Repository<Cafe>,
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
   ) {}
 
   @Query(() => [AdminNotification], { name: 'adminNotifications' })
   @UseGuards(PermGuard)
   async adminNotifications(
-    @Args('cafeId') cafeId: string,
-    @Args({ name: 'unreadOnly', nullable: true }) unreadOnly?: boolean,
-    @Args({ name: 'limit', nullable: true }) limit?: number,
+    @Args('args', { type: () => AdminNotificationArgs, nullable: true })
+    inputArgs?: InstanceType<typeof AdminNotificationArgs>,
     @ReqUser() user?: User,
   ): Promise<AdminNotification[]> {
     try {
-      const queryBuilder = this.notificationRepository.createQueryBuilder('notification').where('notification.cafeId = :cafeId', { cafeId });
-
-      if (unreadOnly) {
-        queryBuilder.andWhere('notification.read = :read', { read: false });
-      }
-
-      return await queryBuilder
-        .orderBy('notification.createdAt', 'DESC')
-        .limit(limit || 50)
-        .getMany();
+      const args = AdminNotificationArgs.toFindManyOptions(inputArgs);
+      return await this.notificationRepository.find(args);
     } catch (error: unknown) {
       this.logger.error(`Failed to fetch notifications: ${error instanceof Error ? error.message : 'Unknown error'}`, error instanceof Error ? error.stack : undefined);
       throw error;
@@ -78,6 +74,22 @@ export class AdminNotificationsResolver {
       this.logger.error(`Failed to mark all notifications as read: ${error instanceof Error ? error.message : 'Unknown error'}`, error instanceof Error ? error.stack : undefined);
       throw error;
     }
+  }
+
+  // Field Resolvers - Use parent object when available, lazy load via ID when not
+  @ResolveField(() => Cafe)
+  async cafe(@Parent() notification: AdminNotification): Promise<Cafe> {
+    if (notification.cafe) return notification.cafe;
+    const cafe = await this.cafeRepository.findOne({ where: { id: notification.cafeId } });
+    if (!cafe) throw new Error(`Cafe with ID ${notification.cafeId} not found`);
+    return cafe;
+  }
+
+  @ResolveField(() => User, { nullable: true })
+  async user(@Parent() notification: AdminNotification): Promise<User | null> {
+    if (notification.user !== undefined) return notification.user;
+    if (!notification.userId) return null;
+    return this.userRepository.findOne({ where: { id: notification.userId } });
   }
 
   @Subscription(() => AdminNotification, {

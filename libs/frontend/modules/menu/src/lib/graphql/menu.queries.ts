@@ -1,174 +1,54 @@
 import { gql } from 'apollo-angular';
 
-export const GET_CAFE_MENU = gql`
-  query GetCafeMenu(
-    $cafeId: String!
-    $categoryId: String
-    $pagination: PaginationInput
-    $sort: SortInput
-  ) {
-    cafeMenu(
-      cafeId: $cafeId
-      categoryId: $categoryId
-      pagination: $pagination
-      sort: $sort
-    ) {
-      items {
-        id
-        name
-        description
-        price
-        status
-        preparationTime
-        imageUrl
-        nutritionalInfo
-        allergens
-        sortOrder
-        cafeId
-        categoryId
-        category {
-          id
-          name
-          description
-          imageUrl
-          sortOrder
-          isActive
-        }
-      }
-      total
-      page
-      limit
-      hasMore
+// Product fragment for reuse
+const PRODUCT_FIELDS = gql`
+  fragment ProductFields on Product {
+    id
+    name
+    description
+    category
+    basePrice
+    finalPrice
+    discountPrice
+    image
+    isAvailable
+    isFeatured
+    sortOrder
+    preparationTime
+    tags
+    cafeId
+    status
+    cafe {
+      id
+      name
+      description
     }
   }
 `;
 
-export const GET_MENU_CATEGORIES = gql`
-  query GetMenuCategories($cafeId: String!, $activeOnly: Boolean = true) {
-    menuCategories(cafeId: $cafeId, activeOnly: $activeOnly) {
-      id
-      name
-      description
-      category
-      basePrice
-      finalPrice
-      image
-      isAvailable
-      isFeatured
-      sortOrder
-      cafeId
+// Dynamic query using ProductArgs
+export const GET_PRODUCTS = gql`
+  ${PRODUCT_FIELDS}
+  query GetProducts($args: ProductArgs) {
+    products(args: $args) {
+      ...ProductFields
     }
   }
 `;
 
-export const GET_AVAILABLE_MENU_ITEMS = gql`
-  query GetAvailableMenuItems($cafeId: String!, $categoryId: String) {
-    availableMenuItems(cafeId: $cafeId, categoryId: $categoryId) {
-      id
-      name
-      description
-      price
-      status
-      preparationTime
-      imageUrl
-      nutritionalInfo
-      allergens
-      sortOrder
-      cafeId
-      categoryId
-      category {
-        id
-        name
-        description
-        imageUrl
-        sortOrder
-        isActive
-      }
+// Single product query (kept for backwards compatibility)
+export const GET_PRODUCT = gql`
+  ${PRODUCT_FIELDS}
+  query GetProduct($id: String!) {
+    product(id: $id) {
+      ...ProductFields
     }
   }
 `;
 
-export const GET_MENU_ITEM = gql`
-  query GetMenuItem($id: String!) {
-    menuItem(id: $id) {
-      id
-      name
-      description
-      price
-      status
-      preparationTime
-      imageUrl
-      nutritionalInfo
-      allergens
-      sortOrder
-      cafeId
-      categoryId
-      category {
-        id
-        name
-        description
-        imageUrl
-        sortOrder
-        isActive
-      }
-      cafe {
-        id
-        name
-        description
-      }
-    }
-  }
-`;
-
-export const SEARCH_MENU_ITEMS = gql`
-  query SearchMenuItems(
-    $cafeId: String!
-    $query: String!
-    $pagination: PaginationInput
-  ) {
-    searchMenuItems(cafeId: $cafeId, query: $query, pagination: $pagination) {
-      id
-      name
-      description
-      price
-      status
-      preparationTime
-      imageUrl
-      nutritionalInfo
-      allergens
-      sortOrder
-      cafeId
-      categoryId
-      category {
-        id
-        name
-        description
-        imageUrl
-        sortOrder
-        isActive
-      }
-    }
-  }
-`;
-
-export const GET_MENU_WITH_CATEGORIES = gql`
-  query GetMenuWithCategories($cafeId: String!) {
-    menuCategories(cafeId: $cafeId, activeOnly: true) {
-      id
-      name
-      description
-      category
-      basePrice
-      finalPrice
-      discountPrice
-      image
-      isAvailable
-      isFeatured
-      sortOrder
-      preparationTime
-      tags
-      cafeId
-      status
-    }
-  }
-`;
+// Legacy query names for backwards compatibility
+export const GET_CAFE_MENU = GET_PRODUCTS;
+export const GET_AVAILABLE_MENU_ITEMS = GET_PRODUCTS;
+export const GET_MENU_ITEM = GET_PRODUCT;
+export const SEARCH_MENU_ITEMS = GET_PRODUCTS;
+export const GET_MENU_WITH_CATEGORIES = GET_PRODUCTS;3

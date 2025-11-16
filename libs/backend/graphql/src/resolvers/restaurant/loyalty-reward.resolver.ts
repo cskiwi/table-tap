@@ -4,11 +4,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { PubSub } from 'graphql-subscriptions';
 import { PermGuard, ReqUser } from '@app/backend-authorization';
-import { User } from '@app/models';
-import {
-  LoyaltyReward,
-  LoyaltyRewardRedemption,
-} from '@app/models';
+import { Cafe, LoyaltyReward, LoyaltyRewardRedemption, User } from '@app/models';
 import { LoyaltyRewardArgs } from '../../args';
 
 @Injectable()
@@ -20,6 +16,8 @@ export class LoyaltyRewardResolver {
   constructor(
     @InjectRepository(LoyaltyReward)
     private readonly loyaltyRewardRepository: Repository<LoyaltyReward>,
+    @InjectRepository(Cafe)
+    private readonly cafeRepository: Repository<Cafe>,
   ) {}
 
   // Queries - only simple repository-based queries
@@ -46,9 +44,16 @@ export class LoyaltyRewardResolver {
     }
   }
 
-  // All other queries, mutations, and field resolvers removed - require LoyaltyService which will not be implemented
+  // All other queries, mutations removed - require LoyaltyService which will not be implemented
 
-  // Field Resolvers removed - properties don't exist on model
+  // Field Resolvers - Use parent object when available, lazy load via ID when not
+  @ResolveField(() => Cafe)
+  async cafe(@Parent() reward: LoyaltyReward): Promise<Cafe> {
+    if (reward.cafe) return reward.cafe;
+    const cafe = await this.cafeRepository.findOne({ where: { id: reward.cafeId } });
+    if (!cafe) throw new Error(`Cafe with ID ${reward.cafeId} not found`);
+    return cafe;
+  }
 
   // Subscriptions
   @Subscription(() => LoyaltyReward)

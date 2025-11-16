@@ -5,10 +5,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { PubSub } from 'graphql-subscriptions';
 import { PermGuard, ReqUser } from '@app/backend-authorization';
-import { User } from '@app/models';
-import {
-  LoyaltyTransaction,
-} from '@app/models';
+import { Cafe, LoyaltyAccount, LoyaltyTransaction, User } from '@app/models';
 import { LoyaltyTransactionArgs } from '../../args';
 
 @Injectable()
@@ -20,6 +17,10 @@ export class LoyaltyTransactionResolver {
   constructor(
     @InjectRepository(LoyaltyTransaction)
     private readonly loyaltyTransactionRepository: Repository<LoyaltyTransaction>,
+    @InjectRepository(LoyaltyAccount)
+    private readonly loyaltyAccountRepository: Repository<LoyaltyAccount>,
+    @InjectRepository(Cafe)
+    private readonly cafeRepository: Repository<Cafe>,
   ) {}
 
   // Queries - only simple repository-based queries
@@ -93,7 +94,24 @@ export class LoyaltyTransactionResolver {
     }
   }
 
-  // All other queries, mutations, and field resolvers removed - require LoyaltyService which will not be implemented
+  // All other queries, mutations removed - require LoyaltyService which will not be implemented
+
+  // Field Resolvers - Use parent object when available, lazy load via ID when not
+  @ResolveField(() => LoyaltyAccount)
+  async loyaltyAccount(@Parent() transaction: LoyaltyTransaction): Promise<LoyaltyAccount> {
+    if (transaction.loyaltyAccount) return transaction.loyaltyAccount;
+    const account = await this.loyaltyAccountRepository.findOne({ where: { id: transaction.loyaltyAccountId } });
+    if (!account) throw new Error(`LoyaltyAccount with ID ${transaction.loyaltyAccountId} not found`);
+    return account;
+  }
+
+  @ResolveField(() => Cafe)
+  async cafe(@Parent() transaction: LoyaltyTransaction): Promise<Cafe> {
+    if (transaction.cafe) return transaction.cafe;
+    const cafe = await this.cafeRepository.findOne({ where: { id: transaction.cafeId } });
+    if (!cafe) throw new Error(`Cafe with ID ${transaction.cafeId} not found`);
+    return cafe;
+  }
 
   // Subscriptions
   @Subscription(() => LoyaltyTransaction)

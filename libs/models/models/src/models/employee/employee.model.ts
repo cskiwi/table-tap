@@ -104,7 +104,7 @@ export class Employee extends BaseEntity {
   declare phone: string;
 
   // Employment details
-  @SortableField()
+  @SortableField(() => UserRole)
   @WhereField(() => UserRole)
   @Column('enum', { enum: UserRole, default: UserRole.EMPLOYEE })
   @IsEnum(UserRole)
@@ -118,11 +118,10 @@ export class Employee extends BaseEntity {
     this.position = value;
   }
 
-  @SortableField()
+  @SortableField(() => EmployeeStatus)
   @WhereField(() => EmployeeStatus)
   @Column('enum', { enum: EmployeeStatus, default: EmployeeStatus.ACTIVE })
   @IsEnum(EmployeeStatus)
-  declare status: EmployeeStatus;
   declare status: EmployeeStatus;
 
   @SortableField()

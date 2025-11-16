@@ -13,6 +13,7 @@ import {
   AdminSettings,
   Cafe,
   CafeHostname,
+  CafeSettings,
   Counter,
   Employee,
   InventoryAlert,
@@ -27,6 +28,7 @@ import {
   Order,
   OrderItem,
   Payment,
+  ProductAttribute,
   SalesAnalytics,
   Stock,
   TimeSheet,
@@ -69,7 +71,7 @@ import { CafeHostnameResolver } from './resolvers/restaurant';
     TypeOrmModule.forFeature([
       // User entities
       User,
-      // Restaurant entities
+      // Restaurant entities 
       Order,
       OrderItem,
       Payment,
@@ -80,6 +82,8 @@ import { CafeHostnameResolver } from './resolvers/restaurant';
       Employee,
       TimeSheet,
       Menu,
+      ProductAttribute,
+      CafeSettings,
       // Loyalty entities
       LoyaltyAccount,
       LoyaltyReward,

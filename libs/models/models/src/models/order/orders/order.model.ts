@@ -174,7 +174,7 @@ export class Order extends BaseEntity {
   declare specialInstructions: string;
 
   // Order priority
-  @SortableField({ nullable: true })
+  @SortableField(() => OrderPriority, { nullable: true })
   @WhereField(() => OrderPriority, { nullable: true })
   @Column('enum', { enum: OrderPriority, default: OrderPriority.NORMAL, nullable: true })
   @IsEnum(OrderPriority)

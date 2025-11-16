@@ -1,5 +1,83 @@
 import { gql } from 'apollo-angular';
 
+// Order fragment for reuse
+const ORDER_FIELDS = gql`
+  fragment OrderFields on Order {
+    id
+    restaurantId
+    trackingNumber
+    status
+    customerInfo {
+      firstName
+      lastName
+      email
+      phone
+      tableNumber
+      specialRequests
+    }
+    items {
+      id
+      menuItemId
+      name
+      price
+      quantity
+      customizations {
+        id
+        name
+        price
+        category
+      }
+      specialInstructions
+    }
+    summary {
+      subtotal
+      tax
+      tip
+      discount
+      total
+      estimatedTime
+    }
+    paymentMethod {
+      id
+      type
+      name
+      last4
+    }
+    timestamps {
+      created
+      confirmed
+      preparationStarted
+      ready
+      delivered
+      cancelled
+    }
+    notes
+  }
+`;
+
+// Dynamic query using OrderArgs
+export const GET_ORDERS = gql`
+  ${ORDER_FIELDS}
+  query GetOrders($args: OrderArgs) {
+    orders(args: $args) {
+      ...OrderFields
+    }
+  }
+`;
+
+// Single order query
+export const GET_ORDER = gql`
+  ${ORDER_FIELDS}
+  query GetOrder($id: String!) {
+    order(id: $id) {
+      ...OrderFields
+    }
+  }
+`;
+
+// Legacy query name for backwards compatibility
+export const GET_ORDER_BY_ID = GET_ORDER;
+
 export const CREATE_ORDER = gql`
   mutation CreateOrder($input: CreateOrderInput!) {
     createOrder(input: $input) {
@@ -51,61 +129,6 @@ export const PROCESS_PAYMENT = gql`
   }
 `;
 
-export const GET_ORDER_BY_ID = gql`
-  query GetOrderById($id: ID!) {
-    order(id: $id) {
-      id
-      restaurantId
-      trackingNumber
-      status
-      customerInfo {
-        firstName
-        lastName
-        email
-        phone
-        tableNumber
-        specialRequests
-      }
-      items {
-        id
-        menuItemId
-        name
-        price
-        quantity
-        customizations {
-          id
-          name
-          price
-          category
-        }
-        specialInstructions
-      }
-      summary {
-        subtotal
-        tax
-        tip
-        discount
-        total
-        estimatedTime
-      }
-      paymentMethod {
-        id
-        type
-        name
-        last4
-      }
-      timestamps {
-        created
-        confirmed
-        preparationStarted
-        ready
-        delivered
-        cancelled
-      }
-      notes
-    }
-  }
-`;
 
 export const GET_ORDER_STATUS = gql`
   query GetOrderStatus($id: ID!) {

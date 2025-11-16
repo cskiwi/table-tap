@@ -1,14 +1,15 @@
-import { Resolver, Query, Subscription, Args } from '@nestjs/graphql';
+import { Resolver, Query, Subscription, Args, ResolveField, Parent } from '@nestjs/graphql';
 import { GraphQLJSONObject } from 'graphql-type-json';
 import { UseGuards, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, LessThanOrEqual, LessThan, MoreThan } from 'typeorm';
 import { PubSub } from 'graphql-subscriptions';
 import { PermGuard, ReqUser } from '@app/backend-authorization';
-import { User, Stock } from '@app/models';
+import { User, Stock, Cafe, Product } from '@app/models';
+import { StockArgs } from '../../args';
 
 @Injectable()
-@Resolver()
+@Resolver(() => Stock)
 export class InventoryAlertsResolver {
   private readonly logger = new Logger(InventoryAlertsResolver.name);
   private pubSub: any = new PubSub();
@@ -16,85 +17,25 @@ export class InventoryAlertsResolver {
   constructor(
     @InjectRepository(Stock)
     private readonly stockRepository: Repository<Stock>,
+    @InjectRepository(Cafe)
+    private readonly cafeRepository: Repository<Cafe>,
+    @InjectRepository(Product)
+    private readonly productRepository: Repository<Product>,
   ) {}
 
-  @Query(() => [Stock], { name: 'lowStockItems' })
+  // Queries - Use dynamic Args for flexible querying (specific alert queries can be done via where clauses)
+  @Query(() => [Stock], { name: 'stockAlerts' })
   @UseGuards(PermGuard)
-  async lowStockItems(
-    @Args('cafeId') cafeId: string,
-    @Args({ name: 'limit', nullable: true }) limit?: number,
+  async stockAlerts(
+    @Args('args', { type: () => StockArgs, nullable: true })
+    inputArgs?: InstanceType<typeof StockArgs>,
     @ReqUser() user?: User,
   ): Promise<Stock[]> {
     try {
-      const lowStockItems = await this.stockRepository
-        .createQueryBuilder('stock')
-        .leftJoinAndSelect('stock.product', 'product')
-        .where('stock.cafeId = :cafeId', { cafeId })
-        .andWhere('stock.currentQuantity <= stock.reorderLevel')
-        .andWhere('stock.currentQuantity > 0')
-        .andWhere('stock.isActive = :isActive', { isActive: true })
-        .orderBy('stock.currentQuantity', 'ASC')
-        .limit(limit || 50)
-        .getMany();
-
-      await this.triggerLowStockAlerts(cafeId, lowStockItems);
-
-      return lowStockItems;
+      const args = StockArgs.toFindManyOptions(inputArgs);
+      return await this.stockRepository.find(args);
     } catch (error: unknown) {
-      this.logger.error(`Failed to fetch low stock items: ${error instanceof Error ? error.message : 'Unknown error'}`, error instanceof Error ? error.stack : undefined);
-      throw error;
-    }
-  }
-
-  @Query(() => [Stock], { name: 'outOfStockItems' })
-  @UseGuards(PermGuard)
-  async outOfStockItems(
-    @Args('cafeId') cafeId: string,
-    @Args({ name: 'limit', nullable: true }) limit?: number,
-    @ReqUser() user?: User,
-  ): Promise<Stock[]> {
-    try {
-      return await this.stockRepository
-        .createQueryBuilder('stock')
-        .leftJoinAndSelect('stock.product', 'product')
-        .where('stock.cafeId = :cafeId', { cafeId })
-        .andWhere('stock.currentQuantity <= 0')
-        .andWhere('stock.isActive = :isActive', { isActive: true })
-        .orderBy('stock.lastSoldAt', 'DESC')
-        .limit(limit || 50)
-        .getMany();
-    } catch (error: unknown) {
-      this.logger.error(`Failed to fetch out of stock items: ${error instanceof Error ? error.message : 'Unknown error'}`, error instanceof Error ? error.stack : undefined);
-      throw error;
-    }
-  }
-
-  @Query(() => [Stock], { name: 'expiringItems' })
-  @UseGuards(PermGuard)
-  async expiringItems(
-    @Args('cafeId') cafeId: string,
-    @Args({ name: 'daysAhead', nullable: true }) daysAhead?: number,
-    @Args({ name: 'limit', nullable: true }) limit?: number,
-    @ReqUser() user?: User,
-  ): Promise<Stock[]> {
-    try {
-      const daysToCheck = daysAhead || 7;
-      const expiryThreshold = new Date();
-      expiryThreshold.setDate(expiryThreshold.getDate() + daysToCheck);
-
-      return await this.stockRepository
-        .createQueryBuilder('stock')
-        .leftJoinAndSelect('stock.product', 'product')
-        .where('stock.cafeId = :cafeId', { cafeId })
-        .andWhere('stock.expiryDate IS NOT NULL')
-        .andWhere('stock.expiryDate <= :expiryThreshold', { expiryThreshold })
-        .andWhere('stock.currentQuantity > 0')
-        .andWhere('stock.isActive = :isActive', { isActive: true })
-        .orderBy('stock.expiryDate', 'ASC')
-        .limit(limit || 50)
-        .getMany();
-    } catch (error: unknown) {
-      this.logger.error(`Failed to fetch expiring items: ${error instanceof Error ? error.message : 'Unknown error'}`, error instanceof Error ? error.stack : undefined);
+      this.logger.error(`Failed to fetch stock alerts: ${error instanceof Error ? error.message : 'Unknown error'}`, error instanceof Error ? error.stack : undefined);
       throw error;
     }
   }
@@ -147,6 +88,23 @@ export class InventoryAlertsResolver {
       this.logger.error(`Failed to fetch inventory alerts summary: ${error instanceof Error ? error.message : 'Unknown error'}`, error instanceof Error ? error.stack : undefined);
       throw error;
     }
+  }
+
+  // Field Resolvers - Use parent object when available, lazy load via ID when not
+  @ResolveField(() => Cafe)
+  async cafe(@Parent() stock: Stock): Promise<Cafe> {
+    if (stock.cafe) return stock.cafe;
+    const cafe = await this.cafeRepository.findOne({ where: { id: stock.cafeId } });
+    if (!cafe) throw new Error(`Cafe with ID ${stock.cafeId} not found`);
+    return cafe;
+  }
+
+  @ResolveField(() => Product)
+  async product(@Parent() stock: Stock): Promise<Product> {
+    if (stock.product) return stock.product;
+    const product = await this.productRepository.findOne({ where: { id: stock.productId } });
+    if (!product) throw new Error(`Product with ID ${stock.productId} not found`);
+    return product;
   }
 
   @Subscription(() => GraphQLJSONObject, {

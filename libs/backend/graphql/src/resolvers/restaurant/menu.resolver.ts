@@ -1,10 +1,11 @@
 import { PermGuard, ReqUser } from '@app/backend-authorization';
-import { Product, User } from '@app/models';
+import { Cafe, Product, ProductAttribute, User } from '@app/models';
 import { Injectable, UseGuards } from '@nestjs/common';
-import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
+import { Args, Mutation, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ProductCreateInput, ProductUpdateInput } from '../../inputs';
+import { ProductArgs } from '../../args';
 
 @Injectable()
 @Resolver(() => Product)
@@ -12,68 +13,28 @@ export class MenuResolver {
   constructor(
     @InjectRepository(Product)
     private readonly productRepository: Repository<Product>,
+    @InjectRepository(Cafe)
+    private readonly cafeRepository: Repository<Cafe>,
+    @InjectRepository(ProductAttribute)
+    private readonly productAttributeRepository: Repository<ProductAttribute>,
   ) {}
 
-  // Queries
+  // Queries - Use dynamic Args for flexible querying
   @Query(() => [Product])
-  async cafeMenu(
-    @Args('cafeId') cafeId: string,
-    @Args('category', { nullable: true }) category?: string,
+  async products(
+    @Args('args', { type: () => ProductArgs, nullable: true })
+    inputArgs?: InstanceType<typeof ProductArgs>,
   ): Promise<Product[]> {
-    // Use repository directly for simple queries
-    const where: any = { cafeId };
-    if (category) where.category = category;
-
-    return this.productRepository.find({
-      where,
-      order: { sortOrder: 'ASC', name: 'ASC' }
-    });
-  }
-
-  @Query(() => [Product])
-  async availableMenuItems(
-    @Args('cafeId') cafeId: string,
-    @Args('category', { nullable: true }) category?: string,
-  ): Promise<Product[]> {
-    // Use repository directly - only available products
-    const where: any = { cafeId, isAvailable: true };
-    if (category) where.category = category;
-
-    return this.productRepository.find({
-      where,
-      order: { sortOrder: 'ASC', name: 'ASC' }
-    });
+    const args = ProductArgs.toFindManyOptions(inputArgs);
+    return this.productRepository.find(args);
   }
 
   @Query(() => Product, { nullable: true })
   @UseGuards(PermGuard)
-  async menuItem(
+  async product(
     @Args('id') id: string,
-    @Args('cafeId', { nullable: true }) cafeId?: string,
   ): Promise<Product | null> {
-    // Use repository directly
-    const where: any = { id };
-    if (cafeId) {
-      where.cafeId = cafeId;
-    }
-    return this.productRepository.findOne({ where });
-  }
-
-  @Query(() => [Product])
-  async menuCategories(
-    @Args('cafeId') cafeId: string,
-    @Args('activeOnly', { nullable: true, defaultValue: true }) activeOnly?: boolean,
-  ): Promise<Product[]> {
-    // Get all products for the cafe, optionally filtering by availability
-    const where: any = { cafeId };
-    if (activeOnly) {
-      where.isAvailable = true;
-    }
-
-    return this.productRepository.find({
-      where,
-      order: { category: 'ASC', sortOrder: 'ASC', name: 'ASC' }
-    });
+    return this.productRepository.findOne({ where: { id } });
   }
 
   // Mutations
@@ -142,5 +103,34 @@ export class MenuResolver {
     // Use repository directly (soft delete)
     await this.productRepository.softDelete({ id, cafeId });
     return true;
+  }
+
+  // Field Resolvers - Use parent object when available, lazy load via ID when not
+  @ResolveField(() => Cafe)
+  async cafe(@Parent() product: Product): Promise<Cafe> {
+    // If cafe is already loaded, return it
+    if (product.cafe) {
+      return product.cafe;
+    }
+    // Otherwise, lazy load using parent's cafeId
+    const cafe = await this.cafeRepository.findOne({
+      where: { id: product.cafeId },
+    });
+    if (!cafe) {
+      throw new Error(`Cafe with ID ${product.cafeId} not found`);
+    }
+    return cafe;
+  }
+
+  @ResolveField(() => ProductAttribute, { nullable: true })
+  async attributes(@Parent() product: Product): Promise<ProductAttribute | null> {
+    // If attributes are already loaded, return them
+    if (product.attributes !== undefined) {
+      return product.attributes;
+    }
+    // Otherwise, lazy load using parent's ID
+    return this.productAttributeRepository.findOne({
+      where: { productId: product.id },
+    });
   }
 }

@@ -1,12 +1,13 @@
 import { PermGuard, ReqUser } from '@app/backend-authorization';
-import { Order, User } from '@app/models';
+import { Cafe, Order, OrderItem, Payment, User } from '@app/models';
 import { Injectable, Logger, UseGuards } from '@nestjs/common';
-import { Args, Mutation, Query, Resolver, Subscription } from '@nestjs/graphql';
+import { Args, Mutation, Parent, Query, ResolveField, Resolver, Subscription } from '@nestjs/graphql';
 import { InjectRepository } from '@nestjs/typeorm';
 import { PubSub } from 'graphql-subscriptions';
 import { GraphQLJSONObject } from 'graphql-type-json';
 import { Repository } from 'typeorm';
 import { OrderCreateInput, OrderUpdateInput } from '../../inputs/order.input';
+import { OrderArgs } from '../../args';
 
 @Injectable()
 @Resolver(() => Order)
@@ -17,18 +18,27 @@ export class OrderResolver {
   constructor(
     @InjectRepository(Order)
     private readonly orderRepository: Repository<Order>,
+    @InjectRepository(OrderItem)
+    private readonly orderItemRepository: Repository<OrderItem>,
+    @InjectRepository(Cafe)
+    private readonly cafeRepository: Repository<Cafe>,
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
+    @InjectRepository(Payment)
+    private readonly paymentRepository: Repository<Payment>,
   ) {}
 
-  // Queries - Read directly from repository
+  // Queries - Use dynamic Args for flexible querying
   @Query(() => [Order])
   @UseGuards(PermGuard)
-  async orders(@ReqUser() user?: User): Promise<Order[]> {
+  async orders(
+    @Args('args', { type: () => OrderArgs, nullable: true })
+    inputArgs?: InstanceType<typeof OrderArgs>,
+    @ReqUser() user?: User
+  ): Promise<Order[]> {
     try {
-      // Simple read - no service needed
-      return await this.orderRepository.find({
-        order: { createdAt: 'DESC' },
-        take: 100,
-      });
+      const args = OrderArgs.toFindManyOptions(inputArgs);
+      return await this.orderRepository.find(args);
     } catch (error: unknown) {
       this.logger.error(
         `Failed to fetch orders: ${error instanceof Error ? error.message : 'Unknown error'}`,
@@ -42,7 +52,6 @@ export class OrderResolver {
   @UseGuards(PermGuard)
   async order(@Args('id') id: string, @ReqUser() user: User): Promise<Order | null> {
     try {
-      // Simple read - directly from repository
       return await this.orderRepository.findOne({ where: { id } });
     } catch (error: unknown) {
       this.logger.error(
@@ -51,35 +60,6 @@ export class OrderResolver {
       );
       throw error;
     }
-  }
-
-  @Query(() => Order, { nullable: true })
-  async orderByNumber(@Args('orderNumber') orderNumber: string, @Args('cafeId') cafeId: string): Promise<Order | null> {
-    // Simple read - directly from repository
-    return await this.orderRepository.findOne({
-      where: { orderNumber, cafeId },
-    });
-  }
-
-  @Query(() => [Order])
-  @UseGuards(PermGuard)
-  async cafeOrders(@Args('cafeId') cafeId: string, @ReqUser() user?: User): Promise<Order[]> {
-    // Simple read with filter - directly from repository
-    return await this.orderRepository.find({
-      where: { cafeId },
-      order: { createdAt: 'DESC' },
-      take: 100,
-    });
-  }
-
-  @Query(() => [Order])
-  @UseGuards(PermGuard)
-  async myOrders(@ReqUser() user: User): Promise<Order[]> {
-    // Simple read - directly from repository
-    return await this.orderRepository.find({
-      where: { customerId: user.id },
-      order: { createdAt: 'DESC' },
-    });
   }
 
   @Query(() => Order, { nullable: true })
@@ -224,7 +204,94 @@ export class OrderResolver {
     return true;
   }
 
-  // Field Resolvers removed - DataLoader not available
+  // Field Resolvers - Use parent object when available, lazy load via ID when not
+  @ResolveField(() => [OrderItem])
+  async items(@Parent() order: Order): Promise<OrderItem[]> {
+    // If items are already loaded, return them
+    if (order.items) {
+      return order.items;
+    }
+    // Otherwise, lazy load using parent's ID
+    return this.orderItemRepository.find({
+      where: { orderId: order.id },
+    });
+  }
+
+  @ResolveField(() => Cafe)
+  async cafe(@Parent() order: Order): Promise<Cafe> {
+    // If cafe is already loaded, return it
+    if (order.cafe) {
+      return order.cafe;
+    }
+    // Otherwise, lazy load using parent's cafeId
+    const cafe = await this.cafeRepository.findOne({
+      where: { id: order.cafeId },
+    });
+    if (!cafe) {
+      throw new Error(`Cafe with ID ${order.cafeId} not found`);
+    }
+    return cafe;
+  }
+
+  @ResolveField(() => User, { nullable: true })
+  async customer(@Parent() order: Order): Promise<User | null> {
+    // If customer is already loaded, return it
+    if (order.customer !== undefined) {
+      return order.customer;
+    }
+    // If no customerId, return null
+    if (!order.customerId) {
+      return null;
+    }
+    // Otherwise, lazy load using parent's customerId
+    return this.userRepository.findOne({
+      where: { id: order.customerId },
+    });
+  }
+
+  @ResolveField(() => User, { nullable: true })
+  async createdByEmployee(@Parent() order: Order): Promise<User | null> {
+    // If createdByEmployee is already loaded, return it
+    if (order.createdByEmployee !== undefined) {
+      return order.createdByEmployee;
+    }
+    // If no createdByEmployeeId, return null
+    if (!order.createdByEmployeeId) {
+      return null;
+    }
+    // Otherwise, lazy load using parent's createdByEmployeeId
+    return this.userRepository.findOne({
+      where: { id: order.createdByEmployeeId },
+    });
+  }
+
+  @ResolveField(() => User, { nullable: true })
+  async assignedStaff(@Parent() order: Order): Promise<User | null> {
+    // If assignedStaff is already loaded, return it
+    if (order.assignedStaff !== undefined) {
+      return order.assignedStaff;
+    }
+    // If no assignedStaffId, return null
+    if (!order.assignedStaffId) {
+      return null;
+    }
+    // Otherwise, lazy load using parent's assignedStaffId
+    return this.userRepository.findOne({
+      where: { id: order.assignedStaffId },
+    });
+  }
+
+  @ResolveField(() => [Payment])
+  async payments(@Parent() order: Order): Promise<Payment[]> {
+    // If payments are already loaded, return them
+    if (order.payments) {
+      return order.payments;
+    }
+    // Otherwise, lazy load using parent's ID
+    return this.paymentRepository.find({
+      where: { orderId: order.id },
+    });
+  }
 
   // Subscriptions
   @Subscription(() => Order, {

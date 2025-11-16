@@ -5,10 +5,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { PubSub } from 'graphql-subscriptions';
 import { PermGuard, ReqUser } from '@app/backend-authorization';
-import { User } from '@app/models';
-import {
-  LoyaltyChallenge,
-} from '@app/models';
+import { Cafe, LoyaltyChallenge, User } from '@app/models';
 import { LoyaltyChallengeArgs } from '../../args';
 
 @Injectable()
@@ -20,6 +17,8 @@ export class LoyaltyChallengeResolver {
   constructor(
     @InjectRepository(LoyaltyChallenge)
     private readonly loyaltyChallengeRepository: Repository<LoyaltyChallenge>,
+    @InjectRepository(Cafe)
+    private readonly cafeRepository: Repository<Cafe>,
   ) {}
 
   // Queries - only simple repository-based queries
@@ -46,9 +45,17 @@ export class LoyaltyChallengeResolver {
     }
   }
 
-  // All other queries, mutations, and field resolvers removed - require LoyaltyService which will not be implemented
+  // All other queries, mutations removed - require LoyaltyService which will not be implemented
 
-  // Field Resolvers - only simple logic without service dependencies
+  // Field Resolvers - Use parent object when available, lazy load via ID when not
+  @ResolveField(() => Cafe)
+  async cafe(@Parent() challenge: LoyaltyChallenge): Promise<Cafe> {
+    if (challenge.cafe) return challenge.cafe;
+    const cafe = await this.cafeRepository.findOne({ where: { id: challenge.cafeId } });
+    if (!cafe) throw new Error(`Cafe with ID ${challenge.cafeId} not found`);
+    return cafe;
+  }
+
   @ResolveField(() => Boolean)
   async hasExpired(@Parent() challenge: LoyaltyChallenge): Promise<boolean> {
     if (!challenge.endDate) return false;
