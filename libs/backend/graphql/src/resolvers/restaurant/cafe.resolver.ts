@@ -11,7 +11,6 @@ import { CafeArgs } from '../../args';
 import { CafeCreateInput, CafeUpdateInput } from '../../inputs';
 import { PublicAccess } from '../../middleware/role-access-control.middleware';
 
-@Injectable()
 @Resolver(() => Cafe)
 export class CafeResolver {
   private pubSub: any = new PubSub();
@@ -37,8 +36,6 @@ export class CafeResolver {
   async cafes(
     @Args('args', { type: () => CafeArgs, nullable: true })
     inputArgs?: InstanceType<typeof CafeArgs>,
-    @ReqUser()
-    user?: User,
   ): Promise<Cafe[]> {
     const args = CafeArgs.toFindOneOptions(inputArgs);
 
@@ -49,46 +46,11 @@ export class CafeResolver {
 
   @Query(() => Cafe, { nullable: true })
   @UseGuards(PermGuard)
-  async cafe(@Args('id') id: string, @ReqUser() user: User): Promise<Cafe | null> {
+  @PublicAccess()
+  async cafe(@Args('id') id: string): Promise<Cafe | null> {
     // Use repository directly for simple CRUD
     return this.cafeRepository.findOne({
       where: { id },
-    });
-  }
-
-  @Query(() => [Cafe])
-  @UseGuards(PermGuard)
-  async myCafes(@ReqUser() user: User): Promise<Cafe[]> {
-    // Return all cafes the user has permission for (many-to-many relationship)
-    // The cafes are already loaded by PermGuard with relations: ['cafes']
-    return user.cafes || [];
-  }
-
-  /**
-   * Query to find a cafe by its hostname.
-   * This is used for hostname-based cafe detection and does NOT require authentication.
-   * This allows the frontend to detect which cafe is being visited before login.
-   *
-   * @param hostname - The hostname to lookup (e.g., "my-cafe.tabletap.com", "localhost:4200")
-   * @returns The cafe associated with the hostname, or null if not found
-   */
-  @Query(() => Cafe, { nullable: true })
-  @PublicAccess() // Public: Required for hostname-based cafe detection before login
-  async cafeByHostname(@Args('hostname') hostname: string): Promise<Cafe | null> {
-    // Find the hostname entry
-    const cafeHostname = await this.cafeHostnameRepository.findOne({
-      where: { hostname, isActive: true },
-      relations: ['cafe'],
-    });
-
-    if (!cafeHostname) {
-      return null;
-    }
-
-    // Return the associated cafe with its hostnames
-    return this.cafeRepository.findOne({
-      where: { id: cafeHostname.cafeId },
-      relations: ['hostnames'],
     });
   }
 

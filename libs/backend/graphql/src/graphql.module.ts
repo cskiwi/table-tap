@@ -8,32 +8,7 @@ import { ApolloServerPluginLandingPageLocalDefault, ApolloServerPluginLandingPag
 import { ApolloServerPluginSchemaReporting } from '@apollo/server/plugin/schemaReporting';
 import { ApolloServerPluginUsageReporting } from '@apollo/server/plugin/usageReporting';
 import { AuthorizationModule } from '@app/backend-authorization';
-import {
-  AdminNotification,
-  AdminSettings,
-  Cafe,
-  CafeHostname,
-  CafeSettings,
-  Counter,
-  Employee,
-  InventoryAlert,
-  LoyaltyAccount,
-  LoyaltyChallenge,
-  LoyaltyPromotion,
-  LoyaltyReward,
-  LoyaltyRewardRedemption,
-  LoyaltyTier,
-  LoyaltyTransaction,
-  Product as Menu,
-  Order,
-  OrderItem,
-  Payment,
-  ProductAttribute,
-  SalesAnalytics,
-  Stock,
-  TimeSheet,
-  User,
-} from '@app/models';
+import * as Models from '@app/models';
 import { CacheModule } from '@nestjs/cache-manager';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -60,6 +35,20 @@ import { PaymentResolver } from './resolvers/restaurant/payment.resolver';
 import { SalesAnalyticsResolver } from './resolvers/restaurant/sales-analytics.resolver';
 import { CafeHostnameResolver } from './resolvers/restaurant';
 
+// Extract all entity classes from the models package
+// An entity class extends BaseEntity and is decorated with @Entity
+const entities = Object.entries(Models).filter(([name, value]) => {
+  if (typeof value !== 'function' || !value.prototype) return false;
+
+  // Check if it extends BaseEntity (TypeORM entity base class)
+  let proto = value.prototype;
+  while (proto) {
+    if (proto.constructor.name === 'BaseEntity') return true;
+    proto = Object.getPrototypeOf(proto);
+  }
+  return false;
+}) as Array<[string, new () => any]>;
+
 @Module({
   imports: [
     AuthorizationModule,
@@ -69,34 +58,8 @@ import { CafeHostnameResolver } from './resolvers/restaurant';
       max: 1000, // Maximum number of items in cache
     }),
     TypeOrmModule.forFeature([
-      // User entities
-      User,
-      // Restaurant entities 
-      Order,
-      OrderItem,
-      Payment,
-      CafeHostname,
-      Cafe,
-      Counter,
-      Stock,
-      Employee,
-      TimeSheet,
-      Menu,
-      ProductAttribute,
-      CafeSettings,
-      // Loyalty entities
-      LoyaltyAccount,
-      LoyaltyReward,
-      LoyaltyTransaction,
-      LoyaltyTier,
-      LoyaltyPromotion,
-      LoyaltyChallenge,
-      LoyaltyRewardRedemption,
-      // Admin entities
-      InventoryAlert,
-      AdminNotification,
-      AdminSettings,
-      SalesAnalytics,
+      // We need all models in our resolvers
+      ...entities.map(([, EntityClass]) => EntityClass),
     ]),
     NestJsGql.forRootAsync({
       driver: ApolloDriver,

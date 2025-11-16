@@ -55,6 +55,7 @@ export function getDbConfig(configService?: ConfigService): DataSourceOptions {
       migrations: addMigrations ? ['libs/backend/database/src/migrations/*.ts'] : undefined,
       synchronize: false,
       migrationsRun: false,
+      autoLoadEntities: true,
       cli: {
         migrationsDir: 'libs/backend/database/src/migrations',
       },

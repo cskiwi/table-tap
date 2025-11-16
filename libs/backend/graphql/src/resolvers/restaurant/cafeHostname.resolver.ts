@@ -14,6 +14,8 @@ export class CafeHostnameResolver {
   constructor(
     @InjectRepository(CafeHostname)
     private readonly cafeHostnameRepository: Repository<CafeHostname>,
+    @InjectRepository(Cafe)
+    private readonly cafeRepository: Repository<Cafe>,
   ) {}
 
   // Queries
@@ -40,7 +42,15 @@ export class CafeHostnameResolver {
   }
 
   @ResolveField(() => Cafe)
-  async cafes(@Parent() cafehostname: CafeHostname): Promise<Cafe> {
-    return cafehostname.cafe;
+  async cafe(@Parent() cafehostname: CafeHostname): Promise<Cafe> {
+    // If cafe is already loaded, return it
+    if (cafehostname.cafe) {
+      return cafehostname.cafe;
+    }
+    // Otherwise, lazy load using cafeId
+    const cafe = await this.cafeRepository.findOne({
+      where: { id: cafehostname.cafeId },
+    });
+    return cafe!;
   }
 }

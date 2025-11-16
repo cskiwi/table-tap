@@ -47,6 +47,8 @@ export class RoleBasedAccessGuard implements CanActivate {
   async canActivate(context: ExecutionContext): Promise<boolean> {
     // Check if route is marked as public
     const isPublic = this.reflector.get<boolean>('publicAccess', context.getHandler());
+    this.logger.debug(`Accessing route: ${context.getClass().name}.${context.getHandler().name}, Public: ${isPublic}`);
+
     if (isPublic) {
       this.logger.debug('Public route accessed - no authentication required');
       return true;
