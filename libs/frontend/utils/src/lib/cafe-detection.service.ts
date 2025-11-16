@@ -3,6 +3,7 @@ import { isPlatformBrowser } from '@angular/common';
 import { Apollo } from 'apollo-angular';
 import { Observable, map, of, catchError } from 'rxjs';
 import { gql } from 'apollo-angular';
+import { Cafe, CafeHostname } from '@app/models';
 
 /**
  * Service for detecting the current cafe from hostname.
@@ -17,30 +18,17 @@ import { gql } from 'apollo-angular';
  * ```
  */
 const GET_CAFE_BY_HOSTNAME = gql`
-  query GetCafeByHostname($hostname: String!) {
-    cafeByHostname(hostname: $hostname) {
+  query GetCafe($args: CafeHostnameArgs) {
+    cafeHostnames(args: $args) {
       id
-      name
-      description
-      slug
-      logo
-      website
-      isActive
-      status
+      cafe {
+        id
+        name
+        isActive
+      }
     }
   }
 `;
-
-export interface CafeInfo {
-  id: string;
-  name: string;
-  description?: string;
-  slug: string;
-  logo?: string;
-  website?: string;
-  isActive: boolean;
-  status?: string;
-}
 
 @Injectable({
   providedIn: 'root',
@@ -59,7 +47,7 @@ export class CafeDetectionService {
    *
    * @returns Observable of cafe information, or null if not found
    */
-  detectCafeByHostname(): Observable<CafeInfo | null> {
+  detectCafeByHostname(): Observable<Cafe | null> {
     const hostname = this.getCurrentHostname();
 
     if (!hostname) {
@@ -71,14 +59,25 @@ export class CafeDetectionService {
 
     // Query GraphQL API to find cafe by hostname
     return this.apollo
-      .query<{ cafeByHostname: CafeInfo | null }>({
+      .query<{ cafeHostnames: CafeHostname[] }>({
         query: GET_CAFE_BY_HOSTNAME,
-        variables: { hostname },
+        variables: {
+          args: {
+            take: 1,
+            where: [
+              {
+                hostname: {
+                  eq: hostname,
+                },
+              },
+            ],
+          },
+        },
         fetchPolicy: 'network-only', // Always fetch fresh data
       })
       .pipe(
         map((result) => {
-          const cafe = result.data.cafeByHostname;
+          const cafe = result.data.cafeHostnames[0]?.cafe;
           if (cafe) {
             console.log('[CafeDetection] Cafe detected:', { id: cafe.id, name: cafe.name, hostname });
           } else {
@@ -89,10 +88,9 @@ export class CafeDetectionService {
         catchError((error) => {
           console.error('[CafeDetection] Error detecting cafe:', error);
           return of(null);
-        })
+        }),
       );
   }
-
 
   /**
    * Gets current hostname for debugging.

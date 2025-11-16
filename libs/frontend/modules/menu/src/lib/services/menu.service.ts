@@ -1,20 +1,9 @@
 import { Injectable, computed, signal } from '@angular/core';
 import { Apollo } from 'apollo-angular';
-import { BehaviorSubject, Observable, combineLatest } from 'rxjs';
-import { map, catchError, debounceTime, distinctUntilChanged, shareReplay } from 'rxjs/operators';
-import {
-  MenuItem,
-  MenuCategory,
-  MenuFilters,
-  MenuSortOptions,
-  PaginationOptions,
-  MenuDisplayOptions,
-  MenuState,
-  MenuSearchResult,
-  MenuItemStatus,
-  MenuCustomization,
-} from '../types/menu.types';
-import { GET_PRODUCTS, GET_PRODUCT } from '../graphql/menu.queries';
+import { Observable } from 'rxjs';
+import { catchError, map } from 'rxjs/operators';
+import { GET_PRODUCT, GET_PRODUCTS } from '../graphql/menu.queries';
+import { MenuCategory, MenuCustomization, MenuDisplayOptions, MenuFilters, MenuItem, MenuSortOptions, PaginationOptions } from '../types/menu.types';
 
 @Injectable({
   providedIn: 'root',
@@ -92,7 +81,7 @@ export class MenuService {
     }
 
     // Apply sorting
-    items.sort((a, b) => {
+    [...items].sort((a, b) => {
       let aValue: any = a[sort.field];
       let bValue: any = b[sort.field];
 

@@ -15,19 +15,7 @@ import {
 import { Cafe } from './cafe.model';
 import { SortableField, WhereField } from '@app/utils';
 
-/**
- * CafeHostname entity for storing multiple hostnames/domains per cafe.
- * This enables multi-domain support where a single cafe can be accessed
- * via different hostnames (e.g., cafe-name.tabletap.com, custom-domain.com).
- *
- * @example
- * ```typescript
- * // Examples:
- * { hostname: 'my-cafe.tabletap.com', isPrimary: true, cafeId: 'cafe-123' }
- * { hostname: 'mycafe.com', isPrimary: false, cafeId: 'cafe-123' }
- * { hostname: 'localhost:4200', isPrimary: false, cafeId: 'cafe-123' } // For development
- * ```
- */
+
 @ObjectType('CafeHostname')
 @Entity('CafeHostnames')
 export class CafeHostname extends BaseEntity {
@@ -69,6 +57,7 @@ export class CafeHostname extends BaseEntity {
   @Column()
   declare cafeId: string;
 
+  @Field(() => Cafe)
   @ManyToOne(() => Cafe, (cafe) => cafe.hostnames, {
     onDelete: 'CASCADE',
   })
