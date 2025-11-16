@@ -4,7 +4,7 @@ import { isPlatformServer } from '@angular/common';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { map } from 'rxjs';
 import { NAVIGATOR } from './navigator.token';
-import { REQUEST } from '@angular/core';
+import { REQUEST } from './request.token';
 
 export const IS_MOBILE = new InjectionToken('DEVICE', {
   providedIn: 'root',

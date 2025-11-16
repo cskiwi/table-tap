@@ -1,8 +1,7 @@
 import { APP_BASE_HREF } from '@angular/common';
-import { REQUEST } from '@angular/core';
 import { CommonEngine } from '@angular/ssr/node';
 import { getServer } from '@app/backend-shared';
-import { NAVIGATOR } from '@app/frontend-utils';
+import { NAVIGATOR, REQUEST } from '@app/frontend-utils';
 import { ConfigService } from '@nestjs/config';
 import { ExpressAdapter } from '@nestjs/platform-express';
 import express from 'express';
@@ -41,30 +40,38 @@ export async function app() {
       next();
     } else {
       const userAgent = req.headers['user-agent'];
+      
+      // Debug: Log request details for SSR
+      console.log('[SSR Server] Processing request:', {
+        url: originalUrl,
+        host: headers.host,
+        userAgent: userAgent,
+        hasRequestObject: !!req,
+        hasHeaders: !!req.headers,
+        headerKeys: Object.keys(req.headers || {}),
+        cookieHeader: req.headers['cookie'],
+      });
+      
+      const providers = [
+        { provide: APP_BASE_HREF, useValue: baseUrl },
+        { provide: REQUEST, useValue: req },
+        { provide: 'REQUEST', useValue: req },
+        { provide: 'RESPONSE', useValue: res },
+        { provide: NAVIGATOR, useValue: userAgent },
+      ];
+      
+      console.log('[SSR Server] Providers being passed:', {
+        hasREQUEST: !!providers.find(p => p.provide === REQUEST),
+        REQUESTValue: (providers.find(p => p.provide === REQUEST)?.useValue as any)?.headers?.host,
+      });
+      
       commonEngine
         .render({
           bootstrap,
           documentFilePath: indexHtml,
           url: `${protocol}://${headers.host}${originalUrl}`,
           publicPath: browserDistFolder,
-          providers: [
-            { provide: APP_BASE_HREF, useValue: baseUrl },
-            {
-              provide: REQUEST,
-              useValue: {
-                headers: {
-                  get: (name: string) => {
-                    if (name.toLowerCase() === 'cookie') {
-                      return req.headers.cookie || '';
-                    }
-                    return req.headers[name.toLowerCase()];
-                  },
-                },
-              },
-            },
-            { provide: 'RESPONSE', useValue: res },
-            { provide: NAVIGATOR, useValue: userAgent },
-          ],
+          providers,
         })
         .then((html) => res.send(html))
         .catch((err) => next(err));
