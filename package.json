@@ -139,7 +139,7 @@
     "@swc/core": "^1.13.5",
     "@swc/helpers": "0.5.17",
     "@tailwindcss/postcss": "^4.1.13",
-    "@types/express": "5.0.3",
+    "@types/express": "5.0.5",
     "@types/ioredis": "^4.28.10",
     "@types/jest": "30.0.0",
     "@types/node": "~24.0.15",
