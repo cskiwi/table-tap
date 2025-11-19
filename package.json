@@ -178,7 +178,7 @@
   },
   "overrides": {
     "canvas": "3.1.2",
-    "stylus": "0.0.1-security"
+    "stylus": "0.64.0"
   },
   "engines": {
     "node": "22"
