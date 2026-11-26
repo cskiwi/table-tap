@@ -5,7 +5,7 @@
     "tslib": "^2.3.0",
     "@nestjs/common": "^11.0.11",
     "@nestjs/terminus": "^11.0.0",
-    "@nestjs/config": "4.0.2",
+    "@nestjs/config": "4.0.4",
     "ioredis": "^5.7.0",
     "@nestjs/graphql": "^13.1.0",
     "rxjs": "~7.8.2",
